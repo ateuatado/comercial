@@ -36,7 +36,7 @@ class DemoDataSeeder extends Seeder
                 'email'     => $faker->companyEmail(),
                 'perfil_vendedor' => 'COORDENADOR',
                 'se'        => $se_opcoes[array_rand($se_opcoes)],
-                'gerencia'  => 'Gerência Regional ' . $faker->city(),
+                'gerencia'  => 'GR ' . $faker->city(),
                 'mtr_coordenador' => null,
                 'nome_coordenador' => null,
                 'gerencia_vendas' => 'Coordenação ' . $i,
