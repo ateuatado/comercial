@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 555">
+
+  <!--
+    Cores:
+      Navy : #1d4080
+      Gold  : #f5b400
+  -->
+
+  <!-- ═══════════════════════════════════════════════
+       1. FLECHA – camada dourada (mais larga, por baixo)
+          Paralelogramo diagonal de baixo-esq → cima-dir
+  ═══════════════════════════════════════════════ -->
+  <polygon fill="#f5b400"
+    points="222,392  187,354  364,62  399,100"/>
+
+  <!-- ═══════════════════════════════════════════════
+       2. FLECHA – camada navy (mais estreita, por cima)
+          Ligeiramente deslocada para cima-esq em relação ao dourado
+  ═══════════════════════════════════════════════ -->
+  <polygon fill="#1d4080"
+    points="204,375  170,338  348,46  381,83"/>
+
+  <!-- ═══════════════════════════════════════════════
+       3. CARRINHO DE COMPRAS
+          Apenas contornos (stroke), sem fill, para que
+          a flecha seja visível no interior da cesta.
+          Stroke-linecap/linejoin=round para cantos suaves.
+  ═══════════════════════════════════════════════ -->
+  <g fill="none" stroke="#1d4080" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Alça (gancho J no canto superior esquerdo) -->
+    <path stroke-width="21"
+      d="M 160,132
+         L 115,132
+         Q  98,132  98,150
+         L  98,182
+         Q  98,200 117,200"/>
+
+    <!-- Trilho superior (horizontal) -->
+    <line x1="148" y1="132" x2="342" y2="132" stroke-width="21"/>
+
+    <!-- Lado direito (levemente inclinado) -->
+    <path stroke-width="21"
+      d="M 342,132 L 368,254"/>
+
+    <!-- Lado esquerdo (quase vertical) -->
+    <path stroke-width="21"
+      d="M 150,132 L 133,327"/>
+
+    <!-- Trilho inferior com cantos arredondados -->
+    <path stroke-width="21"
+      d="M 133,327
+         Q 133,347 152,347
+         L 322,347
+         Q 341,347 344,327
+         L 368,254"/>
+
+    <!-- Barra horizontal do meio (divide a cesta) -->
+    <line x1="148" y1="235" x2="362" y2="235" stroke-width="18"/>
+
+    <!-- Barra vertical interna (esquerda da cesta) -->
+    <line x1="196" y1="134" x2="176" y2="340" stroke-width="15"/>
+
+    <!-- Eixo das rodas -->
+    <line x1="151" y1="347" x2="322" y2="347" stroke-width="20"/>
+
+    <!-- Roda esquerda -->
+    <circle cx="177" cy="376" r="25" stroke-width="20" fill="white"/>
+
+    <!-- Roda direita -->
+    <circle cx="298" cy="376" r="25" stroke-width="20" fill="white"/>
+
+  </g>
+
+  <!-- Centro das rodas -->
+  <circle cx="177" cy="376" r="9" fill="#1d4080"/>
+  <circle cx="298" cy="376" r="9" fill="#1d4080"/>
+
+  <!-- ═══════════════════════════════════════════════
+       4. SWOOSH DOURADO dentro da cesta
+          Forma em folha/pétala curva na lateral esquerda
+          da cesta – representa a camada gold da flecha
+          visível pelo interior do carrinho.
+  ═══════════════════════════════════════════════ -->
+  <path fill="#f5b400"
+    d="M 203,156
+       C 191,210 190,268 205,334
+       L 227,328
+       C 213,263 215,207 226,159
+       Z"/>
+
+  <!-- ═══════════════════════════════════════════════
+       5. PONTA DA FLECHA
+          Dois triângulos sobrepostos (dourado + navy)
+          no canto superior direito, ligeiramente deslocados
+          para criar o efeito de profundidade.
+  ═══════════════════════════════════════════════ -->
+
+  <!-- Triângulo dourado (exterior/por baixo) -->
+  <polygon fill="#f5b400"
+    points="350,50  422,13  396,116  357,99"/>
+
+  <!-- Triângulo navy (interior/por cima) -->
+  <polygon fill="#1d4080"
+    points="336,66  407,29  381,131  342,114"/>
+
+  <!-- ═══════════════════════════════════════════════
+       6. TEXTO  "SPIV"
+  ═══════════════════════════════════════════════ -->
+  <text
+    x="250" y="516"
+    text-anchor="middle"
+    font-family="'Arial Black', 'Arial Bold', Arial, sans-serif"
+    font-size="132"
+    font-weight="900"
+    letter-spacing="3"
+    fill="#1d4080">SPIV</text>
+
+</svg>

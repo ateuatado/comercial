@@ -1,0 +1,19 @@
+DB Summary (schema=receita)
+
+receita.cnaes: 1359
+receita.empresas: 68629147
+receita.estabelecimentos: 0
+receita.log_ingestao: 19
+receita.motivos: 63
+receita.municipios: 5572
+receita.naturezas: 91
+receita.paises: 255
+receita.qualificacoes: 68
+receita.simples: 0
+receita.socios: 0
+receita.stg_estabelecimentos: 0
+
+Recent log_ingestao:
+log_ingestao error: SQLSTATE[42703]: Undefined column: 7 ERRO:  coluna "created_at" não existe
+LINE 1: ...registros_novos, registros_total, status, to_char(created_at...
+                                                             ^

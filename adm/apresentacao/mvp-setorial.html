@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPIV — MVP Setorial | Apresentação Executiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   SPIV — APRESENTAÇÃO EXECUTIVA MVP SETORIAL
+   Design: Corporativo Premium | Cores: Azul #003087 + Amarelo #FFCC00
+═══════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --azul:        #003087;
+  --azul-md:     #004aad;
+  --azul-light:  #0066cc;
+  --amarelo:     #FFCC00;
+  --amarelo-d:   #e6b800;
+  --branco:      #ffffff;
+  --cinza-bg:    #f0f4fa;
+  --cinza-card:  #e8edf5;
+  --texto:       #1a1e2e;
+  --texto-muted: #5a6278;
+  --sombra:      0 8px 40px rgba(0,48,135,0.13);
+  --sombra-xl:   0 20px 60px rgba(0,48,135,0.22);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0a0f1e;
+  color: var(--texto);
+  line-height: 1.6;
+}
+
+/* ── CAPA ─────────────────────────────────────────────────── */
+.slide-capa {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #010b1f 0%, #002060 45%, #003087 75%, #0044a8 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 60px 40px;
+}
+
+.slide-capa::before {
+  content:'';
+  position:absolute; top:-20%; left:-10%;
+  width:700px; height:700px;
+  background: radial-gradient(circle, rgba(255,204,0,0.08) 0%, transparent 70%);
+  border-radius:50%;
+}
+.slide-capa::after {
+  content:'';
+  position:absolute; bottom:-15%; right:-5%;
+  width:500px; height:500px;
+  background: radial-gradient(circle, rgba(0,102,204,0.15) 0%, transparent 70%);
+  border-radius:50%;
+}
+
+.capa-badge {
+  background: rgba(255,204,0,0.15);
+  border: 1px solid rgba(255,204,0,0.4);
+  color: var(--amarelo);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 8px 22px;
+  border-radius: 30px;
+  margin-bottom: 28px;
+  display: inline-block;
+}
+
+.capa-logo {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.08);
+  padding: 10px;
+  margin-bottom: 28px;
+  border: 2px solid rgba(255,204,0,0.3);
+}
+
+.capa-titulo {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  font-weight: 800;
+  color: var(--branco);
+  text-align: center;
+  line-height: 1.15;
+  margin-bottom: 10px;
+  position: relative; z-index: 1;
+}
+
+.capa-titulo span { color: var(--amarelo); }
+
+.capa-subtitulo {
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  color: rgba(255,255,255,0.65);
+  text-align: center;
+  max-width: 680px;
+  margin-bottom: 40px;
+  font-weight: 400;
+  position: relative; z-index: 1;
+}
+
+.capa-divider {
+  width: 80px; height: 4px;
+  background: linear-gradient(90deg, var(--amarelo), transparent);
+  border-radius: 4px;
+  margin: 0 auto 40px;
+}
+
+.capa-meta {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative; z-index: 1;
+}
+
+.capa-meta-item {
+  text-align: center;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.8rem;
+}
+.capa-meta-item strong {
+  display: block;
+  color: var(--amarelo);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.scroll-hint {
+  position: absolute; bottom: 30px;
+  color: rgba(255,255,255,0.35);
+  font-size: 0.75rem;
+  text-align: center;
+  animation: bounce 2s infinite;
+}
+.scroll-hint::before { content:'↓'; display:block; font-size:1.2rem; margin-bottom:4px; }
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(6px); }
+}
+
+/* ── SLIDES GERAIS ───────────────────────────────────────── */
+.slide {
+  min-height: 100vh;
+  padding: 80px 40px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.slide-branco    { background: var(--branco); }
+.slide-cinza     { background: var(--cinza-bg); }
+.slide-azul      { background: var(--azul); }
+.slide-azul-grad { background: linear-gradient(160deg, #001650 0%, #003087 60%, #004aad 100%); }
+.slide-escuro    { background: linear-gradient(160deg, #010b1f 0%, #001848 100%); }
+
+.slide-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* NUMERAÇÃO */
+.slide-num {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--amarelo);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.slide-num::before {
+  content: '';
+  display: inline-block;
+  width: 30px; height: 2px;
+  background: var(--amarelo);
+}
+.slide-num.dark { color: var(--azul); }
+.slide-num.dark::before { background: var(--azul); }
+
+/* TÍTULOS */
+.slide-h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.9rem, 3.5vw, 3rem);
+  font-weight: 800;
+  color: var(--branco);
+  line-height: 1.2;
+  margin-bottom: 18px;
+}
+.slide-h1.dark  { color: var(--azul); }
+.slide-h1 span  { color: var(--amarelo); }
+.slide-h1.dark span { color: var(--azul-light); }
+
+.slide-lead {
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  color: rgba(255,255,255,0.72);
+  max-width: 700px;
+  margin-bottom: 50px;
+  font-weight: 400;
+}
+.slide-lead.dark { color: var(--texto-muted); }
+
+/* ── SCREENSHOT ANNOTATED ────────────────────────────────── */
+.annotated-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.screenshot {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: var(--sombra-xl);
+  display: block;
+  border: 2px solid rgba(255,204,0,0.2);
+}
+
+/* Callouts — bolinha + linha + label */
+.callout {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Dot pulsante */
+.callout-dot {
+  width: 16px; height: 16px;
+  background: var(--amarelo);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 4px rgba(255,204,0,0.25), 0 0 0 8px rgba(255,204,0,0.1);
+  animation: pulse 2s ease infinite;
+  position: relative; z-index: 2;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 4px rgba(255,204,0,0.25), 0 0 0 8px rgba(255,204,0,0.1); }
+  50%      { box-shadow: 0 0 0 6px rgba(255,204,0,0.35), 0 0 0 12px rgba(255,204,0,0.08); }
+}
+
+.callout-line {
+  height: 2px;
+  background: linear-gradient(90deg, var(--amarelo), rgba(255,204,0,0.4));
+  flex-shrink: 0;
+}
+
+.callout-box {
+  background: var(--azul);
+  border: 1px solid rgba(255,204,0,0.4);
+  border-radius: 8px;
+  padding: 10px 14px;
+  max-width: 220px;
+  min-width: 160px;
+}
+.callout-box.right {
+  background: #001650;
+  border-color: rgba(255,204,0,0.5);
+}
+
+.callout-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--amarelo);
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.callout-text {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.78);
+  line-height: 1.4;
+}
+
+/* ── CARDS INFORMATIVOS ──────────────────────────────────── */
+.info-grid {
+  display: grid;
+  gap: 24px;
+}
+.info-grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.info-grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+
+.info-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,204,0,0.18);
+  border-radius: 16px;
+  padding: 30px;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.info-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,204,0,0.45);
+}
+.info-card.white {
+  background: var(--branco);
+  border: 1px solid var(--cinza-card);
+  box-shadow: var(--sombra);
+}
+.info-card.white:hover {
+  border-color: var(--azul);
+}
+
+.info-card-icon {
+  width: 52px; height: 52px;
+  background: var(--amarelo);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 18px;
+  flex-shrink: 0;
+}
+
+.info-card-num {
+  font-size: 2.6rem;
+  font-weight: 900;
+  color: var(--amarelo);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.info-card-num.dark { color: var(--azul); }
+
+.info-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--branco);
+  margin-bottom: 10px;
+}
+.info-card h3.dark { color: var(--azul); }
+
+.info-card p {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.6;
+}
+.info-card p.dark { color: var(--texto-muted); }
+
+/* ── FLUXO PROCESSO ──────────────────────────────────────── */
+.flow-steps {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.flow-step {
+  flex: 1;
+  min-width: 160px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.flow-step:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  right: -12px;
+  top: 22px;
+  color: var(--amarelo);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.flow-step-num {
+  width: 48px; height: 48px;
+  background: var(--amarelo);
+  color: var(--azul);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 900;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(255,204,0,0.35);
+}
+
+.flow-step h4 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--branco);
+  margin-bottom: 8px;
+}
+
+.flow-step p {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+}
+
+/* ── QUOTE / DESTAQUE ────────────────────────────────────── */
+.quote-box {
+  border-left: 5px solid var(--amarelo);
+  padding: 24px 30px;
+  background: rgba(255,204,0,0.06);
+  border-radius: 0 12px 12px 0;
+  margin: 30px 0;
+}
+.quote-box.dark {
+  background: rgba(0,48,135,0.06);
+  border-left-color: var(--azul);
+}
+
+.quote-box p {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  font-style: italic;
+  color: rgba(255,255,255,0.88);
+  line-height: 1.65;
+}
+.quote-box.dark p { color: var(--texto); }
+
+.quote-box cite {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--amarelo);
+  font-style: normal;
+  font-weight: 700;
+}
+.quote-box.dark cite { color: var(--azul); }
+
+/* ── TIMELINE ────────────────────────────────────────────── */
+.timeline {
+  position: relative;
+  padding-left: 40px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 10px; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--amarelo), rgba(255,204,0,0.1));
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 36px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -36px; top: 6px;
+  width: 14px; height: 14px;
+  background: var(--amarelo);
+  border-radius: 50%;
+  border: 3px solid var(--azul);
+}
+
+.timeline-item h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--amarelo);
+  margin-bottom: 6px;
+}
+
+.timeline-item p {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.6;
+}
+
+.timeline-item .fase-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(255,204,0,0.15);
+  color: var(--amarelo);
+  border: 1px solid rgba(255,204,0,0.3);
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+}
+
+/* ── BIG PROMISE (SLIDE FINAL) ───────────────────────────── */
+.promise-center {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.promise-icon {
+  font-size: 5rem;
+  margin-bottom: 30px;
+  display: block;
+}
+
+.promise-h {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 800;
+  color: var(--branco);
+  line-height: 1.2;
+  margin-bottom: 24px;
+}
+.promise-h span { color: var(--amarelo); }
+
+.promise-p {
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  color: rgba(255,255,255,0.72);
+  line-height: 1.75;
+  margin-bottom: 40px;
+}
+
+.promise-cta {
+  display: inline-block;
+  background: var(--amarelo);
+  color: var(--azul);
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 18px 48px;
+  border-radius: 12px;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 30px rgba(255,204,0,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.promise-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(255,204,0,0.55);
+}
+
+/* ── SEPARADORES ─────────────────────────────────────────── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 40px 0 30px;
+}
+.section-divider::before,
+.section-divider::after {
+  content:''; flex:1; height:1px;
+  background: rgba(255,204,0,0.2);
+}
+.section-divider span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,204,0,0.6);
+}
+.section-divider.dark::before,
+.section-divider.dark::after { background: rgba(0,48,135,0.15); }
+.section-divider.dark span { color: var(--azul); }
+
+/* ── PILL TAGS ───────────────────────────────────────────── */
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  background: rgba(255,204,0,0.12);
+  color: var(--amarelo);
+  border: 1px solid rgba(255,204,0,0.25);
+  letter-spacing: 0.3px;
+}
+.tag.azul {
+  background: rgba(0,48,135,0.08);
+  color: var(--azul);
+  border-color: rgba(0,48,135,0.2);
+}
+
+/* ── ROW UTIL ────────────────────────────────────────────── */
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+.row-2.rev { }
+@media (max-width: 800px) { .row-2 { grid-template-columns: 1fr; } }
+
+/* ── RODAPÉ ──────────────────────────────────────────────── */
+.slide-footer {
+  position: absolute;
+  bottom: 24px; left: 40px; right: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.28);
+}
+.slide-footer.dark { color: rgba(0,48,135,0.35); }
+.slide-footer span { font-weight: 600; }
+
+/* ── SCREENSHOT SECTION ──────────────────────────────────── */
+.screenshot-section {
+  position: relative;
+  border-radius: 16px;
+  overflow: visible;
+  margin: 20px 0;
+}
+
+.screenshot-frame {
+  background: #1a1a2e;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(255,204,0,0.25);
+  box-shadow: var(--sombra-xl);
+}
+
+.browser-bar {
+  background: #0d0d1a;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 8px;
+}
+.browser-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.browser-dot-r { background: #ff5f57; }
+.browser-dot-y { background: #febc2e; }
+.browser-dot-g { background: #28c840; }
+.browser-url {
+  margin-left: 10px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 6px;
+  padding: 4px 16px;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+  flex: 1;
+  max-width: 300px;
+}
+.browser-screenshot img { width: 100%; display: block; }
+
+/* Callout lateral (fora da imagem) */
+.annotation-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 0;
+  align-items: start;
+  margin: 30px 0;
+}
+.annotation-col-left,
+.annotation-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 20px;
+}
+
+.ann-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,204,0,0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  position: relative;
+}
+.ann-item.white {
+  background: var(--branco);
+  border: 1px solid var(--cinza-card);
+  box-shadow: 0 4px 15px rgba(0,48,135,0.1);
+}
+
+.ann-item::after {
+  content: '→';
+  position: absolute;
+  right: -22px;
+  top: 50%; transform: translateY(-50%);
+  color: var(--amarelo);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.annotation-col-right .ann-item::after {
+  content: '←';
+  right: auto;
+  left: -22px;
+}
+
+.ann-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--amarelo);
+  margin-bottom: 4px;
+}
+.ann-title.dark { color: var(--azul); }
+.ann-text {
+  font-size: 0.73rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.45;
+}
+.ann-text.dark { color: var(--texto-muted); }
+
+/* Número do slide no canto */
+.page-number {
+  position: fixed;
+  bottom: 20px; right: 30px;
+  background: rgba(0,48,135,0.7);
+  color: rgba(255,204,0,0.7);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  display: none; /* Não exibe em modo scroll */
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media print {
+  .slide { min-height: auto; page-break-after: always; }
+}
+@media (max-width: 768px) {
+  .annotation-row { grid-template-columns: 1fr; }
+  .annotation-col-left, .annotation-col-right { display: none; }
+  .ann-item::after { display: none; }
+  .flow-steps { flex-direction: column; }
+  .flow-step:not(:last-child)::after { content: '↓'; right: auto; left: 14px; top: auto; bottom: -20px; }
+  .slide { padding: 60px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 0 — CAPA
+════════════════════════════════════════════════════════ -->
+<section class="slide-capa">
+  <div class="capa-badge">🏆 Apresentação Executiva Confidencial</div>
+  <img class="capa-logo" src="logo.png" alt="SPIV">
+  <h1 class="capa-titulo">MVP Setorial <span>SPIV</span></h1>
+  <p class="capa-subtitulo">
+    Uma plataforma de gestão de carteiras de prospecção que transforma dados
+    brutos da Receita Federal em inteligência comercial real — na mão certa, na hora certa.
+  </p>
+  <div class="capa-divider"></div>
+  <div class="capa-meta">
+    <div class="capa-meta-item">
+      <strong>Protótipo Funcional</strong>
+      Demonstração ao Vivo
+    </div>
+    <div class="capa-meta-item">
+      <strong>56 Vendedores</strong>
+      Cobertura da Equipe
+    </div>
+    <div class="capa-meta-item">
+      <strong>Receita Federal</strong>
+      Fonte de Dados
+    </div>
+    <div class="capa-meta-item">
+      <strong>Junho / 2026</strong>
+      Data da Apresentação
+    </div>
+  </div>
+  <div class="scroll-hint">Role para continuar</div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 1 — O PROBLEMA
+════════════════════════════════════════════════════════ -->
+<section class="slide slide-azul-grad">
+  <div class="slide-inner">
+    <div class="slide-num">01 — O Desafio</div>
+    <h2 class="slide-h1">Carteiras geridas<br>no <span>escuro</span></h2>
+    <p class="slide-lead">
+      Toda equipe de vendas tem um inimigo silencioso: a falta de visibilidade.
+      Sem um sistema centralizado, prospectar se torna uma atividade cara, imprecisa e difícil de medir.
+    </p>
+
+    <div class="info-grid info-grid-3">
+      <div class="info-card">
+        <div class="info-card-icon">⚠️</div>
+        <h3>Dados dispersos</h3>
+        <p class="dark" style="color:rgba(255,255,255,0.65);">
+          Listas de CNPJs chegam por e-mail, planilhas e sistemas desconectados.
+          Não há rastreabilidade de origem, nem cruzamento com a base de clientes.
+        </p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">🔄</div>
+        <h3>Retrabalho e sobreposição</h3>
+        <p style="color:rgba(255,255,255,0.65);">
+          Dois vendedores prospectando o mesmo CNPJ. Clientes existentes sendo
+          abordados como novos. Esforço desperdiçado, relação desgastada.
+        </p>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">📊</div>
+        <h3>Zero feedback estruturado</h3>
+        <p style="color:rgba(255,255,255,0.65);">
+          O resultado de cada visita some no caderno do vendedor. A empresa não
+          aprende, não acumula inteligência e repete os mesmos erros.
+        </p>
+      </div>
+    </div>
+
+    <div class="quote-box" style="margin-top:40px;">
+      <p>
+        "Quando não há sistema, o vendedor é a memória da empresa.
+        E memória humana não escala."
+      </p>
+      <cite>— Premissa do MVP Setorial SPIV</cite>
+    </div>
+  </div>
+  <div class="slide-footer">SPIV — MVP Setorial <span>Confidencial</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 2 — A SOLUÇÃO / VISÃO GERAL
+════════════════════════════════════════════════════════ -->
+<section class="slide slide-branco">
+  <div class="slide-inner">
+    <div class="slide-num dark">02 — A Solução</div>
+    <h2 class="slide-h1 dark">SPIV: uma plataforma.<br><span>Todo o ciclo de prospecção.</span></h2>
+    <p class="slide-lead dark">
+      O MVP Setorial SPIV é um sistema web desenvolvido especificamente para estruturar,
+      distribuir e acompanhar o trabalho de prospecção da equipe comercial — do dado bruto
+      da Receita Federal até o feedback enriquecido de campo.
+    </p>
+
+    <div class="info-grid info-grid-2">
+      <div class="info-card white">
+        <div class="info-card-icon" style="background:var(--azul);">🏛️</div>
+        <h3 class="dark">Dados da Receita Federal</h3>
+        <p class="dark">
+          CNPJs fornecidos pela RFB são ingeridos, validados e cruzados automaticamente
+          com a base de clientes existente. Só chegam ao vendedor os prospects reais.
+        </p>
+        <div class="tags"><span class="tag azul">Ingestão automática</span><span class="tag azul">Deduplicação</span></div>
+      </div>
+      <div class="info-card white">
+        <div class="info-card-icon" style="background:var(--azul);">👥</div>
+        <h3 class="dark">56 vendedores organizados</h3>
+        <p class="dark">
+          Cada vendedor acessa o sistema com matrícula e senha de rede. Vê somente
+          sua carteira, registra visitas e alimenta a base com dados reais de campo.
+        </p>
+        <div class="tags"><span class="tag azul">Login seguro</span><span class="tag azul">Carteira individual</span></div>
+      </div>
+      <div class="info-card white">
+        <div class="info-card-icon" style="background:var(--azul);">🗺️</div>
+        <h3 class="dark">Distribuição inteligente</h3>
+        <p class="dark">
+          O gestor define as regras e o sistema distribui os leads entre os 56 vendedores,
+          eliminando sobreposições e garantindo equilíbrio de carga.
+        </p>
+        <div class="tags"><span class="tag azul">Por regras de negócio</span><span class="tag azul">Sem sobreposição</span></div>
+      </div>
+      <div class="info-card white">
+        <div class="info-card-icon" style="background:var(--azul);">⭐</div>
+        <h3 class="dark">Feedback que vira inteligência</h3>
+        <p class="dark">
+          Cada visita registrada enriquece o perfil do prospect. Com o tempo, a base
+          acumula sinais de mercado que alimentam análises preditivas.
+        </p>
+        <div class="tags"><span class="tag azul">Enriquecimento de dados</span><span class="tag azul">Analítica futura</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer dark">SPIV — MVP Setorial <span>Confidencial</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 3 — SCREENSHOT 1 — HERO / CABEÇALHO
+════════════════════════════════════════════════════════ -->
+<section class="slide slide-escuro" style="padding-top:60px;padding-bottom:60px;">
+  <div class="slide-inner">
+    <div class="slide-num">03 — O Protótipo em Tela</div>
+    <h2 class="slide-h1">A interface que os gerentes<br><span>verão em produção</span></h2>
+    <p class="slide-lead">
+      Visual profissional, cores corporativas e estrutura clara.
+      Cada elemento da tela foi pensado para acelerar o trabalho do vendedor e do gestor.
+    </p>
+
+    <!-- Anotações laterais + screenshot central -->
+    <div class="annotation-row">
+
+      <!-- Coluna esquerda de anotações -->
+      <div class="annotation-col-left">
+        <div class="ann-item">
+          <div class="ann-title">🔵 Barra de Topo</div>
+          <div class="ann-text">Telefone e e-mail institucionais + acesso rápido à conta. Presença corporativa imediata.</div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-title">🟡 Logo + Identidade</div>
+          <div class="ann-text">Marca SPIV com tagline "Carteira de Prospecção" — posicionamento claro do sistema.</div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-title">📌 Navbar Modular</div>
+          <div class="ann-text">6 módulos no menu: Ingestão, Distribuição, Visitas, Relatórios + botão destacado Área do Vendedor.</div>
+        </div>
+      </div>
+
+      <!-- Screenshot central com moldura de browser -->
+      <div style="padding: 0 20px;">
+        <div class="screenshot-frame">
+          <div class="browser-bar">
+            <div class="browser-dot browser-dot-r"></div>
+            <div class="browser-dot browser-dot-y"></div>
+            <div class="browser-dot browser-dot-g"></div>
+            <div class="browser-url">🔒 https://spiv.test</div>
+          </div>
+          <div class="browser-screenshot">
+            <img src="screenshot-01-hero.png" alt="SPIV — Tela Hero">
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna direita de anotações -->
+      <div class="annotation-col-right">
+        <div class="ann-item">
+          <div class="ann-title">🚀 Hero Motivacional</div>
+          <div class="ann-text">Mensagem de impacto para o vendedor. Deixa claro o propósito: prospectar com inteligência.</div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-title">👤 Badges Contextuais</div>
+          <div class="ann-text">"56 Vendedores" e "Dados da Receita Federal" — os dois pilares do sistema em destaque visual.</div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-title">🟡 CTAs Primários</div>
+          <div class="ann-text">Dois botões: "Área do Vendedor" e "Painel Admin" — entrada clara para cada perfil de usuário.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="slide-footer">SPIV — MVP Setorial <span>Confidencial</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 4 — SCREENSHOT 2 — MÓDULOS / CORPO DA PÁGINA
+════════════════════════════════════════════════════════ -->
+<section class="slide slide-cinza" style="padding-top:60px;padding-bottom:60px;">
+  <div class="slide-inner">
+    <div class="slide-num dark">04 — Módulos do Sistema</div>
+    <h2 class="slide-h1 dark">Seis módulos.<br><span style="color:var(--azul-light);">Um fluxo contínuo.</span></h2>
+    <p class="slide-lead dark">
+      O corpo da página apresenta os 6 grandes módulos operacionais,
+      com acesso rápido à direita e o fluxo do processo de prospecção explicado passo a passo.
+    </p>
+
+    <div class="annotation-row">
+
+      <div class="annotation-col-left" style="padding-top:10px;">
+        <div class="ann-item white">
+          <div class="ann-title dark">📤 Ingestão de CNPJs</div>
+          <div class="ann-text dark">Upload de arquivo da Receita Federal. Sistema processa e valida automaticamente cada registro.</div>
+        </div>
+        <div class="ann-item white">
+          <div class="ann-title dark">✅ Verificação de Clientes</div>
+          <div class="ann-text dark">Cruzamento com base existente. Elimina clientes atuais antes de enviar para a equipe.</div>
+        </div>
+        <div class="ann-item white">
+          <div class="ann-title dark">📊 Distribuição de Carteiras</div>
+          <div class="ann-text dark">Regras de negócio dividem os leads entre os 56 vendedores de forma justa e rastreável.</div>
+        </div>
+      </div>
+
+      <div style="padding: 0 20px;">
+        <div class="screenshot-frame">
+          <div class="browser-bar">
+            <div class="browser-dot browser-dot-r"></div>
+            <div class="browser-dot browser-dot-y"></div>
+            <div class="browser-dot browser-dot-g"></div>
+            <div class="browser-url">🔒 https://spiv.test</div>
+          </div>
+          <div class="browser-screenshot">
+            <img src="screenshot-02-modulos.png" alt="SPIV — Módulos">
+          </div>
+        </div>
+      </div>
+
+      <div class="annotation-col-right" style="padding-top:10px;">
+        <div class="ann-item white">
+          <div class="ann-title dark">👤 Minha Carteira</div>
+          <div class="ann-text dark">O vendedor vê apenas seus leads. Consulta CNPJ completo e planeja as visitas.</div>
+        </div>
+        <div class="ann-item white">
+          <div class="ann-title dark">📍 Registro de Visitas</div>
+          <div class="ann-text dark">Formulário simples de feedback. Cada visita registrada enriquece os dados do prospect.</div>
+        </div>
+        <div class="ann-item white">
+          <div class="ann-title dark">⚡ Acesso Rápido</div>
+          <div class="ann-text dark">Painel lateral com atalhos para todas as ações frequentes — vendedor ou gestor.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="slide-footer dark">SPIV — MVP Setorial <span>Confidencial</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 5 — SCREENSHOT 3 — FLUXO E FOOTER
+════════════════════════════════════════════════════════ -->
+<section class="slide slide-escuro" style="padding-top:60px;padding-bottom:60px;">
+  <div class="slide-inner">
+    <div class="slide-num">05 — Fluxo e Integridade Visual</div>
+    <h2 class="slide-h1">O fluxo explicado<br><span>na própria tela</span></h2>
+    <p class="slide-lead">
+      O painel "Como Funciona" educa o vendedor sem treinamento formal.
+      O rodapé reforça os módulos e o posicionamento institucional do sistema.
+    </p>
+
+    <div class="annotation-row">
+
+      <div class="annotation-col-left">
+        <div class="ann-item">
+          <div class="ann-title">📋 Fluxo de 5 Etapas</div>
+          <div class="ann-text">O processo completo — da Receita até o feedback — visível em uma coluna. Elimina dúvidas sem manual.</div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-title">🟡 Etapa 5 em Destaque</div>
+          <div class="ann-text">"Feedback enriquece o perfil do prospect" — a promessa estratégica do sistema comunicada visualmente.</div>
+        </div>
+      </div>
+
+      <div style="padding: 0 20px;">
+        <div class="screenshot-frame">
+          <div class="browser-bar">
+            <div class="browser-dot browser-dot-r"></div>
+            <div class="browser-dot browser-dot-y"></div>
+            <div class="browser-dot browser-dot-g"></div>
+            <div class="browser-url">🔒 https://spiv.test</div>
+          </div>
+          <div class="browser-screenshot">
+            <img src="screenshot-03-fluxo.png" alt="SPIV — Fluxo e Footer">
+          </div>
+        </div>
+      </div>
+
+      <div class="annotation-col-right">
+        <div class="ann-item">
+          <div class="ann-title">🔵 Footer Institucional</div>
+          <div class="ann-text">Marca, módulos, funcionalidades e contato. Encerra a tela reforçando a identidade corporativa.</div>
+        </div>
+        <div class="ann-item">
+          <div class="ann-title">🏛️ Acesso Admin + Vendedor</div>
+          <div class="ann-text">Dois botões de acesso diretamente no footer — gestores e vendedores sempre encontram a entrada.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="slide-footer">SPIV — MVP Setorial <span>Confidencial</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 6 — O FLUXO OPERACIONAL
+════════════════════════════════════════════════════════ -->
+<section class="slide slide-azul-grad">
+  <div class="slide-inner">
+    <div class="slide-num">06 — Fluxo Operacional</div>
+    <h2 class="slide-h1">Como o SPIV funciona<br><span>na prática</span></h2>
+    <p class="slide-lead">
+      Cinco etapas que transformam um arquivo de CNPJs num ciclo de inteligência comercial
+      contínuo e rastreável — com cada passo registrado no sistema.
+    </p>
+
+    <div class="flow-steps" style="margin-top: 20px;">
+      <div class="flow-step">
+        <div class="flow-step-num">1</div>
+        <h4>Receita Federal</h4>
+        <p>Arquivo de CNPJs é fornecido pela RFB e importado no módulo de Ingestão.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">2</div>
+        <h4>Deduplicação</h4>
+        <p>Sistema cruza automaticamente com a base de clientes e remove os já atendidos.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">3</div>
+        <h4>Distribuição</h4>
+        <p>Gestor define as regras. Sistema divide os leads entre os 56 vendedores.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">4</div>
+        <h4>Visita ao Prospect</h4>
+        <p>Vendedor acessa com matrícula, vê sua carteira e realiza as visitas.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">5</div>
+        <h4>Feedback → Inteligência</h4>
+        <p>Cada retorno de campo enriquece o perfil do prospect e alimenta a base analítica.</p>
+      </div>
+    </div>
+
+    <div class="section-divider" style="margin-top: 50px;">
+      <span>O diferencial competitivo</span>
+    </div>
+
+    <div class="quote-box">
+      <p>
+        "A maioria das empresas prospecta. Poucas <em>aprendem</em> com o que prospectam.
+        O SPIV é o sistema que fecha esse loop — transformando o campo numa fonte
+        permanente de inteligência de mercado."
+      </p>
+      <cite>— Visão estratégica do MVP Setorial</cite>
+    </div>
+  </div>
+  <div class="slide-footer">SPIV — MVP Setorial <span>Confidencial</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 7 — O QUE O GESTOR GANHA
+════════════════════════════════════════════════════════ -->
+<section class="slide slide-branco">
+  <div class="slide-inner">
+    <div class="slide-num dark">07 — Valor para a Gestão</div>
+    <h2 class="slide-h1 dark">O que muda para quem<br><span style="color:var(--azul-light);">dirige a operação</span></h2>
+    <p class="slide-lead dark">
+      O SPIV não é uma ferramenta para o vendedor. É um instrumento de gestão.
+      O gestor ganha visibilidade total que hoje simplesmente não existe.
+    </p>
+
+    <div class="info-grid info-grid-3">
+      <div class="info-card white">
+        <div class="info-card-num dark">56</div>
+        <h3 class="dark">Vendedores monitorados</h3>
+        <p class="dark">Veja em tempo real quem visitou, quem está com carteira parada e quem está convertendo mais.</p>
+      </div>
+      <div class="info-card white">
+        <div class="info-card-num dark">100%</div>
+        <h3 class="dark">Rastreabilidade</h3>
+        <p class="dark">Cada CNPJ tem histórico completo: de onde veio, para quem foi, quantas vezes foi visitado e com qual resultado.</p>
+      </div>
+      <div class="info-card white">
+        <div class="info-card-num dark">∞</div>
+        <h3 class="dark">Dados que acumulam</h3>
+        <p class="dark">A cada ciclo de prospecção, a base fica mais rica. O sistema aprende com o campo e melhora as próximas rodadas.</p>
+      </div>
+    </div>
+
+    <div class="section-divider dark" style="margin-top:40px;"><span>Benefícios operacionais imediatos</span></div>
+
+    <div class="info-grid info-grid-2" style="margin-top:10px;">
+      <div class="info-card white">
+        <p class="dark">✅ <strong>Fim das planilhas paralelas</strong> — um sistema, uma verdade, todos alinhados.</p>
+      </div>
+      <div class="info-card white">
+        <p class="dark">✅ <strong>Sem mais sobreposição</strong> — dois vendedores jamais abordarão o mesmo CNPJ simultaneamente.</p>
+      </div>
+      <div class="info-card white">
+        <p class="dark">✅ <strong>Login com credenciais de rede</strong> — zero custo de onboarding. O vendedor já sabe sua senha.</p>
+      </div>
+      <div class="info-card white">
+        <p class="dark">✅ <strong>Relatórios gerenciais nativos</strong> — desempenho por vendedor, taxa de conversão e evolução da carteira.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer dark">SPIV — MVP Setorial <span>Confidencial</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 8 — ROADMAP / PRÓXIMAS FASES
+════════════════════════════════════════════════════════ -->
+<section class="slide slide-azul">
+  <div class="slide-inner">
+    <div class="slide-num">08 — Roadmap</div>
+    <h2 class="slide-h1">Do protótipo ao<br><span>centro de inteligência</span></h2>
+    <p class="slide-lead">
+      Este MVP é apenas o ponto de partida. O roadmap está planejado para
+      evoluir de forma incremental, cada fase adicionando uma camada de valor.
+    </p>
+
+    <div class="row-2">
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="fase-badge">MVP — Agora</span>
+          <h4>🟡 Fase 1 — Protótipo Funcional</h4>
+          <p>Interface completa, ingestão de CNPJs, deduplicação, distribuição de carteiras, login por matrícula, registro de visitas e relatórios básicos.</p>
+        </div>
+        <div class="timeline-item">
+          <span class="fase-badge">Fase 2 — 90 dias</span>
+          <h4>🔵 Regras de Distribuição Avançadas</h4>
+          <p>Distribuição por território, segmento de mercado, porte do CNPJ e histórico do vendedor. Balanceamento automático de carga de trabalho.</p>
+        </div>
+        <div class="timeline-item">
+          <span class="fase-badge">Fase 3 — 180 dias</span>
+          <h4>🔵 Enriquecimento e Scoring</h4>
+          <p>Cada feedback de visita alimenta um modelo de scoring de prospects. O sistema passa a sugerir quais CNPJs têm maior potencial de conversão.</p>
+        </div>
+        <div class="timeline-item">
+          <span class="fase-badge">Fase 4 — 12 meses</span>
+          <h4>🟡 Inteligência Analítica</h4>
+          <p>Dashboard gerencial com análise preditiva, identificação de padrões de mercado, alertas proativos e integração com sistemas de CRM corporativo.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="info-card" style="margin-bottom:20px;">
+          <div class="info-card-icon">🏗️</div>
+          <h3>Tecnologia robusta</h3>
+          <p style="color:rgba(255,255,255,0.65);">Construído em <strong style="color:var(--amarelo);">PHP / CodeIgniter 4</strong> com banco <strong style="color:var(--amarelo);">PostgreSQL</strong> e frontend <strong style="color:var(--amarelo);">Bootstrap 5</strong>. Stack sólida, madura e escalável.</p>
+          <div class="tags" style="margin-top:14px;">
+            <span class="tag">CodeIgniter 4.7</span>
+            <span class="tag">PostgreSQL 18</span>
+            <span class="tag">Bootstrap 5.3</span>
+            <span class="tag">PHP 8.2</span>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">🔒</div>
+          <h3>Segurança por design</h3>
+          <p style="color:rgba(255,255,255,0.65);">HTTPS nativo com certificado local. Autenticação por matrícula e senha de rede corporativa. Acesso segmentado por perfil: vendedor e administrador.</p>
+          <div class="tags" style="margin-top:14px;">
+            <span class="tag">HTTPS / TLS</span>
+            <span class="tag">Autenticação por rede</span>
+            <span class="tag">Perfis de acesso</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">SPIV — MVP Setorial <span>Confidencial</span></div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SLIDE 9 — A GRANDE PROMESSA (FINAL)
+════════════════════════════════════════════════════════ -->
+<section class="slide" style="background: linear-gradient(160deg, #000a20 0%, #001448 30%, #002a80 70%, #003eb3 100%); min-height:100vh;">
+  <div class="slide-inner">
+
+    <!-- Decorativo: círculos de fundo -->
+    <div style="position:absolute;top:5%;left:50%;transform:translateX(-50%);
+                width:600px;height:600px;border-radius:50%;
+                background:radial-gradient(circle, rgba(255,204,0,0.06) 0%, transparent 70%);
+                pointer-events:none;"></div>
+
+    <div class="promise-center" style="position:relative;z-index:1;">
+      <span class="promise-icon">🚀</span>
+
+      <h2 class="promise-h">
+        Esse é o sistema que vai colocar<br>
+        a SPIV em <span>outro patamar</span>
+      </h2>
+
+      <p class="promise-p">
+        Não estamos apenas organizando planilhas ou digitalizando o que já existe.
+        Estamos construindo a <strong style="color:var(--amarelo);">infraestrutura de inteligência comercial</strong>
+        que a SPIV nunca teve — e que os concorrentes ainda não têm.
+      </p>
+
+      <p class="promise-p" style="margin-bottom:20px;">
+        Com o MVP Setorial funcionando, cada visita de cada vendedor deixa de ser
+        uma ação isolada e passa a ser um <strong style="color:var(--amarelo);">dado valioso</strong>
+        que melhora a próxima rodada de prospecção. A base cresce, o scoring melhora,
+        a conversão aumenta — num ciclo virtuoso e contínuo.
+      </p>
+
+      <div class="quote-box" style="max-width:680px;margin:0 auto 40px;">
+        <p style="font-size:1.15rem;">
+          "No futuro próximo, a SPIV não vai mais só prospectar clientes.
+          Ela vai <em>prever</em> quais prospects têm maior probabilidade de se tornarem
+          clientes — com base nos dados que esse sistema está começando a acumular hoje."
+        </p>
+        <cite>— Visão de longo prazo do Projeto SPIV</cite>
+      </div>
+
+      <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;">
+        <div style="text-align:center;padding:20px 30px;background:rgba(255,204,0,0.1);
+                    border:1px solid rgba(255,204,0,0.3);border-radius:12px;">
+          <div style="font-size:2rem;font-weight:900;color:var(--amarelo);">56</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;">Vendedores Conectados</div>
+        </div>
+        <div style="text-align:center;padding:20px 30px;background:rgba(255,204,0,0.1);
+                    border:1px solid rgba(255,204,0,0.3);border-radius:12px;">
+          <div style="font-size:2rem;font-weight:900;color:var(--amarelo);">5</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;">Etapas Automatizadas</div>
+        </div>
+        <div style="text-align:center;padding:20px 30px;background:rgba(255,204,0,0.1);
+                    border:1px solid rgba(255,204,0,0.3);border-radius:12px;">
+          <div style="font-size:2rem;font-weight:900;color:var(--amarelo);">∞</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;">Inteligência Acumulada</div>
+        </div>
+      </div>
+
+      <a href="https://spiv.test" class="promise-cta" target="_blank">
+        🔗 &nbsp; Acessar o Protótipo Agora
+      </a>
+
+      <p style="margin-top:24px;font-size:0.75rem;color:rgba(255,255,255,0.3);">
+        Ambiente local — <code style="color:rgba(255,204,0,0.5);">https://spiv.test</code> &nbsp;|&nbsp;
+        MVP Setorial SPIV &nbsp;|&nbsp; Junho de 2026
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     BARRA DE NAVEGAÇÃO DA APRESENTAÇÃO
+════════════════════════════════════════════════════════ -->
+<nav style="position:fixed;bottom:0;left:0;right:0;
+            background:rgba(0,10,30,0.92);backdrop-filter:blur(12px);
+            border-top:1px solid rgba(255,204,0,0.15);
+            padding:10px 30px;z-index:1000;
+            display:flex;justify-content:space-between;align-items:center;">
+  <span style="font-size:0.72rem;color:rgba(255,204,0,0.7);font-weight:700;letter-spacing:1px;">
+    SPIV — MVP SETORIAL
+  </span>
+  <div style="display:flex;gap:6px;">
+    <a href="#" onclick="scrollToSlide(0)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.4);display:inline-block;cursor:pointer;" title="Capa"></a>
+    <a href="#" onclick="scrollToSlide(1)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.25);display:inline-block;cursor:pointer;" title="Problema"></a>
+    <a href="#" onclick="scrollToSlide(2)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.25);display:inline-block;cursor:pointer;" title="Solução"></a>
+    <a href="#" onclick="scrollToSlide(3)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.25);display:inline-block;cursor:pointer;" title="Tela Hero"></a>
+    <a href="#" onclick="scrollToSlide(4)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.25);display:inline-block;cursor:pointer;" title="Módulos"></a>
+    <a href="#" onclick="scrollToSlide(5)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.25);display:inline-block;cursor:pointer;" title="Fluxo"></a>
+    <a href="#" onclick="scrollToSlide(6)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.25);display:inline-block;cursor:pointer;" title="Fluxo Operacional"></a>
+    <a href="#" onclick="scrollToSlide(7)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.25);display:inline-block;cursor:pointer;" title="Valor"></a>
+    <a href="#" onclick="scrollToSlide(8)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.25);display:inline-block;cursor:pointer;" title="Roadmap"></a>
+    <a href="#" onclick="scrollToSlide(9)" style="width:8px;height:8px;border-radius:50%;background:rgba(255,204,0,0.25);display:inline-block;cursor:pointer;" title="Promessa"></a>
+  </div>
+  <span style="font-size:0.68rem;color:rgba(255,255,255,0.25);">Confidencial</span>
+</nav>
+
+<script>
+const slides = document.querySelectorAll('.slide, .slide-capa');
+const dots = document.querySelectorAll('nav a');
+
+function scrollToSlide(idx) {
+  if (slides[idx]) {
+    slides[idx].scrollIntoView({ behavior: 'smooth' });
+  }
+  return false;
+}
+
+// Atualiza dots conforme scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const idx = Array.from(slides).indexOf(entry.target);
+      dots.forEach((d, i) => {
+        d.style.background = i === idx
+          ? 'rgba(255,204,0,0.9)'
+          : 'rgba(255,204,0,0.25)';
+        d.style.width = i === idx ? '20px' : '8px';
+        d.style.borderRadius = i === idx ? '4px' : '50%';
+        d.style.transition = 'all 0.3s ease';
+      });
+    }
+  });
+}, { threshold: 0.5 });
+
+slides.forEach(s => observer.observe(s));
+
+// Navegação por teclado
+document.addEventListener('keydown', (e) => {
+  const current = Array.from(slides).findIndex(s => {
+    const rect = s.getBoundingClientRect();
+    return rect.top >= -100 && rect.top < window.innerHeight / 2;
+  });
+  if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+    scrollToSlide(Math.min(current + 1, slides.length - 1));
+    e.preventDefault();
+  }
+  if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+    scrollToSlide(Math.max(current - 1, 0));
+    e.preventDefault();
+  }
+});
+</script>
+
+</body>
+</html>

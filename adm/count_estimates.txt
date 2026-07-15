@@ -1,0 +1,13 @@
+Connected
+cnaes: 1359
+empresas: 68619808
+estabelecimentos: -1
+log_ingestao: -1
+motivos: 63
+municipios: 5572
+naturezas: 91
+paises: 255
+qualificacoes: 68
+simples: -1
+socios: 0
+stg_estabelecimentos: 0

@@ -1,0 +1,5 @@
+Connected
+empresas: 68629147
+estabelecimentos: 0
+socios: 0
+simples: 0

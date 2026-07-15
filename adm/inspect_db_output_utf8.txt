@@ -1,0 +1,228 @@
+﻿TABLE: public.migrations
+  - id (bigint) nullable: NO
+  - version (character varying) nullable: NO
+  - class (character varying) nullable: NO
+  - group (character varying) nullable: NO
+  - namespace (character varying) nullable: NO
+  - time (integer) nullable: NO
+  - batch (integer) nullable: NO
+  Rows: 1
+  Sample rows:
+    - id: 1, version: 2026-06-30-114031, class: App\Database\Migrations\CreatePagesTable, group: default, namespace: App, time: 1782819905, batch: 1
+----------------------------------------
+TABLE: public.pages
+  - id (integer) nullable: NO
+  - title (character varying) nullable: NO
+  - slug (character varying) nullable: NO
+  - content (text) nullable: YES
+  - is_active (boolean) nullable: NO
+  - created_at (timestamp without time zone) nullable: YES
+  - updated_at (timestamp without time zone) nullable: YES
+  Rows: 1
+  Sample rows:
+    - id: 1, title: In├¡cio, slug: home, content: P├ígina inicial do SPIV ÔÇö Sistema de Vendas., is_active: 1, created_at: 2026-06-30 11:45:05, updated_at: 2026-06-30 11:45:05
+----------------------------------------
+TABLE: receita.cnaes
+  - codigo (character varying) nullable: NO
+  - descricao (character varying) nullable: NO
+  Rows: 1359
+  Sample rows:
+    - codigo: 0111301, descricao: Cultivo de arroz
+    - codigo: 0111302, descricao: Cultivo de milho
+    - codigo: 0111303, descricao: Cultivo de trigo
+    - codigo: 0111399, descricao: Cultivo de outros cereais n├úo especificados anteriormente
+    - codigo: 0112101, descricao: Cultivo de algod├úo herb├íceo
+----------------------------------------
+TABLE: receita.empresas
+  - cnpj_basico (character varying) nullable: NO
+  - razao_social (character varying) nullable: YES
+  - natureza_juridica (character varying) nullable: YES
+  - qualificacao_responsavel (character varying) nullable: YES
+  - capital_social (character varying) nullable: YES
+  - porte_empresa (character varying) nullable: YES
+  - ente_federativo (character varying) nullable: YES
+  - created_at (timestamp without time zone) nullable: YES
+  - updated_at (timestamp without time zone) nullable: YES
+  Rows: 68629147
+  Sample rows:
+    - cnpj_basico: 33516966, razao_social: 33.516.966 PAULO GONCALVES DA CUNHA, natureza_juridica: 2135, qualificacao_responsavel: 50, capital_social: 30000,00, porte_empresa: 01, ente_federativo: , created_at: 2026-07-01 11:50:09.565179, updated_at: 2026-07-01 11:50:09.565179
+    - cnpj_basico: 33516967, razao_social: 33.516.967 VITOR AZIS NICOLAU, natureza_juridica: 2135, qualificacao_responsavel: 50, capital_social: 5000,00, porte_empresa: 01, ente_federativo: , created_at: 2026-07-01 11:50:09.565179, updated_at: 2026-07-01 11:50:09.565179
+    - cnpj_basico: 33516968, razao_social: IRACILDA CRISTINA CAPRARO 99839768972, natureza_juridica: 2135, qualificacao_responsavel: 50, capital_social: 5000,00, porte_empresa: 01, ente_federativo: , created_at: 2026-07-01 11:50:09.565179, updated_at: 2026-07-01 11:50:09.565179
+    - cnpj_basico: 33516969, razao_social: 33.516.969 FABIANA PRADELLA, natureza_juridica: 2135, qualificacao_responsavel: 50, capital_social: 1000,00, porte_empresa: 01, ente_federativo: , created_at: 2026-07-01 11:50:09.565179, updated_at: 2026-07-01 11:50:09.565179
+    - cnpj_basico: 33516970, razao_social: TATTOO BARBER GONZAGA LTDA, natureza_juridica: 2062, qualificacao_responsavel: 49, capital_social: 300000,00, porte_empresa: 03, ente_federativo: , created_at: 2026-07-01 11:50:09.565179, updated_at: 2026-07-01 11:50:09.565179
+----------------------------------------
+TABLE: receita.estabelecimentos
+  - cnpj_basico (character varying) nullable: NO
+  - cnpj_ordem (character varying) nullable: NO
+  - cnpj_dv (character varying) nullable: NO
+  - identificador_matriz_filial (character varying) nullable: YES
+  - nome_fantasia (character varying) nullable: YES
+  - situacao_cadastral (character varying) nullable: YES
+  - data_situacao_cadastral (character varying) nullable: YES
+  - motivo_situacao_cadastral (character varying) nullable: YES
+  - nome_cidade_exterior (character varying) nullable: YES
+  - pais (character varying) nullable: YES
+  - data_inicio_atividade (character varying) nullable: YES
+  - cnae_fiscal_principal (character varying) nullable: YES
+  - cnae_fiscal_secundaria (text) nullable: YES
+  - tipo_logradouro (character varying) nullable: YES
+  - logradouro (character varying) nullable: YES
+  - numero (character varying) nullable: YES
+  - complemento (character varying) nullable: YES
+  - bairro (character varying) nullable: YES
+  - cep (character varying) nullable: YES
+  - uf (character varying) nullable: YES
+  - municipio (character varying) nullable: YES
+  - ddd_1 (character varying) nullable: YES
+  - telefone_1 (character varying) nullable: YES
+  - ddd_2 (character varying) nullable: YES
+  - telefone_2 (character varying) nullable: YES
+  - ddd_fax (character varying) nullable: YES
+  - fax (character varying) nullable: YES
+  - email (character varying) nullable: YES
+  - situacao_especial (character varying) nullable: YES
+  - data_situacao_especial (character varying) nullable: YES
+  - created_at (timestamp without time zone) nullable: YES
+  - updated_at (timestamp without time zone) nullable: YES
+  Rows: 0
+  Sample rows: (none)
+----------------------------------------
+TABLE: receita.log_ingestao
+  - id (integer) nullable: NO
+  - data_execucao (timestamp without time zone) nullable: YES
+  - data_arquivo (character varying) nullable: YES
+  - tabela (character varying) nullable: NO
+  - registros_antes (bigint) nullable: YES
+  - registros_novos (bigint) nullable: YES
+  - registros_total (bigint) nullable: YES
+  - duracao_seg (numeric) nullable: YES
+  - status (character varying) nullable: YES
+  Rows: 19
+  Sample rows:
+    - id: 1, data_execucao: 2026-07-01 11:03:28.11561, data_arquivo: NULL, tabela: naturezas, registros_antes: 0, registros_novos: 91, registros_total: 91, duracao_seg: 0.62, status: concluido
+    - id: 2, data_execucao: 2026-07-01 11:03:28.795131, data_arquivo: NULL, tabela: cnaes, registros_antes: 1359, registros_novos: 0, registros_total: 1359, duracao_seg: 0.53, status: concluido
+    - id: 3, data_execucao: 2026-07-01 11:03:29.4983, data_arquivo: NULL, tabela: municipios, registros_antes: 0, registros_novos: 5572, registros_total: 5572, duracao_seg: 0.58, status: concluido
+    - id: 4, data_execucao: 2026-07-01 11:03:30.132311, data_arquivo: NULL, tabela: qualificacoes, registros_antes: 0, registros_novos: 68, registros_total: 68, duracao_seg: 0.51, status: concluido
+    - id: 5, data_execucao: 2026-07-01 11:03:30.87572, data_arquivo: NULL, tabela: motivos, registros_antes: 0, registros_novos: 63, registros_total: 63, duracao_seg: 0.61, status: concluido
+----------------------------------------
+TABLE: receita.motivos
+  - codigo (character varying) nullable: NO
+  - descricao (character varying) nullable: NO
+  Rows: 63
+  Sample rows:
+    - codigo: 00, descricao: SEM MOTIVO
+    - codigo: 01, descricao: EXTINCAO POR ENCERRAMENTO LIQUIDACAO VOLUNTARIA
+    - codigo: 02, descricao: INCORPORACAO
+    - codigo: 03, descricao: FUSAO
+    - codigo: 04, descricao: CISAO TOTAL
+----------------------------------------
+TABLE: receita.municipios
+  - codigo (character varying) nullable: NO
+  - descricao (character varying) nullable: NO
+  Rows: 5572
+  Sample rows:
+    - codigo: 0001, descricao: GUAJARA-MIRIM
+    - codigo: 0002, descricao: ALTO ALEGRE DOS PARECIS
+    - codigo: 0003, descricao: PORTO VELHO
+    - codigo: 0004, descricao: BURITIS
+    - codigo: 0005, descricao: JI-PARANA
+----------------------------------------
+TABLE: receita.naturezas
+  - codigo (character varying) nullable: NO
+  - descricao (character varying) nullable: NO
+  Rows: 91
+  Sample rows:
+    - codigo: 0000, descricao: Natureza Jur├¡dica n├úo informada
+    - codigo: 3271, descricao: ├ôrg├úo de Dire├º├úo Local de Partido Pol├¡tico
+    - codigo: 3280, descricao: Comit├¬ Financeiro de Partido Pol├¡tico
+    - codigo: 3298, descricao: Frente Plebiscit├íria ou Referend├íria
+    - codigo: 3301, descricao: Organiza├º├úo Social (OS)
+----------------------------------------
+TABLE: receita.paises
+  - codigo (character varying) nullable: NO
+  - descricao (character varying) nullable: NO
+  Rows: 255
+  Sample rows:
+    - codigo: 000, descricao: COLIS POSTAUX
+    - codigo: 013, descricao: AFEGANISTAO
+    - codigo: 017, descricao: ALBANIA
+    - codigo: 020, descricao: ALBORAN-PEREJIL,ILHAS
+    - codigo: 023, descricao: ALEMANHA
+----------------------------------------
+TABLE: receita.qualificacoes
+  - codigo (character varying) nullable: NO
+  - descricao (character varying) nullable: NO
+  Rows: 68
+  Sample rows:
+    - codigo: 00, descricao: N├úo informada
+    - codigo: 05, descricao: Administrador
+    - codigo: 08, descricao: Conselheiro de Administra├º├úo
+    - codigo: 09, descricao: Curador
+    - codigo: 10, descricao: Diretor
+----------------------------------------
+TABLE: receita.simples
+  - cnpj_basico (character varying) nullable: NO
+  - opcao_simples (character varying) nullable: YES
+  - data_opcao_simples (character varying) nullable: YES
+  - data_exclusao_simples (character varying) nullable: YES
+  - opcao_mei (character varying) nullable: YES
+  - data_opcao_mei (character varying) nullable: YES
+  - data_exclusao_mei (character varying) nullable: YES
+  - created_at (timestamp without time zone) nullable: YES
+  - updated_at (timestamp without time zone) nullable: YES
+  Rows: 0
+  Sample rows: (none)
+----------------------------------------
+TABLE: receita.socios
+  - id (integer) nullable: NO
+  - cnpj_basico (character varying) nullable: NO
+  - identificador_socio (character varying) nullable: YES
+  - nome_socio (character varying) nullable: YES
+  - cpf_cnpj_socio (character varying) nullable: YES
+  - qualificacao_socio (character varying) nullable: YES
+  - data_entrada_sociedade (character varying) nullable: YES
+  - pais (character varying) nullable: YES
+  - representante_legal (character varying) nullable: YES
+  - nome_representante (character varying) nullable: YES
+  - qualificacao_representante (character varying) nullable: YES
+  - faixa_etaria (character varying) nullable: YES
+  - created_at (timestamp without time zone) nullable: YES
+  - updated_at (timestamp without time zone) nullable: YES
+  Rows: 0
+  Sample rows: (none)
+----------------------------------------
+TABLE: receita.stg_estabelecimentos
+  - cnpj_basico (character varying) nullable: YES
+  - cnpj_ordem (character varying) nullable: YES
+  - cnpj_dv (character varying) nullable: YES
+  - identificador_matriz_filial (character varying) nullable: YES
+  - nome_fantasia (character varying) nullable: YES
+  - situacao_cadastral (character varying) nullable: YES
+  - data_situacao_cadastral (character varying) nullable: YES
+  - motivo_situacao_cadastral (character varying) nullable: YES
+  - nome_cidade_exterior (character varying) nullable: YES
+  - pais (character varying) nullable: YES
+  - data_inicio_atividade (character varying) nullable: YES
+  - cnae_fiscal_principal (character varying) nullable: YES
+  - cnae_fiscal_secundaria (text) nullable: YES
+  - tipo_logradouro (character varying) nullable: YES
+  - logradouro (character varying) nullable: YES
+  - numero (character varying) nullable: YES
+  - complemento (character varying) nullable: YES
+  - bairro (character varying) nullable: YES
+  - cep (character varying) nullable: YES
+  - uf (character varying) nullable: YES
+  - municipio (character varying) nullable: YES
+  - ddd_1 (character varying) nullable: YES
+  - telefone_1 (character varying) nullable: YES
+  - ddd_2 (character varying) nullable: YES
+  - telefone_2 (character varying) nullable: YES
+  - ddd_fax (character varying) nullable: YES
+  - fax (character varying) nullable: YES
+  - email (character varying) nullable: YES
+  - situacao_especial (character varying) nullable: YES
+  - data_situacao_especial (character varying) nullable: YES
+  Rows: 0
+  Sample rows: (none)
+----------------------------------------
+Done.

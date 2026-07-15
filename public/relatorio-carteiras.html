@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPIV — Relatório de Carteiras | Julho 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-primary: #0047AB;
+            --brand-secondary: #FFD100;
+            --brand-dark: #1a1a2e;
+            --brand-accent: #00A859;
+            --text-primary: #1a1a2e;
+            --text-secondary: #555;
+            --text-muted: #888;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+            --bg-card: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+            background: var(--bg-light);
+            line-height: 1.5;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, #002D6B 100%);
+            color: white;
+            padding: 40px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .header-left p {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+        .header-right {
+            text-align: right;
+        }
+        .header-right .big-number {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .header-right .big-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.8;
+        }
+
+        /* ── CONTENT ── */
+        .content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* ── KPI ROW ── */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .kpi-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .kpi-card .kpi-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--brand-primary);
+            line-height: 1.1;
+        }
+        .kpi-card .kpi-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        /* ── SECTION ── */
+        .section {
+            margin-bottom: 36px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--brand-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--brand-primary);
+        }
+
+        /* ── GRID LAYOUTS ── */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        .chart-container {
+            position: relative;
+            height: 220px;
+        }
+
+        /* ── TABLES ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        table th {
+            background: var(--brand-primary);
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        table th:last-child,
+        table td:last-child {
+            text-align: right;
+        }
+        table td {
+            padding: 7px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        table tr:nth-child(even) td {
+            background: var(--bg-light);
+        }
+        table tr:hover td {
+            background: #eef4ff;
+        }
+
+        /* ── BAR INLINE ── */
+        .bar-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bar-fill {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--brand-primary), #4A90D9);
+            min-width: 2px;
+        }
+        .bar-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* ── BADGES ── */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-bronze { background: #F5E6D3; color: #8B6914; }
+        .badge-prata { background: #E8ECF0; color: #555; }
+        .badge-ouro { background: #FFF3CD; color: #856404; }
+        .badge-diamante { background: #D4EDFF; color: #0047AB; }
+        .badge-platinum { background: #E8E0F0; color: #5B2D8E; }
+        .badge-infinite { background: #1a1a2e; color: #FFD100; }
+        .badge-clube { background: #D4F5E0; color: #00A859; }
+
+        /* ── NOTE ── */
+        .note-box {
+            background: #FFF8E1;
+            border-left: 4px solid var(--brand-secondary);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 12px;
+            color: #6D5D00;
+            margin-top: 16px;
+        }
+        .note-box strong { color: #4A3D00; }
+
+        /* ── FOOTER ── */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 11px;
+            border-top: 1px solid var(--border);
+            margin-top: 24px;
+        }
+
+        /* ── PRINT ── */
+        @media print {
+            body { background: white; }
+            .content { padding: 0 16px; }
+            .header { padding: 24px 32px; }
+            .kpi-row { gap: 8px; }
+            .card { box-shadow: none; break-inside: avoid; }
+            .section { break-inside: avoid; }
+            .grid-2, .grid-3 { gap: 12px; }
+            .no-print { display: none; }
+
+            @page {
+                size: A4;
+                margin: 12mm;
+            }
+        }
+
+        /* ── PRINT BUTTON ── */
+        .print-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--brand-primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,71,171,0.4);
+            transition: transform 0.2s;
+            z-index: 999;
+        }
+        .print-btn:hover { transform: scale(1.05); }
+
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
+
+<!-- ═══════ HEADER ═══════ -->
+<div class="header">
+    <div class="header-left">
+        <h1>📊 Relatório de Carteiras</h1>
+        <p>SPIV — Sistema de Prospecção e Inteligência de Vendas</p>
+        <p>Base: Relatório Geral de Carteiras dos Correios · Julho 2026</p>
+    </div>
+    <div class="header-right">
+        <div class="big-number">308.573</div>
+        <div class="big-label">Registros Analisados</div>
+    </div>
+</div>
+
+<div class="content">
+
+    <!-- ═══════ KPIs ═══════ -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-value">6.517</div>
+            <div class="kpi-label">Carteiras</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">226</div>
+            <div class="kpi-label">Coordenadores</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">30</div>
+            <div class="kpi-label">Superintendências</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">62,8%</div>
+            <div class="kpi-label">Em Fidelização</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">37,2%</div>
+            <div class="kpi-label">Em Prospecção</div>
+        </div>
+    </div>
+
+    <!-- ═══════ CHARTS ROW 1 ═══════ -->
+    <div class="section">
+        <div class="section-title">Visão Geral — Segmentação</div>
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-title">Categoria Institucional</div>
+                <div class="chart-container">
+                    <canvas id="chartCategoria"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Segmento de Cliente</div>
+                <div class="chart-container">
+                    <canvas id="chartSegmento"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Ciclo de Vida</div>
+                <div class="chart-container">
+                    <canvas id="chartCiclo"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════ CHARTS ROW 2 ═══════ -->
+    <div class="section">
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">Gerência</div>
+                <div class="chart-container">
+                    <canvas id="chartGerencia"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Prospecção</div>
+                <div class="chart-container">
+                    <canvas id="chartProspeccao"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════ SE TABLE ═══════ -->
+    <div class="section page-break">
+        <div class="section-title">Distribuição por Superintendência (SE)</div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>SE</th><th>Registros</th><th style="width:50%">Proporção</th><th>%</th></tr>
+                </thead>
+                <tbody id="tableSE"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════ TOP CARTEIRAS ═══════ -->
+    <div class="section">
+        <div class="section-title">Top 20 Carteiras — Por Volume de Clientes</div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>Carteira</th><th>Matrícula/MCMCU</th><th>Tipo</th><th>Clientes</th></tr>
+                </thead>
+                <tbody id="tableCarteiras"></tbody>
+            </table>
+            <div class="note-box">
+                <strong>Legenda:</strong>
+                🟡 <strong>CAC (8888...)</strong> = Central de Atendimento ao Cliente (carteira fictícia/coletiva) ·
+                🔴 <strong>Sem Gestão (8002...)</strong> = Clientes não atribuídos a vendedor ·
+                🟢 <strong>Agência/Pessoa</strong> = Carteiras reais vinculadas a ponto de atendimento ou vendedor
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════ SEGMENTO DE MERCADO ═══════ -->
+    <div class="section page-break">
+        <div class="section-title">Segmento de Mercado — Top 20</div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>Segmento</th><th>Registros</th><th style="width:40%">Proporção</th><th>%</th></tr>
+                </thead>
+                <tbody id="tableSegMercado"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════ TOP CNAES ═══════ -->
+    <div class="section">
+        <div class="section-title">Top 20 CNAEs — Atividades Econômicas</div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>CNAE</th><th>Descrição</th><th>Registros</th></tr>
+                </thead>
+                <tbody id="tableCNAE"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════ CATEGORIA DETALHADA ═══════ -->
+    <div class="section page-break">
+        <div class="section-title">Categoria Institucional — Detalhamento</div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>Categoria</th><th>Registros</th><th style="width:50%">Proporção</th><th>%</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="badge badge-bronze">BRONZE</span></td><td>211.953</td><td><div class="bar-cell"><div class="bar-fill" style="width:100%;background:#CD9B1D"></div></div></td><td>68,7%</td></tr>
+                    <tr><td><span class="badge badge-ouro">OURO</span></td><td>45.497</td><td><div class="bar-cell"><div class="bar-fill" style="width:21.5%;background:#FFD700"></div></div></td><td>14,7%</td></tr>
+                    <tr><td><span class="badge badge-prata">PRATA</span></td><td>26.823</td><td><div class="bar-cell"><div class="bar-fill" style="width:12.7%;background:#A0AEC0"></div></div></td><td>8,7%</td></tr>
+                    <tr><td><span class="badge badge-diamante">DIAMANTE</span></td><td>11.662</td><td><div class="bar-cell"><div class="bar-fill" style="width:5.5%;background:#4A90D9"></div></div></td><td>3,8%</td></tr>
+                    <tr><td><span class="badge badge-platinum">PLATINUM</span></td><td>7.620</td><td><div class="bar-cell"><div class="bar-fill" style="width:3.6%;background:#7C3AED"></div></div></td><td>2,5%</td></tr>
+                    <tr><td><span class="badge badge-infinite">INFINITE</span></td><td>4.553</td><td><div class="bar-cell"><div class="bar-fill" style="width:2.1%;background:#1a1a2e"></div></div></td><td>1,5%</td></tr>
+                    <tr><td><span class="badge badge-clube">CLUBE CORREIOS</span></td><td>465</td><td><div class="bar-cell"><div class="bar-fill" style="width:0.2%;background:#00A859"></div></div></td><td>0,2%</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        SPIV — Sistema de Prospecção e Inteligência de Vendas · Gerado em Julho/2026 · Dados: Relatório Geral de Carteiras dos Correios
+    </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════════
+const TOTAL = 308573;
+
+const categoriaData = {
+    labels: ['Bronze', 'Ouro', 'Prata', 'Diamante', 'Platinum', 'Infinite', 'Clube'],
+    values: [211953, 45497, 26823, 11662, 7620, 4553, 465],
+    colors: ['#CD9B1D', '#FFD700', '#A0AEC0', '#4A90D9', '#7C3AED', '#1a1a2e', '#00A859']
+};
+
+const segmentoData = {
+    labels: ['MPE', 'Ent. Privadas', 'Governo', 'Não Seg.'],
+    values: [198879, 69614, 34826, 5254],
+    colors: ['#0047AB', '#4A90D9', '#00A859', '#A0AEC0']
+};
+
+const cicloData = {
+    labels: ['Fidelização', 'Prospecção', 'A Prospectar', 'Outros'],
+    values: [193843, 113962, 737, 31],
+    colors: ['#00A859', '#0047AB', '#FFD100', '#A0AEC0']
+};
+
+const gerenciaData = {
+    labels: ['Atendimento', 'Vendas Regionais', 'Vendas à Distância', 'Neg. Estratégicas', 'Outros'],
+    values: [216694, 49064, 41517, 1258, 40]
+};
+
+const prospeccaoData = {
+    labels: ['Não', 'Sim'],
+    values: [193874, 114699],
+    colors: ['#A0AEC0', '#0047AB']
+};
+
+const seData = [
+    ['SPM', 69345], ['SPI', 48558], ['MG', 24723], ['RJ', 16723], ['PR', 15805],
+    ['BA', 13869], ['RS', 13620], ['SC', 12155], ['GNP', 11775], ['CE', 10547],
+    ['GO', 10078], ['PE', 9741], ['BSB', 7479], ['PA', 7282], ['ES', 6558],
+    ['MA', 4985], ['RN', 4363], ['MS', 3786], ['MT', 3735], ['PB', 3527],
+    ['AL', 2628], ['PI', 2299], ['SE', 1848], ['TO', 1533], ['AM', 1408],
+    ['ACR', 1319], ['RO', 1121], ['CS', 977], ['AP', 520], ['RR', 246]
+];
+
+const carteirasData = [
+    ['CARTEIRA CAC- SPM', '88888971', 'CAC', 8706],
+    ['CLIENTE SEM GESTÃO - SPI', '8002083', 'SEM GESTÃO', 7436],
+    ['CARTEIRA CAC- MG', '88888955', 'CAC', 6488],
+    ['CARTEIRA CAC- SPI', '88888970', 'CAC', 6425],
+    ['CLIENTE SEM GESTÃO - SPM', '8002081', 'SEM GESTÃO', 5705],
+    ['CLIENTE SEM GESTÃO - MG', '8002065', 'SEM GESTÃO', 4852],
+    ['CARTEIRA CAC- PR', '88888962', 'CAC', 3537],
+    ['CARTEIRA CAC- SC', '88888968', 'CAC', 2800],
+    ['CARTEIRA CAC- RS', '88888967', 'CAC', 2518],
+    ['CLIENTE SEM GESTÃO - PR', '8002072', 'SEM GESTÃO', 2162],
+    ['CARTEIRA CAC- RJ', '88888963', 'CAC', 1915],
+    ['CARTEIRA CAC- GO', '88888953', 'CAC', 1700],
+    ['CEM CURITIBA', '437223', 'AGÊNCIA', 1595],
+    ['CLIENTE SEM GESTÃO - RJ', '8002073', 'SEM GESTÃO', 1407],
+    ['CARTEIRA CAC- BA', '88888949', 'CAC', 1147],
+    ['CEM MOEMA', '437262', 'AGÊNCIA', 1016],
+    ['CEM AGUA BRANCA', '437176', 'AGÊNCIA', 1009],
+    ['AGF CIDADE NOVA', '234659', 'AGÊNCIA', 988],
+    ['CARTEIRA CAC- ES', '88888952', 'AGÊNCIA', 948],
+    ['CEM MARINGA', '437371', 'AGÊNCIA', 933],
+];
+
+const segMercadoData = [
+    ['Vestuário / Mat. Esportivo / Calçados', 48891],
+    ['Governo Municipal', 22949],
+    ['Alimentos / Bebidas', 21103],
+    ['Cosméticos', 16027],
+    ['Móveis / Utensílios / Utilidades', 14805],
+    ['Serviços Técnicos Especializados', 13879],
+    ['Prestação de Serviços de Saúde', 12972],
+    ['Automotivo / Peças / Acessórios', 11854],
+    ['Eletroeletrônicos / Eletrodomésticos', 10653],
+    ['Farmacêuticos', 9193],
+    ['Educação', 8539],
+    ['Ferramentas e Ferragens', 8050],
+    ['Máquinas e Equipamentos', 7783],
+    ['Editorial / Papelaria / Mat. Escritório', 7698],
+    ['Operadores Logísticos', 7479],
+    ['Transporte', 6131],
+    ['Governo Estadual', 5618],
+    ['Governo Federal', 3903],
+    ['Construção Civil', 3612],
+    ['Lazer e Entretenimento', 2826],
+];
+
+const cnaeData = [
+    ['47.81-4-00', 'Comércio varejista de artigos do vestuário e acessórios', 36607],
+    ['47.72-5-00', 'Comércio varejista de cosméticos e perfumaria', 8941],
+    ['84.11-6-00', 'Administração pública em geral', 7985],
+    ['14.12-6-01', 'Confecção de peças do vestuário', 7534],
+    ['47.89-0-99', 'Comércio varejista de outros produtos', 5889],
+    ['47.82-2-01', 'Comércio varejista de calçados', 5337],
+    ['47.51-2-01', 'Comércio varejista de equipamentos e suprimentos', 4856],
+    ['47.89-0-01', 'Comércio varejista de suvenires e bijuterias', 4266],
+    ['47.29-6-99', 'Comércio varejista de produtos alimentícios', 4119],
+    ['45.30-7-03', 'Comércio a varejo de peças para veículos', 3975],
+    ['47.83-1-01', 'Comércio varejista de artigos de joalheria', 3694],
+    ['73.19-0-02', 'Promoção de vendas', 2920],
+    ['69.11-7-01', 'Serviços advocatícios', 2814],
+    ['47.59-8-99', 'Comércio varejista de outros artigos de uso doméstico', 2515],
+    ['47.52-1-00', 'Comércio varejista de equipamentos de telefonia', 2461],
+    ['49.30-2-02', 'Transporte rodoviário de carga', 2369],
+    ['47.71-7-02', 'Comércio varejista de produtos farmacêuticos', 2305],
+    ['46.45-1-01', 'Comércio atacadista de instrumentos médicos', 2278],
+    ['82.11-3-00', 'Serviços combinados de escritório', 2221],
+    ['47.74-1-00', 'Comércio varejista de artigos de óptica', 2209],
+];
+
+// ══════════════════════════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════════════════════════
+const defaultFont = { family: "'Inter', sans-serif", size: 11 };
+Chart.defaults.font = defaultFont;
+Chart.defaults.plugins.legend.position = 'right';
+Chart.defaults.plugins.legend.labels.boxWidth = 10;
+Chart.defaults.plugins.legend.labels.padding = 8;
+Chart.defaults.plugins.legend.labels.font = { size: 10 };
+
+function makeDoughnut(id, data) {
+    new Chart(document.getElementById(id), {
+        type: 'doughnut',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.values,
+                backgroundColor: data.colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '55%',
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const v = ctx.parsed;
+                            const pct = ((v / TOTAL) * 100).toFixed(1);
+                            return ` ${ctx.label}: ${v.toLocaleString('pt-BR')} (${pct}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+makeDoughnut('chartCategoria', categoriaData);
+makeDoughnut('chartSegmento', segmentoData);
+makeDoughnut('chartCiclo', cicloData);
+makeDoughnut('chartProspeccao', prospeccaoData);
+
+// Gerência — horizontal bar
+new Chart(document.getElementById('chartGerencia'), {
+    type: 'bar',
+    data: {
+        labels: gerenciaData.labels,
+        datasets: [{
+            data: gerenciaData.values,
+            backgroundColor: ['#0047AB', '#4A90D9', '#7CB9E8', '#A0AEC0', '#CBD5E1'],
+            borderRadius: 4,
+            barThickness: 22
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: {
+                ticks: {
+                    callback: v => (v / 1000).toFixed(0) + 'k',
+                    font: { size: 10 }
+                },
+                grid: { color: '#f0f0f0' }
+            },
+            y: { grid: { display: false } }
+        }
+    }
+});
+
+// ══════════════════════════════════════════════════════════════
+// TABLES
+// ══════════════════════════════════════════════════════════════
+const maxSE = seData[0][1];
+document.getElementById('tableSE').innerHTML = seData.map(([se, val]) => {
+    const pct = ((val / TOTAL) * 100).toFixed(1);
+    const barW = ((val / maxSE) * 100).toFixed(1);
+    return `<tr>
+        <td><strong>${se}</strong></td>
+        <td>${val.toLocaleString('pt-BR')}</td>
+        <td><div class="bar-cell"><div class="bar-fill" style="width:${barW}%"></div><span class="bar-label">${pct}%</span></div></td>
+        <td>${pct}%</td>
+    </tr>`;
+}).join('');
+
+document.getElementById('tableCarteiras').innerHTML = carteirasData.map(([nome, mat, tipo, val]) => {
+    const color = tipo === 'CAC' ? '#FFD100' : tipo === 'SEM GESTÃO' ? '#EF4444' : '#00A859';
+    const bg = tipo === 'CAC' ? '#FFF8E1' : tipo === 'SEM GESTÃO' ? '#FEF2F2' : '#ECFDF5';
+    return `<tr>
+        <td>${nome}</td>
+        <td><code>${mat}</code></td>
+        <td><span style="background:${bg};color:${color};padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600">${tipo}</span></td>
+        <td>${val.toLocaleString('pt-BR')}</td>
+    </tr>`;
+}).join('');
+
+const maxSeg = segMercadoData[0][1];
+document.getElementById('tableSegMercado').innerHTML = segMercadoData.map(([nome, val]) => {
+    const pct = ((val / TOTAL) * 100).toFixed(1);
+    const barW = ((val / maxSeg) * 100).toFixed(1);
+    return `<tr>
+        <td>${nome}</td>
+        <td>${val.toLocaleString('pt-BR')}</td>
+        <td><div class="bar-cell"><div class="bar-fill" style="width:${barW}%"></div></div></td>
+        <td>${pct}%</td>
+    </tr>`;
+}).join('');
+
+document.getElementById('tableCNAE').innerHTML = cnaeData.map(([code, desc, val]) => {
+    return `<tr>
+        <td><code>${code}</code></td>
+        <td>${desc}</td>
+        <td>${val.toLocaleString('pt-BR')}</td>
+    </tr>`;
+}).join('');
+</script>
+
+</body>
+</html>

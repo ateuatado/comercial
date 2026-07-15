@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Preview – Logo SPIV SVG</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 40px;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+    }
+    h2 { color: #333; margin: 0; }
+    .box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .preview {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+    }
+    .label { font-size: 13px; color: #666; }
+
+    .preview-dark {
+      background: #111;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Preview – spiv-logo.svg</h2>
+
+  <!-- Fundo branco -->
+  <div class="box">
+    <span class="label">Fundo branco – tamanho original (500×555)</span>
+    <div class="preview">
+      <img src="spiv-logo.svg" width="500" height="555" alt="Logo SPIV">
+    </div>
+  </div>
+
+  <!-- Menor -->
+  <div class="box">
+    <span class="label">Fundo branco – tamanho reduzido (250×277)</span>
+    <div class="preview">
+      <img src="spiv-logo.svg" width="250" height="277" alt="Logo SPIV pequeno">
+    </div>
+  </div>
+
+  <!-- Fundo escuro -->
+  <div class="box">
+    <span class="label">Fundo escuro (verifica transparência)</span>
+    <div class="preview-dark">
+      <img src="spiv-logo.svg" width="300" alt="Logo SPIV fundo escuro">
+    </div>
+  </div>
+
+  <!-- Inline SVG (para testar renderização nativa) -->
+  <div class="box">
+    <span class="label">SVG inline – 200px</span>
+    <div class="preview">
+      <object data="spiv-logo.svg" type="image/svg+xml" width="200"></object>
+    </div>
+  </div>
+
+</body>
+</html>

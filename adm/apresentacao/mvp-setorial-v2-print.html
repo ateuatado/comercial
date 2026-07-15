@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>SPIV — Apresentação Executiva · Julho 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+@page { size: A4 landscape; margin: 0; }
+
+:root {
+  --azul: #003087;
+  --azul-light: #1a56b8;
+  --azul-dark: #001848;
+  --amarelo: #ffcc00;
+  --branco: #ffffff;
+  --texto: #1a2a4a;
+  --texto-muted: #5a6a8a;
+  --cinza-bg: #f5f7fb;
+  --cinza-card: #e2e8f0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--texto);
+  background: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ── SLIDE PAGE ── */
+.page {
+  width: 297mm;
+  height: 210mm;
+  padding: 20mm 24mm;
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.page:last-child { page-break-after: avoid; }
+
+/* ── BACKGROUNDS ── */
+.bg-azul { background: linear-gradient(160deg, #010b1f 0%, #001848 50%, #002a80 100%); }
+.bg-branco { background: linear-gradient(180deg, #f8faff 0%, #eef3fb 100%); }
+.bg-escuro { background: linear-gradient(160deg, #010b1f 0%, #001848 100%); }
+.bg-azul-solid { background: linear-gradient(160deg, #001040 0%, #002878 50%, #003ca8 100%); }
+.bg-epic { background: linear-gradient(160deg, #000a20 0%, #001448 30%, #002a80 70%, #003eb3 100%); }
+
+/* ── SLIDE NUMBER ── */
+.slide-num { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--amarelo); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.slide-num::before { content: ''; width: 24px; height: 2px; background: var(--amarelo); }
+.slide-num.dark { color: var(--azul); }
+.slide-num.dark::before { background: var(--azul); }
+
+/* ── HEADINGS ── */
+.slide-h1 { font-family: 'Playfair Display', serif; font-size: 26pt; font-weight: 800; line-height: 1.15; color: var(--branco); margin-bottom: 12px; }
+.slide-h1 span { color: var(--amarelo); }
+.slide-h1.dark { color: var(--texto); }
+.slide-h1.dark span { color: var(--azul-light); }
+
+.slide-lead { font-size: 10pt; color: rgba(255,255,255,.7); line-height: 1.65; max-width: 550px; margin-bottom: 20px; }
+.slide-lead.dark { color: var(--texto-muted); }
+
+/* ── GRIDS ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+
+/* ── INFO CARDS ── */
+.card { border-radius: 10px; padding: 16px 14px; }
+.card-dark { background: rgba(255,255,255,.06); border: 1px solid rgba(255,204,0,.15); }
+.card-white { background: var(--branco); border: 1px solid var(--cinza-card); box-shadow: 0 2px 8px rgba(0,20,72,.06); }
+.card h3 { font-size: 9.5pt; font-weight: 700; color: var(--branco); margin: 6px 0 4px; }
+.card h3.dark { color: var(--texto); }
+.card p { font-size: 8pt; line-height: 1.5; color: rgba(255,255,255,.6); }
+.card p.dark { color: var(--texto-muted); }
+.card-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--amarelo); display: grid; place-items: center; font-size: 16px; }
+.card-num { font-family: 'Playfair Display', serif; font-size: 22pt; font-weight: 800; color: var(--azul-light); margin-bottom: 2px; }
+
+/* ── TAGS ── */
+.tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.tag { font-size: 6pt; font-weight: 600; padding: 2px 8px; border-radius: 10px; letter-spacing: .3px; }
+.tag-azul { background: rgba(0,48,135,.08); color: var(--azul); border: 1px solid rgba(0,48,135,.15); }
+.tag-gold { background: rgba(255,204,0,.12); color: #b8930a; border: 1px solid rgba(255,204,0,.2); }
+
+/* ── QUOTE ── */
+.quote { border-left: 3px solid var(--amarelo); padding: 10px 14px; background: rgba(255,204,0,.06); border-radius: 0 8px 8px 0; margin-top: 16px; }
+.quote p { font-size: 9pt; font-style: italic; color: rgba(255,255,255,.82); line-height: 1.6; }
+.quote cite { display: block; margin-top: 6px; font-size: 7pt; color: var(--amarelo); font-style: normal; font-weight: 700; }
+
+/* ── KPI BOX ── */
+.kpi { text-align: center; padding: 14px 8px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,204,0,.2); border-radius: 10px; }
+.kpi-val { font-family: 'Playfair Display', serif; font-size: 18pt; font-weight: 800; color: var(--amarelo); line-height: 1.1; }
+.kpi-lbl { font-size: 6pt; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.45); margin-top: 4px; font-weight: 600; }
+
+/* ── CHART ── */
+.chart-box { background: rgba(255,255,255,.04); border: 1px solid rgba(255,204,0,.1); border-radius: 10px; padding: 12px; }
+.chart-title { font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,.55); margin-bottom: 8px; }
+.chart-wrap { position: relative; height: 130px; }
+
+/* ── TIMELINE ── */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--amarelo), rgba(255,204,0,.1)); }
+.tl-item { position: relative; margin-bottom: 16px; }
+.tl-item::before { content: ''; position: absolute; left: -25px; top: 4px; width: 10px; height: 10px; background: var(--amarelo); border-radius: 50%; border: 2px solid var(--azul); }
+.tl-item h4 { font-size: 9pt; font-weight: 700; color: var(--amarelo); margin-bottom: 3px; }
+.tl-item p { font-size: 7.5pt; color: rgba(255,255,255,.55); line-height: 1.55; }
+.fase { display: inline-block; font-size: 5.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; }
+.fase-done { background: rgba(40,200,100,.15); color: #2dcc70; border: 1px solid rgba(40,200,100,.3); }
+.fase-now { background: rgba(255,204,0,.15); color: var(--amarelo); border: 1px solid rgba(255,204,0,.3); }
+.fase-next { background: rgba(74,144,217,.15); color: #4A90D9; border: 1px solid rgba(74,144,217,.3); }
+
+/* ── DIVIDER ── */
+.divider { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; }
+.divider span { font-size: 6pt; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.divider-light::before, .divider-light::after { background: rgba(255,204,0,.2); }
+.divider-light span { color: rgba(255,204,0,.5); }
+.divider-dark::before, .divider-dark::after { background: rgba(0,48,135,.12); }
+.divider-dark span { color: var(--azul); }
+
+/* ── CAPA ── */
+.capa-content { text-align: center; position: relative; z-index: 2; }
+.capa-badge { font-size: 6.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,204,0,.7); background: rgba(255,204,0,.08); border: 1px solid rgba(255,204,0,.2); display: inline-block; padding: 4px 16px; border-radius: 20px; margin-bottom: 20px; }
+.capa-logo { width: 70px; height: 70px; object-fit: contain; margin: 0 auto 16px; display: block; }
+.capa-titulo { font-family: 'Playfair Display', serif; font-size: 34pt; font-weight: 800; color: var(--branco); line-height: 1.1; margin-bottom: 10px; }
+.capa-titulo span { color: var(--amarelo); }
+.capa-sub { font-size: 10pt; color: rgba(255,255,255,.55); line-height: 1.65; max-width: 500px; margin: 0 auto 24px; }
+.capa-line { width: 50px; height: 3px; background: var(--amarelo); margin: 0 auto 20px; border-radius: 2px; }
+.capa-meta { display: flex; justify-content: center; gap: 36px; }
+.capa-meta-item { text-align: center; }
+.capa-meta-item strong { display: block; font-size: 12pt; color: var(--amarelo); font-weight: 800; }
+.capa-meta-item span { font-size: 6.5pt; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── PROMISE ── */
+.promise { text-align: center; max-width: 600px; margin: 0 auto; }
+.promise-icon { font-size: 36pt; margin-bottom: 16px; display: block; }
+.promise-h { font-family: 'Playfair Display', serif; font-size: 26pt; font-weight: 800; color: var(--branco); line-height: 1.2; margin-bottom: 14px; }
+.promise-h span { color: var(--amarelo); }
+.promise-p { font-size: 9pt; color: rgba(255,255,255,.6); line-height: 1.7; margin-bottom: 16px; }
+.promise-kpis { display: flex; gap: 14px; justify-content: center; margin: 20px 0; }
+.promise-kpi { text-align: center; padding: 12px 20px; background: rgba(255,204,0,.08); border: 1px solid rgba(255,204,0,.25); border-radius: 10px; }
+.promise-kpi strong { display: block; font-size: 14pt; font-weight: 900; color: var(--amarelo); }
+.promise-kpi span { font-size: 6pt; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ── PAGE FOOTER ── */
+.pg-footer { position: absolute; bottom: 8mm; left: 24mm; right: 24mm; display: flex; justify-content: space-between; font-size: 6pt; color: rgba(255,255,255,.2); }
+.pg-footer.dark { color: rgba(0,48,135,.25); }
+.pg-footer span { font-weight: 700; }
+
+/* ── SCREEN ONLY ── */
+@media screen {
+  body { background: #2a2a3a; padding: 20px; }
+  .page { margin: 20px auto; box-shadow: 0 8px 40px rgba(0,0,0,.4); }
+  .print-btn { position: fixed; bottom: 20px; right: 20px; background: var(--amarelo); color: var(--azul); border: none; padding: 12px 24px; border-radius: 10px; font-size: 12pt; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(255,204,0,.4); z-index: 999; }
+  .print-btn:hover { transform: scale(1.05); }
+}
+@media print { .print-btn { display: none; } }
+  </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">🖨️ Salvar como PDF</button>
+
+<!-- ═══════ PÁGINA 1 — CAPA ═══════ -->
+<div class="page bg-epic">
+  <div style="position:absolute;top:10%;left:50%;transform:translateX(-50%);width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,204,0,.06) 0%,transparent 60%);pointer-events:none"></div>
+  <div class="capa-content">
+    <div class="capa-badge">🏆 Apresentação Executiva · Confidencial</div>
+    <img class="capa-logo" src="logo.png" alt="SPIV">
+    <h1 class="capa-titulo">SPIV <span>Inteligência de Vendas</span></h1>
+    <p class="capa-sub">Potencializando a gestão de carteiras com enriquecimento de dados, inteligência comercial e visibilidade para toda a operação.</p>
+    <div class="capa-line"></div>
+    <div class="capa-meta">
+      <div class="capa-meta-item"><strong>308.573</strong><span>Clientes Mapeados</span></div>
+      <div class="capa-meta-item"><strong>6.517</strong><span>Carteiras Ativas</span></div>
+      <div class="capa-meta-item"><strong>30</strong><span>Superintendências</span></div>
+      <div class="capa-meta-item"><strong>Julho 2026</strong><span>Data da Apresentação</span></div>
+    </div>
+  </div>
+  <div class="pg-footer"><span>SPIV</span>Confidencial</div>
+</div>
+
+<!-- ═══════ PÁGINA 2 — O CONTEXTO ═══════ -->
+<div class="page bg-azul">
+  <div class="slide-num">01 — O Contexto Atual</div>
+  <h2 class="slide-h1">Uma operação robusta.<br><span>Pronta para evoluir.</span></h2>
+  <p class="slide-lead">A gestão de carteiras dos Correios já é uma operação consolidada, com milhares de vendedores atendendo centenas de milhares de clientes. O SPIV nasce para potencializar esse trabalho — agregando inteligência de dados ao esforço que já existe.</p>
+
+  <div class="grid-3">
+    <div class="card card-dark">
+      <div class="card-icon">🏛️</div>
+      <h3>Estrutura consolidada</h3>
+      <p>6.517 carteiras ativas distribuídas por 30 superintendências, com 226 coordenadores gerenciando a operação comercial em todo o território nacional.</p>
+    </div>
+    <div class="card card-dark">
+      <div class="card-icon">📊</div>
+      <h3>Oportunidade de enriquecimento</h3>
+      <p>Os dados existentes podem ser cruzados com fontes externas — Receita Federal, CNAE, segmentação de mercado — para gerar insights que hoje dependem de análise manual.</p>
+    </div>
+    <div class="card card-dark">
+      <div class="card-icon">🚀</div>
+      <h3>Próximo passo natural</h3>
+      <p>O SPIV é a evolução digital dessa operação: centralizar, enriquecer e automatizar a inteligência que a equipe já constrói no dia a dia.</p>
+    </div>
+  </div>
+
+  <div class="quote">
+    <p>"O melhor sistema não é aquele que substitui pessoas — é o que amplifica o que elas já fazem bem."</p>
+    <cite>— Premissa do Projeto SPIV</cite>
+  </div>
+
+  <div class="pg-footer">SPIV — Inteligência de Vendas <span>01</span></div>
+</div>
+
+<!-- ═══════ PÁGINA 3 — A PROPOSTA ═══════ -->
+<div class="page bg-branco">
+  <div class="slide-num dark">02 — A Proposta</div>
+  <h2 class="slide-h1 dark">Enriquecimento de dados.<br><span>Inteligência para a prospecção.</span></h2>
+  <p class="slide-lead dark">O SPIV integra os dados de carteira existentes com informações da Receita Federal, classificações de mercado e histórico de visitas — transformando dados brutos em inteligência acionável.</p>
+
+  <div class="grid-2">
+    <div class="card card-white">
+      <div class="card-icon" style="background:var(--azul)">🔗</div>
+      <h3 class="dark">Integração com a base existente</h3>
+      <p class="dark">Os 308.573 registros de carteira já foram importados. O sistema trabalha COM a estrutura atual, não contra ela.</p>
+      <div class="tags"><span class="tag tag-azul">Base preservada</span><span class="tag tag-azul">Zero perda de dados</span></div>
+    </div>
+    <div class="card card-white">
+      <div class="card-icon" style="background:var(--azul)">🧠</div>
+      <h3 class="dark">Enriquecimento automático</h3>
+      <p class="dark">Dados da Receita Federal são cruzados com a base, adicionando CNAE, segmento de mercado, natureza jurídica e capital social a cada CNPJ.</p>
+      <div class="tags"><span class="tag tag-azul">Receita Federal</span><span class="tag tag-azul">CNAE</span><span class="tag tag-azul">Capital Social</span></div>
+    </div>
+    <div class="card card-white">
+      <div class="card-icon" style="background:var(--azul)">📋</div>
+      <h3 class="dark">Visão unificada da carteira</h3>
+      <p class="dark">Cada vendedor acessa sua carteira com dados completos: segmento, ciclo de vida, categoria, coordenação — tudo num único lugar.</p>
+      <div class="tags"><span class="tag tag-azul">Painel individual</span><span class="tag tag-azul">Dados enriquecidos</span></div>
+    </div>
+    <div class="card card-white">
+      <div class="card-icon" style="background:var(--azul)">⭐</div>
+      <h3 class="dark">Feedback que gera inteligência</h3>
+      <p class="dark">Cada visita registrada enriquece o perfil do prospect. A base acumula sinais de mercado que alimentam decisões mais inteligentes.</p>
+      <div class="tags"><span class="tag tag-azul">Enriquecimento contínuo</span><span class="tag tag-azul">Aprendizado</span></div>
+    </div>
+  </div>
+
+  <div class="pg-footer dark">SPIV — Inteligência de Vendas <span>02</span></div>
+</div>
+
+<!-- ═══════ PÁGINA 4 — RADIOGRAFIA DA BASE ═══════ -->
+<div class="page bg-escuro">
+  <div class="slide-num">03 — Radiografia da Base</div>
+  <h2 class="slide-h1">308.573 registros.<br><span>Uma base rica para decisões.</span></h2>
+  <p class="slide-lead">Dados reais já importados no SPIV. Segmentação, ciclo de vida, categorias e distribuição geográfica — tudo visível.</p>
+
+  <div class="grid-2" style="margin-top:8px">
+    <div class="chart-box">
+      <div class="chart-title">Categoria Institucional</div>
+      <div class="chart-wrap"><canvas id="c1"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Segmento de Cliente</div>
+      <div class="chart-wrap"><canvas id="c2"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Gerência</div>
+      <div class="chart-wrap"><canvas id="c3"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Ciclo de Vida</div>
+      <div class="chart-wrap"><canvas id="c4"></canvas></div>
+    </div>
+  </div>
+
+  <div class="pg-footer">SPIV — Inteligência de Vendas <span>03</span></div>
+</div>
+
+<!-- ═══════ PÁGINA 5 — NÚMEROS ═══════ -->
+<div class="page bg-azul">
+  <div class="slide-num">04 — Números que Importam</div>
+  <h2 class="slide-h1">Conhecendo a operação<br><span>em profundidade</span></h2>
+  <p class="slide-lead">Números que refletem a realidade atual da base de carteiras, agora visíveis e acionáveis dentro do SPIV.</p>
+
+  <div class="grid-5">
+    <div class="kpi"><div class="kpi-val">308.573</div><div class="kpi-lbl">Clientes</div></div>
+    <div class="kpi"><div class="kpi-val">6.517</div><div class="kpi-lbl">Carteiras</div></div>
+    <div class="kpi"><div class="kpi-val">226</div><div class="kpi-lbl">Coordenadores</div></div>
+    <div class="kpi"><div class="kpi-val">30</div><div class="kpi-lbl">Superintendências</div></div>
+    <div class="kpi"><div class="kpi-val">45</div><div class="kpi-lbl">Segmentos</div></div>
+  </div>
+
+  <div class="divider divider-light" style="margin-top:16px"><span>Top 10 Superintendências</span></div>
+
+  <div class="chart-box" style="background:rgba(255,255,255,.03)">
+    <div style="position:relative;height:165px"><canvas id="c5"></canvas></div>
+  </div>
+
+  <div class="pg-footer">SPIV — Inteligência de Vendas <span>04</span></div>
+</div>
+
+<!-- ═══════ PÁGINA 6 — VALOR PARA A GESTÃO ═══════ -->
+<div class="page bg-branco">
+  <div class="slide-num dark">05 — Valor para a Gestão</div>
+  <h2 class="slide-h1 dark">O que muda para quem<br><span>dirige a operação</span></h2>
+  <p class="slide-lead dark">O SPIV não substitui a gestão — ele a empodera. Visibilidade, cruzamento de dados e métricas que hoje exigiriam horas de trabalho manual.</p>
+
+  <div class="grid-3">
+    <div class="card card-white" style="text-align:center">
+      <div class="card-num">308k</div>
+      <h3 class="dark">Registros centralizados</h3>
+      <p class="dark">Todos os dados num único lugar, cruzados com Receita Federal e prontos para consulta.</p>
+    </div>
+    <div class="card card-white" style="text-align:center">
+      <div class="card-num">100%</div>
+      <h3 class="dark">Rastreabilidade</h3>
+      <p class="dark">Cada cliente: carteira, vendedor, segmento, CNAE, ciclo de vida e coordenação — em segundos.</p>
+    </div>
+    <div class="card card-white" style="text-align:center">
+      <div class="card-num">∞</div>
+      <h3 class="dark">Dados que acumulam</h3>
+      <p class="dark">A cada ciclo, a base fica mais rica. Feedback enriquece perfis e melhora ações futuras.</p>
+    </div>
+  </div>
+
+  <div class="divider divider-dark"><span>Benefícios operacionais</span></div>
+
+  <div class="grid-2">
+    <div class="card card-white"><p class="dark" style="font-size:8pt">✅ <strong>Fim das planilhas paralelas</strong> — um sistema, uma verdade, todos alinhados.</p></div>
+    <div class="card card-white"><p class="dark" style="font-size:8pt">✅ <strong>Dados enriquecidos</strong> — CNAE, segmento, capital social e natureza jurídica integrados.</p></div>
+    <div class="card card-white"><p class="dark" style="font-size:8pt">✅ <strong>Login com credenciais de rede</strong> — zero custo de onboarding.</p></div>
+    <div class="card card-white"><p class="dark" style="font-size:8pt">✅ <strong>Relatórios gerenciais nativos</strong> — desempenho por vendedor, SE e segmento.</p></div>
+  </div>
+
+  <div class="pg-footer dark">SPIV — Inteligência de Vendas <span>05</span></div>
+</div>
+
+<!-- ═══════ PÁGINA 7 — ROADMAP ═══════ -->
+<div class="page bg-azul-solid">
+  <div class="slide-num">06 — Roadmap</div>
+  <h2 class="slide-h1">Evolução gradual,<br><span>impacto contínuo</span></h2>
+  <p class="slide-lead">Cada fase adiciona uma camada de valor sobre a operação existente — sem ruptura, sem risco.</p>
+
+  <div class="row-2">
+    <div class="timeline">
+      <div class="tl-item">
+        <span class="fase fase-done">✔ Concluído</span>
+        <h4>🟢 Fase 1 — Base de Dados</h4>
+        <p>Importação dos 308.573 registros. Integração com Receita Federal. Modelo enriquecido com CNAE, segmento e hierarquia de gestão.</p>
+      </div>
+      <div class="tl-item">
+        <span class="fase fase-now">Em andamento</span>
+        <h4>🟡 Fase 2 — Interface do Vendedor</h4>
+        <p>Painel individual por carteira. Consulta de CNPJ, segmento, ciclo de vida e dados enriquecidos.</p>
+      </div>
+      <div class="tl-item">
+        <span class="fase fase-next">Próximo</span>
+        <h4>🔵 Fase 3 — Distribuição Inteligente</h4>
+        <p>Regras por território, segmento e porte. Balanceamento automático de carteiras.</p>
+      </div>
+      <div class="tl-item">
+        <span class="fase fase-next">Futuro</span>
+        <h4>🔵 Fase 4 — Inteligência Analítica</h4>
+        <p>Dashboard gerencial, análise preditiva, scoring de prospects e padrões de mercado.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card card-dark" style="margin-bottom:12px">
+        <div class="card-icon">🏗️</div>
+        <h3>Tecnologia robusta</h3>
+        <p><strong style="color:var(--amarelo)">PHP / CodeIgniter 4</strong> + <strong style="color:var(--amarelo)">PostgreSQL</strong> + <strong style="color:var(--amarelo)">Bootstrap 5</strong>. Stack sólida e escalável.</p>
+        <div class="tags"><span class="tag tag-gold">CodeIgniter 4.7</span><span class="tag tag-gold">PostgreSQL 18</span><span class="tag tag-gold">PHP 8.2</span></div>
+      </div>
+      <div class="card card-dark">
+        <div class="card-icon">🔒</div>
+        <h3>Segurança por design</h3>
+        <p>HTTPS nativo. Autenticação por matrícula e senha de rede. Acesso segmentado por perfil.</p>
+        <div class="tags"><span class="tag tag-gold">HTTPS/TLS</span><span class="tag tag-gold">Auth por rede</span><span class="tag tag-gold">Perfis</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pg-footer">SPIV — Inteligência de Vendas <span>06</span></div>
+</div>
+
+<!-- ═══════ PÁGINA 8 — ENCERRAMENTO ═══════ -->
+<div class="page bg-epic">
+  <div style="position:absolute;top:10%;left:50%;transform:translateX(-50%);width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(255,204,0,.06) 0%,transparent 60%);pointer-events:none"></div>
+  <div class="promise">
+    <span class="promise-icon">🚀</span>
+    <h2 class="promise-h">Potencializando o que<br><span>já funciona</span></h2>
+    <p class="promise-p">Não estamos começando do zero. Estamos construindo sobre uma base sólida de 308 mil registros e milhares de carteiras geridas por profissionais competentes em todo o país.</p>
+    <p class="promise-p">O SPIV transforma dados brutos em inteligência acionável — colocando na mão de cada vendedor e gestor as informações certas, no momento certo.</p>
+
+    <div class="quote" style="text-align:left;max-width:500px;margin:0 auto 16px">
+      <p style="font-size:9.5pt">"O próximo passo não é trabalhar mais — é trabalhar com mais inteligência."</p>
+      <cite>— Visão do Projeto SPIV</cite>
+    </div>
+
+    <div class="promise-kpis">
+      <div class="promise-kpi"><strong>308.573</strong><span>Clientes na Base</span></div>
+      <div class="promise-kpi"><strong>6.517</strong><span>Carteiras Ativas</span></div>
+      <div class="promise-kpi"><strong>45</strong><span>Segmentos Mapeados</span></div>
+    </div>
+
+    <p style="margin-top:14px;font-size:7pt;color:rgba(255,255,255,.2)">SPIV — Sistema de Prospecção e Inteligência de Vendas · Julho de 2026 · Confidencial</p>
+  </div>
+  <div class="pg-footer"><span>SPIV</span>Confidencial</div>
+</div>
+
+<script>
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 9;
+Chart.defaults.plugins.legend.position = 'right';
+Chart.defaults.plugins.legend.labels.boxWidth = 8;
+Chart.defaults.plugins.legend.labels.padding = 6;
+Chart.defaults.plugins.legend.labels.color = 'rgba(255,255,255,.55)';
+Chart.defaults.plugins.legend.labels.font = { size: 7.5 };
+Chart.defaults.animation = false; // PDF-safe
+
+const T = 308573;
+function dn(id,l,d,c){new Chart(document.getElementById(id),{type:'doughnut',data:{labels:l,datasets:[{data:d,backgroundColor:c,borderWidth:1.5,borderColor:'rgba(0,0,0,.3)'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'52%',plugins:{tooltip:{enabled:false}}}})}
+
+dn('c1',['Bronze','Ouro','Prata','Diamante','Platinum','Infinite','Clube'],[211953,45497,26823,11662,7620,4553,465],['#CD9B1D','#FFD700','#A0AEC0','#4A90D9','#7C3AED','#1a1a2e','#00A859']);
+dn('c2',['MPE','Ent. Privadas','Governo','Não Seg.'],[198879,69614,34826,5254],['#0047AB','#4A90D9','#00A859','#A0AEC0']);
+dn('c4',['Fidelização','Prospecção','A Prospectar','Outros'],[193843,113962,737,31],['#00A859','#0047AB','#FFD100','#A0AEC0']);
+
+new Chart(document.getElementById('c3'),{type:'bar',data:{labels:['Atendimento','Vendas Regionais','Vendas à Distância','Neg. Estratégicas'],datasets:[{data:[216694,49064,41517,1258],backgroundColor:['#0047AB','#4A90D9','#7CB9E8','#A0AEC0'],borderRadius:3,barThickness:14}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{ticks:{color:'rgba(255,255,255,.35)',font:{size:7},callback:v=>(v/1000).toFixed(0)+'k'},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'rgba(255,255,255,.55)',font:{size:7.5}},grid:{display:false}}}}});
+
+new Chart(document.getElementById('c5'),{type:'bar',data:{labels:['SPM','SPI','MG','RJ','PR','BA','RS','SC','GNP','CE'],datasets:[{data:[69345,48558,24723,16723,15805,13869,13620,12155,11775,10547],backgroundColor:'#ffcc00',borderRadius:3,barThickness:12}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{ticks:{color:'rgba(255,255,255,.35)',font:{size:7},callback:v=>(v/1000).toFixed(0)+'k'},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'rgba(255,255,255,.65)',font:{size:8,weight:700}},grid:{display:false}}}}});
+</script>
+
+</body>
+</html>

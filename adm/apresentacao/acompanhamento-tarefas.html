@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>SPIV — Acompanhamento de Tarefas · Fase 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+@page { size: A4 portrait; margin: 12mm; }
+:root { --azul:#003087; --azul-l:#1a56b8; --amarelo:#ffcc00; --verde:#22c55e; --laranja:#f59e0b; --cinza:#64748b; --bg:#f8fafc; --borda:#e2e8f0; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;color:#1e293b;background:var(--bg);font-size:9.5pt;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{max-width:210mm;margin:0 auto;background:#fff;padding:14mm 16mm;min-height:297mm;position:relative}
+@media screen{.page{box-shadow:0 4px 24px rgba(0,0,0,.1);margin:16px auto;border-radius:8px}}
+
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--azul);padding-bottom:12px;margin-bottom:16px}
+.header-left h1{font-size:16pt;font-weight:800;color:var(--azul)}
+.header-left p{font-size:8pt;color:var(--cinza);margin-top:2px}
+.header-right{text-align:right}
+.header-right .date{font-size:8pt;color:var(--cinza)}
+.header-right .badge{display:inline-block;background:var(--amarelo);color:var(--azul);font-size:7pt;font-weight:700;padding:3px 10px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Summary */
+.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.sum-box{background:linear-gradient(135deg,#f0f4ff,#e8eef8);border:1px solid var(--borda);border-radius:8px;padding:10px;text-align:center}
+.sum-box.done{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#bbf7d0}
+.sum-val{font-size:18pt;font-weight:800;color:var(--azul);line-height:1}
+.sum-box.done .sum-val{color:var(--verde)}
+.sum-lbl{font-size:6.5pt;text-transform:uppercase;letter-spacing:.8px;color:var(--cinza);margin-top:4px;font-weight:600}
+
+/* Progress bar */
+.progress-section{margin-bottom:16px}
+.progress-bar-bg{width:100%;height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;position:relative}
+.progress-bar-fill{height:100%;border-radius:5px;transition:width .3s}
+.progress-fill-done{background:var(--verde)}
+.progress-fill-wip{background:var(--amarelo)}
+.progress-legend{display:flex;gap:16px;margin-top:4px;font-size:6.5pt;color:var(--cinza)}
+.progress-legend span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.legend-done::before{background:var(--verde)}
+.legend-wip::before{background:var(--amarelo)}
+.legend-todo::before{background:#e2e8f0}
+
+/* Phases */
+.phase{margin-bottom:14px;page-break-inside:avoid}
+.phase-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.phase-badge{font-size:6.5pt;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.badge-done{background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0}
+.badge-wip{background:#fef3c7;color:#d97706;border:1px solid #fde68a}
+.badge-todo{background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0}
+.phase-title{font-size:10pt;font-weight:700;color:#1e293b}
+.phase-desc{font-size:7.5pt;color:var(--cinza);margin-left:auto}
+
+/* Task list */
+.tasks{margin-left:4px}
+.task{display:flex;align-items:flex-start;gap:6px;padding:3px 0;font-size:8pt;border-bottom:1px solid #f8fafc}
+.task:last-child{border-bottom:none}
+.check{width:12px;height:12px;border:1.5px solid var(--borda);border-radius:3px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center}
+.check.done{background:var(--verde);border-color:var(--verde);color:#fff;font-size:7pt;font-weight:700}
+.check.wip{background:var(--amarelo);border-color:var(--amarelo);color:var(--azul);font-size:6pt;font-weight:700}
+.task-text{flex:1;color:#334155}
+.task-text.done-text{color:#94a3b8;text-decoration:line-through}
+.task-id{font-size:6.5pt;color:var(--cinza);font-weight:600;min-width:32px}
+
+/* Footer */
+.pg-footer{position:absolute;bottom:10mm;left:16mm;right:16mm;display:flex;justify-content:space-between;font-size:6.5pt;color:#94a3b8;border-top:1px solid var(--borda);padding-top:6px}
+
+/* Subtotals */
+.phase-stats{font-size:6.5pt;color:var(--cinza);margin-bottom:4px;display:flex;gap:12px}
+.phase-stats span{font-weight:600}
+
+/* Page break */
+.page-break{page-break-after:always}
+
+/* Print button */
+@media screen{
+  .print-btn{position:fixed;bottom:16px;right:16px;background:var(--azul);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:10pt;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,48,135,.3);z-index:99}
+  .print-btn:hover{background:var(--azul-l)}
+}
+@media print{.print-btn{display:none}}
+</style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">🖨️ Salvar como PDF</button>
+
+<!-- PÁGINA 1 -->
+<div class="page">
+  <div class="header">
+    <div class="header-left">
+      <h1>SPIV — Acompanhamento de Tarefas</h1>
+      <p>Sistema de Prospecção e Inteligência de Vendas · Carteira de Clientes</p>
+    </div>
+    <div class="header-right">
+      <div class="badge">Confidencial</div>
+      <div class="date" style="margin-top:4px">Julho 2026</div>
+    </div>
+  </div>
+
+  <!-- RESUMO GERAL -->
+  <div class="summary">
+    <div class="sum-box done">
+      <div class="sum-val">44</div>
+      <div class="sum-lbl">Fase 1 Concluídas</div>
+    </div>
+    <div class="sum-box">
+      <div class="sum-val">73</div>
+      <div class="sum-lbl">Fase 2 Planejadas</div>
+    </div>
+    <div class="sum-box">
+      <div class="sum-val">117</div>
+      <div class="sum-lbl">Total de Tarefas</div>
+    </div>
+    <div class="sum-box">
+      <div class="sum-val">10</div>
+      <div class="sum-lbl">Sub-fases</div>
+    </div>
+    <div class="sum-box">
+      <div class="sum-val">10</div>
+      <div class="sum-lbl">Critérios QA</div>
+    </div>
+  </div>
+
+  <!-- BARRA DE PROGRESSO -->
+  <div class="progress-section">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+      <span style="font-size:8pt;font-weight:700;color:#1e293b">Progresso Geral</span>
+      <span style="font-size:8pt;font-weight:700;color:var(--verde)">37.6%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill progress-fill-done" style="width:37.6%"></div>
+    </div>
+    <div class="progress-legend">
+      <span class="legend-done">Concluído (44)</span>
+      <span class="legend-wip">Em andamento (0)</span>
+      <span class="legend-todo">Pendente (73)</span>
+    </div>
+  </div>
+
+  <!-- ═══ FASE 1 — CONCLUÍDA ═══ -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-done">✔ Concluída</span>
+      <span class="phase-title">Fase 1 — Fundação</span>
+      <span class="phase-desc">44/44 tarefas · 100%</span>
+    </div>
+    <div class="phase-stats"><span>11 seções</span><span>308.573 registros importados</span><span>7 models</span><span>12 migrations</span></div>
+    <div class="tasks">
+      <div class="task"><div class="check done">✓</div><div class="task-id">1.x</div><div class="task-text done-text">Base técnica e domínio (5 tarefas)</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">2.x</div><div class="task-text done-text">Autenticação Shield + LDAP stub (6 tarefas)</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">3.x</div><div class="task-text done-text">CRUD de vendedores (5 tarefas)</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">4.x</div><div class="task-text done-text">Estrutura da carteira + histórico (5 tarefas)</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">5.x</div><div class="task-text done-text">Distribuição automática por capital social (7 tarefas)</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">6.x</div><div class="task-text done-text">Prospecção antifraude (5 tarefas)</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">7.x</div><div class="task-text done-text">Enriquecimento de potencialidade (3 tarefas)</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">8.x</div><div class="task-text done-text">Portal operacional do ACOM (6 tarefas)</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">9.x</div><div class="task-text done-text">Área administrativa + métricas (7 tarefas)</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">10.x</div><div class="task-text done-text">Critérios de fechamento QA (7 tarefas) — PRONTO PARA QA</div></div>
+      <div class="task"><div class="check done">✓</div><div class="task-id">11.x</div><div class="task-text done-text">LGPD / Privacy by Design / ROPA (4 tarefas)</div></div>
+    </div>
+  </div>
+
+  <div style="border-top:2px solid var(--azul);margin:14px 0 10px;padding-top:6px">
+    <span style="font-size:10pt;font-weight:800;color:var(--azul)">FASE 2 — Interface do Vendedor (Mobile-First)</span>
+    <span style="font-size:7.5pt;color:var(--cinza);margin-left:8px">73 tarefas · 10 sub-fases · 10 critérios QA</span>
+  </div>
+
+  <!-- 2.1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.1 — Modelo de Dados</span>
+      <span class="phase-desc">0/13 · 6 migrations + 6 models</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.1.1</div><div class="task-text">Migration <code>CreateVendorUsersTable</code> (12 campos)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.2</div><div class="task-text">Migration <code>CreateSystemMessagesTable</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.3</div><div class="task-text">Migration <code>CreateVendorNotesTable</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.4</div><div class="task-text">Migration <code>CreateSegmentServicesTable</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.5</div><div class="task-text">Migration <code>CreateClientStrategiesTable</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.6</div><div class="task-text">Migration <code>CreateClientLocationsTable</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.7</div><div class="task-text">Model <code>VendorUserModel</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.8</div><div class="task-text">Model <code>SystemMessageModel</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.9</div><div class="task-text">Model <code>VendorNoteModel</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.10</div><div class="task-text">Model <code>SegmentServiceModel</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.11</div><div class="task-text">Model <code>ClientStrategyModel</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.12</div><div class="task-text">Model <code>ClientLocationModel</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.1.13</div><div class="task-text">Executar todas as migrations</div></div>
+    </div>
+  </div>
+
+  <!-- 2.2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.2 — Importação de Vendedores</span>
+      <span class="phase-desc">0/6 · ~6.500 vendedores</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.2.1</div><div class="task-text">Command <code>php spark vendedores:importar</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.2.2</div><div class="task-text">Filtrar matrículas fictícias (8888*, 8002*)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.2.3</div><div class="task-text">Inferir <code>perfil_vendedor</code> (ACOM, GC, CEM, AGF)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.2.4</div><div class="task-text">Inserção idempotente em <code>vendor_users</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.2.5</div><div class="task-text">Executar importação completa</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.2.6</div><div class="task-text">Validar totais (matrículas, coordenadores, SEs)</div></div>
+    </div>
+  </div>
+
+  <!-- 2.3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.3 — Auto-Provisioning e Login</span>
+      <span class="phase-desc">0/7 · Matrícula + 123</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.3.1</div><div class="task-text">Modificar <code>LoginController</code> — aceitar matrícula+123</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.3.2</div><div class="task-text">Auto-criar Shield user + vincular <code>vendor_users</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.3.3</div><div class="task-text">Sem matrícula em vendor_users → tela sem carteira</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.3.4</div><div class="task-text">Atualizar redirects no <code>Home::index()</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.3.5</div><div class="task-text">Detectar coordenador (opção "Visão do Time")</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.3.6</div><div class="task-text">Testar login com carteira existente</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.3.7</div><div class="task-text">Testar login sem carteira</div></div>
+    </div>
+  </div>
+
+  <div class="pg-footer"><span>SPIV — Acompanhamento de Tarefas</span><span>Página 1 de 3 · Confidencial</span></div>
+</div>
+
+<!-- PÁGINA 2 -->
+<div class="page">
+  <div style="border-bottom:2px solid var(--azul);padding-bottom:6px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:baseline">
+    <span style="font-size:10pt;font-weight:800;color:var(--azul)">FASE 2 — Interface do Vendedor (continuação)</span>
+    <span style="font-size:7.5pt;color:var(--cinza)">Julho 2026</span>
+  </div>
+
+  <!-- 2.4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.4 — Dashboard do Vendedor</span>
+      <span class="phase-desc">0/7</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.4.1</div><div class="task-text">Criar <code>VendedorController::index()</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.4.2</div><div class="task-text">Layout base mobile-first</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.4.3</div><div class="task-text">Dashboard: saudação com nome e perfil</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.4.4</div><div class="task-text">KPIs: total clientes, segmentos, categorias</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.4.5</div><div class="task-text">Card "Ver meus clientes"</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.4.6</div><div class="task-text">Resumo de últimas notas/visitas</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.4.7</div><div class="task-text">Registrar rotas em <code>Routes.php</code></div></div>
+    </div>
+  </div>
+
+  <!-- 2.5 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.5 — Cards com Swipe (Camada 1)</span>
+      <span class="phase-desc">0/12 · Core UX</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.5.1</div><div class="task-text">Endpoint JSON dos clientes (da <code>carteira_raw</code>)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.2</div><div class="task-text">View <code>clientes.php</code> com container de cards</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.3</div><div class="task-text">CSS mobile-first para cards grandes</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.4</div><div class="task-text">Swipe via touch events (vanilla JS)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.5</div><div class="task-text">Badge de categoria (cor), CNPJ, razão social, segmento, CNAE</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.6</div><div class="task-text">Capital social mascarado (tap para revelar)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.7</div><div class="task-text">Canais de vendas como tags</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.8</div><div class="task-text">Botões: 📞 Ligar | 🗺️ Navegar | 📝 Nota</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.9</div><div class="task-text">Busca por CNPJ ou razão social</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.10</div><div class="task-text">Filtros: segmento, categoria, ciclo de vida</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.11</div><div class="task-text">Indicador de posição (card N de M)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.5.12</div><div class="task-text">Teste mobile (Chrome DevTools)</div></div>
+    </div>
+  </div>
+
+  <!-- 2.6 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.6 — Detalhe do Cliente (3 Camadas)</span>
+      <span class="phase-desc">0/6</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.6.1</div><div class="task-text">Endpoint <code>clienteDetalhe($cnpj)</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.6.2</div><div class="task-text">View com 3 abas/accordion</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.6.3</div><div class="task-text">Aba 1 — Dados Básicos + badges coloridos</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.6.4</div><div class="task-text">Aba 2 — Estendida: redes sociais (placeholder) + notas do vendedor</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.6.5</div><div class="task-text">Aba 3 — Estratégias: blocos de serviço + área de drop</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.6.6</div><div class="task-text">CSS responsivo para 3 abas em celular</div></div>
+    </div>
+  </div>
+
+  <!-- 2.6b -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.6b — Localização e Proximidade</span>
+      <span class="phase-desc">0/4</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.6b.1</div><div class="task-text">Interface cadastro lat/long (+ "Usar minha localização")</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.6b.2</div><div class="task-text">Endpoint POST salvar localização</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.6b.3</div><div class="task-text">Ordenação por proximidade nos cards</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.6b.4</div><div class="task-text">Haversine formula no backend</div></div>
+    </div>
+  </div>
+
+  <!-- 2.7 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.7 — Notas Estruturadas + Visitas</span>
+      <span class="phase-desc">0/7</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.7.1</div><div class="task-text">Endpoint POST registrar nota</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.7.2</div><div class="task-text">Formulário mobile: tipo + conteúdo + sentimento (3 emojis)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.7.3</div><div class="task-text">Timeline de notas na Aba 2</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.7.4</div><div class="task-text">Badges por tipo (visita=verde, obs=azul, contato=laranja, reunião=roxo)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.7.5</div><div class="task-text">Indicador de sentimento (😊 😐 😟)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.7.6</div><div class="task-text">Resumo de notas no dashboard</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.7.7</div><div class="task-text">Teste registro pelo celular</div></div>
+    </div>
+  </div>
+
+  <div class="pg-footer"><span>SPIV — Acompanhamento de Tarefas</span><span>Página 2 de 3 · Confidencial</span></div>
+</div>
+
+<!-- PÁGINA 3 -->
+<div class="page">
+  <div style="border-bottom:2px solid var(--azul);padding-bottom:6px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:baseline">
+    <span style="font-size:10pt;font-weight:800;color:var(--azul)">FASE 2 — Interface do Vendedor (conclusão)</span>
+    <span style="font-size:7.5pt;color:var(--cinza)">Julho 2026</span>
+  </div>
+
+  <!-- 2.8 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.8 — Estratégias com Blocos de Serviço</span>
+      <span class="phase-desc">0/8</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.8.1</div><div class="task-text"><code>SegmentServicesSeeder</code> (top 10 segmentos)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.8.2</div><div class="task-text">Executar seeder e validar dados</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.8.3</div><div class="task-text">Endpoint GET serviços do segmento</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.8.4</div><div class="task-text">Endpoint POST salvar estratégia</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.8.5</div><div class="task-text">Drag &amp; drop com touch support</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.8.6</div><div class="task-text">Visual: ícone + cor + nome do serviço</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.8.7</div><div class="task-text">Estratégias salvas no detalhe do cliente</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.8.8</div><div class="task-text">Teste drag &amp; drop em celular</div></div>
+    </div>
+  </div>
+
+  <!-- 2.9 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.9 — Hierarquia Coordenador → Vendedor</span>
+      <span class="phase-desc">0/8</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.9.1</div><div class="task-text">Criar <code>CoordenadorController</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.9.2</div><div class="task-text">Registrar rotas <code>/coordenador/*</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.9.3</div><div class="task-text">Dashboard: lista de vendedores do time + KPIs</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.9.4</div><div class="task-text">View carteira de vendedor (somente leitura)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.9.5</div><div class="task-text">Lógica: WHERE <code>mtr_coordenador</code> = matrícula logada</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.9.6</div><div class="task-text">Guard: coordenador só vê seu grupo</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.9.7</div><div class="task-text">Botão "Visão do Time" no dashboard vendedor</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.9.8</div><div class="task-text">Teste isolamento entre grupos</div></div>
+    </div>
+  </div>
+
+  <!-- 2.10 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge badge-todo">Pendente</span>
+      <span class="phase-title">2.10 — Sem Carteira + Mensagens do Sistema</span>
+      <span class="phase-desc">0/9</span>
+    </div>
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">2.10.1</div><div class="task-text"><code>SemCarteiraController</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.10.2</div><div class="task-text">View <code>sem_carteira.php</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.10.3</div><div class="task-text">Rota <code>/sem-carteira</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.10.4</div><div class="task-text">Seeder com mensagem padrão</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.10.5</div><div class="task-text"><code>SystemMessagesController</code> (admin)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.10.6</div><div class="task-text">Views admin: lista + editor</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.10.7</div><div class="task-text">Integrar TinyMCE (CDN)</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.10.8</div><div class="task-text">Rotas admin <code>/admin/mensagens/*</code></div></div>
+      <div class="task"><div class="check"></div><div class="task-id">2.10.9</div><div class="task-text">Teste: admin edita → funcionário vê</div></div>
+    </div>
+  </div>
+
+  <!-- QA -->
+  <div style="border-top:2px solid var(--verde);margin:14px 0 10px;padding-top:6px">
+    <span style="font-size:10pt;font-weight:800;color:var(--verde)">Critérios de QA — Fase 2</span>
+  </div>
+  <div class="phase">
+    <div class="tasks">
+      <div class="task"><div class="check"></div><div class="task-id">QA-01</div><div class="task-text">Login matrícula válida → dashboard com dados</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">QA-02</div><div class="task-text">Login matrícula sem carteira → tela informativa</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">QA-03</div><div class="task-text">Swipe entre cards no celular</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">QA-04</div><div class="task-text">3 camadas de dados no detalhe</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">QA-05</div><div class="task-text">Registro de nota/visita pelo celular</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">QA-06</div><div class="task-text">Estratégia com drag &amp; drop</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">QA-07</div><div class="task-text">Coordenador vê carteiras do time</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">QA-08</div><div class="task-text">Admin edita mensagens</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">QA-09</div><div class="task-text">Isolamento: vendedor só vê seus clientes</div></div>
+      <div class="task"><div class="check"></div><div class="task-id">QA-10</div><div class="task-text">Isolamento: coordenador só vê seu time</div></div>
+    </div>
+  </div>
+
+  <!-- Stack -->
+  <div style="margin-top:14px;background:#f0f4ff;border:1px solid var(--borda);border-radius:8px;padding:10px 14px;display:flex;gap:24px;font-size:7.5pt;color:var(--cinza)">
+    <div><strong style="color:var(--azul)">Stack:</strong> PHP 8.2 · CodeIgniter 4.7 · PostgreSQL 18 · Bootstrap 5.3 · Shield</div>
+    <div><strong style="color:var(--azul)">Base:</strong> 308.573 clientes · 6.517 carteiras · 226 coordenadores · 30 SEs</div>
+  </div>
+
+  <div class="pg-footer"><span>SPIV — Acompanhamento de Tarefas</span><span>Página 3 de 3 · Confidencial</span></div>
+</div>
+
+</body>
+</html>
