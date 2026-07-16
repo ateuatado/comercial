@@ -125,10 +125,12 @@ class AdminController extends BaseController
 
         if (!empty($busca)) {
             // Limita a busca em 50 para evitar travamento da listagem
-            $sql = "SELECT c.cnpj, c.razao_social, c.logradouro, c.numero, c.bairro,
-                           c.municipio_codigo, c.uf, cl.latitude, cl.longitude
+            $sql = "SELECT c.cnpj, c.razao_social, 
+                           e.tipo_logradouro, e.logradouro, e.numero, e.bairro, e.municipio AS municipio_codigo, e.uf,
+                           cl.latitude, cl.longitude
                     FROM carteira_raw c
                     LEFT JOIN client_locations cl ON cl.cnpj = c.cnpj
+                    LEFT JOIN receita.estabelecimentos e ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = c.cnpj
                     WHERE c.cnpj LIKE ? OR LOWER(c.razao_social) LIKE LOWER(?)
                     ORDER BY c.razao_social ASC
                     LIMIT 50";

@@ -53,7 +53,7 @@
                                 </td>
                                 <td>
                                     <small class="text-muted">
-                                        <?= esc($c['logradouro'] ?? '') ?>, <?= esc($c['numero'] ?? '') ?> - 
+                                        <?= esc(($c['tipo_logradouro'] ?? '') . ' ' . ($c['logradouro'] ?? '')) ?>, <?= esc($c['numero'] ?? '') ?> - 
                                         <?= esc($c['bairro'] ?? '') ?>, <?= esc($c['municipio_nome'] ?? '') ?>/<?= esc($c['uf'] ?? '') ?>
                                     </small>
                                 </td>
