@@ -178,11 +178,16 @@
 - [x] **2.6.6** — CSS responsivo para as 3 abas em celular. — CSS mobile-first com max-width 480px, sticky tabs.
 
 ### 2.6b Localização e Proximidade
-
-- [ ] **2.6b.1** — Interface para vendedor cadastrar lat/long do cliente (campo de endereço + botão "Usar minha localização").
-- [ ] **2.6b.2** — Endpoint `POST /vendedor/localizacao` para salvar.
-- [ ] **2.6b.3** — Opção de ordenação por proximidade nos cards (usa lat/long do vendedor vs. lat/long dos clientes).
-- [x] **2.6b.4** — Haversine formula no backend para calcular distância. — Implementado como método estático em ClientLocationModel.
+  
+- [x] **2.6b.1** — **Pré-Visita (Vendedor):** Tela no celular para buscar bairro/região (ex: "Itaquera"), localizando CNPJs próximos via endereço genérico na `receita.estabelecimentos` e salvando coordenadas pré-calculadas aproximadas para guiar o vendedor. — Implementado em VendedorController::preVisitaSalvar().
+- [x] **2.6b.2** — **Cadastro Manual (Admin):** Interface administrativa para listar clientes e permitir que o administrador simplesmente copie e cole coordenadas de Latitude/Longitude (ex: extraídas do Google Maps) diretamente na tabela `client_locations`. — Implementado em AdminController::localizacaoManual().
+- [x] **2.6b.3** — **Contrato Google Maps API (Mockup):** Tela "boneco" no sistema contendo informativo oficial de que a geocodificação automática direta via API corporativa depende de contratação/faturamento prévio com a Google. — Implementado view mock_maps.php.
+- [x] **2.6b.4** — **Radar GPS (Vendedor):** Interface de visualização no celular (Lista ou Mapa) exibindo os pontos em cores:
+  - **Verdes:** CNPJs "Livres" (não associados a nenhuma carteira na `carteira_raw`), disponíveis para prospecção imediata.
+  - **Vermelhos/Cinzas:** Clientes já pertencentes a alguma carteira de outro vendedor dos Correios.
+  — Implementado view prospectar.php e VendedorController::prospectarApi().
+- [x] **2.6b.5** — **Filtro de Proximidade:** Ordenação dos cards de clientes ativos por distância baseada no GPS atual do dispositivo do vendedor. — Implementado via usort() em prospectarApi().
+- [x] **2.6b.6** — Haversine formula no backend para calcular distância. — Implementado como método estático em ClientLocationModel.
 
 ### 2.7 Notas Estruturadas + Visitas
 

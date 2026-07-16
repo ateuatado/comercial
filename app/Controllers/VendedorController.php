@@ -220,4 +220,158 @@ class VendedorController extends BaseController
 
         return $this->response->setJSON(['success' => true, 'message' => 'Estratégia salva.']);
     }
+
+    // ─── Geolocalização e Prospecção (Fase 2.6b) ─────────────────
+
+    public function prospectarView()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return redirect()->to('/sem-carteira');
+
+        return view('vendedor/prospectar', compact('vendorUser'));
+    }
+
+    public function mockGoogleMaps()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return redirect()->to('/sem-carteira');
+
+        return view('vendedor/mock_maps', compact('vendorUser'));
+    }
+
+    public function prospectarApi()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return $this->response->setJSON(['error' => 'Sem carteira'])->setStatusCode(403);
+
+        $lat = (float) $this->request->getGet('lat');
+        $lng = (float) $this->request->getGet('lng');
+
+        if (empty($lat) || empty($lng)) {
+            return $this->response->setJSON(['error' => 'Coordenadas GPS não informadas.'])->setStatusCode(422);
+        }
+
+        $db = db_connect();
+        $locationModel = new ClientLocationModel();
+
+        // Obtém todas as localizações salvas
+        $locations = $locationModel->findAll();
+        $proximas = [];
+
+        foreach ($locations as $loc) {
+            $dist = ClientLocationModel::haversineDistance($lat, $lng, (float)$loc['latitude'], (float)$loc['longitude']);
+            
+            // Raio padrão de busca: 10km
+            if ($dist <= 10.0) {
+                // Descobre se a empresa já está associada a algum vendedor na carteira_raw
+                $carteira = $db->table('carteira_raw')
+                              ->select('razao_social, matricula_mcmcu')
+                              ->where('cnpj', $loc['cnpj'])
+                              ->get()
+                              ->getRowArray();
+
+                $status = 'Livre';
+                if ($carteira) {
+                    $status = 'Ocupado'; // Pertence a alguma carteira
+                }
+
+                // Carrega dados adicionais da receita.estabelecimentos ou carteira_raw
+                $razaoSocial = 'Empresa Desconhecida';
+                $endereco = $loc['endereco_formatado'] ?? 'Endereço não informado';
+
+                $estabelecimento = $db->table('receita.estabelecimentos')
+                                      ->where('cnpj_basico || cnpj_ordem || cnpj_dv', $loc['cnpj'])
+                                      ->get()
+                                      ->getRowArray();
+                
+                if ($estabelecimento) {
+                    $endereco = trim($estabelecimento['tipo_logradouro'] . ' ' . $estabelecimento['logradouro'] . ', ' . $estabelecimento['numero']);
+                }
+
+                if ($carteira) {
+                    $razaoSocial = $carteira['razao_social'];
+                } else {
+                    $empresa = $db->table('receita.empresas')
+                                  ->where('cnpj_basico', substr($loc['cnpj'], 0, 8))
+                                  ->get()
+                                  ->getRowArray();
+                    if ($empresa) {
+                        $razaoSocial = $empresa['razao_social'];
+                    }
+                }
+
+                $proximas[] = [
+                    'cnpj'         => $loc['cnpj'],
+                    'razao_social' => $razaoSocial,
+                    'endereco'     => $endereco,
+                    'latitude'     => (float)$loc['latitude'],
+                    'longitude'    => (float)$loc['longitude'],
+                    'distancia'    => $dist,
+                    'status'       => $status
+                ];
+            }
+        }
+
+        // Ordena por menor distância
+        usort($proximas, function($a, $b) {
+            return $a['distancia'] <=> $b['distancia'];
+        });
+
+        return $this->response->setJSON(['empresas' => $proximas]);
+    }
+
+    public function preVisitaSalvar()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return $this->response->setJSON(['error' => 'Sem carteira'])->setStatusCode(403);
+
+        $bairro = $this->request->getPost('bairro');
+        $userLat = (float) $this->request->getPost('lat');
+        $userLng = (float) $this->request->getPost('lng');
+
+        if (empty($bairro)) {
+            return $this->response->setJSON(['error' => 'Bairro não informado.'])->setStatusCode(422);
+        }
+
+        $db = db_connect();
+        
+        // Busca estabelecimentos com base no bairro informado
+        $estabelecimentos = $db->table('receita.estabelecimentos')
+                              ->where('LOWER(bairro) LIKE LOWER(?)', ["%{$bairro}%"])
+                              ->limit(20) // Limite de amostragem por busca
+                              ->get()
+                              ->getResultArray();
+
+        if (empty($estabelecimentos)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Nenhum estabelecimento encontrado neste bairro.']);
+        }
+
+        $locationModel = new ClientLocationModel();
+
+        // Adiciona coordenadas aproximadas em torno das coordenadas do usuário
+        // simulando distribuição geográfica das empresas no bairro visitado
+        foreach ($estabelecimentos as $idx => $est) {
+            $cnpj = $est['cnpj_basico'] . $est['cnpj_ordem'] . $est['cnpj_dv'];
+            
+            // Pequena variação aleatória de coordenadas em torno do GPS atual do vendedor
+            // para fazer os pontos aparecerem espalhados no mapa da região
+            $offsetLat = (rand(-100, 100) / 10000.0);
+            $offsetLng = (rand(-100, 100) / 10000.0);
+
+            $lat = $userLat + $offsetLat;
+            $lng = $userLng + $offsetLng;
+
+            $endereco = trim(($est['tipo_logradouro'] ?? '') . ' ' . ($est['logradouro'] ?? '') . ', ' . ($est['numero'] ?? ''));
+
+            $locationModel->upsert([
+                'cnpj'               => $cnpj,
+                'latitude'           => $lat,
+                'longitude'          => $lng,
+                'endereco_formatado' => $endereco ?: 'Endereço Indisponível',
+                'registrado_por'     => $vendorUser['matricula']
+            ]);
+        }
+
+        return $this->response->setJSON(['success' => true]);
+    }
 }

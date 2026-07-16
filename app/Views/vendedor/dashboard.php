@@ -107,6 +107,9 @@
         <a href="<?= site_url('vendedor/clientes') ?>" class="btn btn-primary btn-lg" style="border-radius: 12px;">
             <i class="bi bi-people-fill me-2"></i> Ver Meus Clientes
         </a>
+        <a href="<?= site_url('vendedor/prospectar') ?>" class="btn btn-success btn-lg" style="border-radius: 12px;">
+            <i class="bi bi-geo-alt-fill me-2"></i> Radar de Prospecção
+        </a>
         <?php if ($isCoordenador): ?>
             <a href="<?= site_url('coordenador') ?>" class="btn btn-outline-primary btn-lg" style="border-radius: 12px;">
                 <i class="bi bi-diagram-3 me-2"></i> Visão do Time

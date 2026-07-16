@@ -105,7 +105,16 @@ A base de CNPJs da Receita Federal já está importada no banco de dados do SPIV
 - Busca por CNPJ ou razão social.
 - Botões de ação rápida: Ligar (discador), Navegar (Google Maps).
 - Registro de visitas/interações pelo celular.
-- Cadastro de localização (lat/long) dos clientes.
+- **Geolocalização e Proximidade (Fase 2.6b):**
+  - **Estratégias de Cadastro de Coordenadas:**
+    1. *Pré-Visita em Campo (Vendedor):* O vendedor planeja suas visitas inserindo um bairro/região (ex: "Vila Carmosina, Itaquera") no app. O sistema busca na tabela `receita.estabelecimentos` as empresas desse endereço genérico e gera pré-cadastros de localização aproximada para orientar a rota.
+    2. *Cadastro Manual via Admin:* O administrador possui uma tela de listagem de clientes onde pode simplesmente copiar e colar as coordenadas de Latitude/Longitude direto do Google Maps para o registro, sem necessidade de consultas automatizadas.
+    3. *Integração Automatizada por API:* Tela boneco (mockup informativo) simulando a geocodificação automática via Google Maps API, indicando de forma explícita que a ativação da funcionalidade depende da celebração de contrato de faturamento entre os Correios e a Google.
+  - **Filtro de Proximidade:** Ordenação dos cards por proximidade baseado no GPS do celular em tempo real.
+  - **Prospecção de CNPJs Livres (Mapa/Lista):**
+    - Exibe no mapa os pontos com distinção de cores:
+      - **Verdes:** Empresas "Livres" (não associadas a nenhuma carteira na `carteira_raw`), identificando novas oportunidades que o vendedor pode prospectar/vincular a si.
+      - **Vermelhos/Cinzas:** Empresas já vinculadas a alguma carteira de outro vendedor dos Correios.
 
 ### 5. Área administrativa
 

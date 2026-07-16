@@ -114,4 +114,70 @@ class AdminController extends BaseController
             'per_page'    => $perPage,
         ]);
     }
+
+    // ─── Gestão Manual de Localizações (Fase 2.6b) ────────────────
+
+    public function localizacaoManual()
+    {
+        $db = db_connect();
+        $busca = $this->request->getGet('busca');
+        $clientes = [];
+
+        if (!empty($busca)) {
+            // Limita a busca em 50 para evitar travamento da listagem
+            $sql = "SELECT c.cnpj, c.razao_social, c.logradouro, c.numero, c.bairro,
+                           c.municipio_codigo, c.uf, cl.latitude, cl.longitude
+                    FROM carteira_raw c
+                    LEFT JOIN client_locations cl ON cl.cnpj = c.cnpj
+                    WHERE c.cnpj LIKE ? OR LOWER(c.razao_social) LIKE LOWER(?)
+                    ORDER BY c.razao_social ASC
+                    LIMIT 50";
+            
+            $clientes = $db->query($sql, ["%{$busca}%", "%{$busca}%"])->getResultArray();
+
+            // Resolver nome dos municípios
+            foreach ($clientes as &$c) {
+                $c['municipio_nome'] = '';
+                if ($c['municipio_codigo']) {
+                    $mun = $db->table('receita.municipios')
+                              ->select('descricao')
+                              ->where('codigo', $c['municipio_codigo'])
+                              ->get()
+                              ->getRowArray();
+                    if ($mun) {
+                        $c['municipio_nome'] = $mun['descricao'];
+                    }
+                }
+            }
+        }
+
+        return view('admin/localizacao', compact('clientes', 'busca'));
+    }
+
+    public function localizacaoManualSalvar()
+    {
+        $cnpj = $this->request->getPost('cnpj');
+        $lat  = $this->request->getPost('lat');
+        $lng  = $this->request->getPost('lng');
+
+        if (empty($cnpj) || $lat === '' || $lng === '') {
+            return $this->response->setJSON(['error' => 'Dados incompletos.'])->setStatusCode(422);
+        }
+
+        $locationModel = new \App\Models\ClientLocationModel();
+
+        $salvo = $locationModel->upsert([
+            'cnpj'               => $cnpj,
+            'latitude'           => (float)$lat,
+            'longitude'          => (float)$lng,
+            'endereco_formatado' => 'Cadastro Manual Admin',
+            'registrado_por'     => 'admin'
+        ]);
+
+        if ($salvo) {
+            return $this->response->setJSON(['success' => true]);
+        }
+
+        return $this->response->setJSON(['error' => 'Falha ao salvar no banco.'])->setStatusCode(500);
+    }
 }

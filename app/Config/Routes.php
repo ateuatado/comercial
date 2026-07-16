@@ -50,6 +50,9 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     $routes->post('importar/upload',      '\App\Controllers\Admin\ImportController::upload',  ['as' => 'admin_import_upload']);
     $routes->post('importar/confirmar',   '\App\Controllers\Admin\ImportController::confirm', ['as' => 'admin_import_confirm']);
 
+    // Gestão Manual de Localizações (Fase 2.6b)
+    $routes->get('localizacao',           '\App\Controllers\AdminController::localizacaoManual');
+    $routes->post('localizacao',          '\App\Controllers\AdminController::localizacaoManualSalvar');
 });
 
 // Portal operacional — acom e gerente_conta (legado Fase 1)
@@ -66,6 +69,12 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->post('nota', 'VendedorController::notaSalvar');
     $routes->get('servicos/(:segment)', 'VendedorController::servicosSegmento/$1');
     $routes->post('estrategia', 'VendedorController::estrategiaSalvar');
+    
+    // Geolocalização e Prospecção (Fase 2.6b)
+    $routes->get('prospectar', 'VendedorController::prospectarView');
+    $routes->get('prospectar/api', 'VendedorController::prospectarApi');
+    $routes->post('pre-visita', 'VendedorController::preVisitaSalvar');
+    $routes->get('maps-contract', 'VendedorController::mockGoogleMaps');
 });
 
 // Coordenador — visão do time (Fase 2.9)
