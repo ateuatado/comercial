@@ -75,6 +75,7 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('prospectar/api', 'VendedorController::prospectarApi');
     $routes->post('pre-visita', 'VendedorController::preVisitaSalvar');
     $routes->get('maps-contract', 'VendedorController::mockGoogleMaps');
+    $routes->get('cnpj/verificar/(:segment)', 'VendedorController::verificarCnpj/$1');
 });
 
 // Coordenador — visão do time (Fase 2.9)

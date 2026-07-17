@@ -385,4 +385,59 @@ class VendedorController extends BaseController
 
         return $this->response->setJSON(['success' => true]);
     }
+
+    /**
+     * Consulta a API pública do BrasilAPI para checar a situação cadastral do CNPJ.
+     */
+    public function verificarCnpj(string $cnpj)
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+        }
+
+        // Limpa o CNPJ (apenas dígitos)
+        $cleanCnpj = preg_replace('/[^0-9]/', '', $cnpj);
+        if (strlen($cleanCnpj) !== 14) {
+            return $this->response->setJSON(['error' => 'CNPJ deve possuir 14 dígitos.'])->setStatusCode(400);
+        }
+
+        $client = \Config\Services::curlrequest();
+        try {
+            $response = $client->get("https://brasilapi.com.br/api/cnpj/v1/{$cleanCnpj}", [
+                'headers' => [
+                    'User-Agent' => 'SPIV-App/1.0',
+                ],
+                'timeout' => 5,
+                'http_errors' => false,
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode !== 200) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'error' => 'Não foi possível consultar a API pública no momento (Status HTTP ' . $statusCode . ').'
+                ]);
+            }
+
+            $data = json_decode($response->getBody(), true);
+            $situacao = $data['descricao_situacao_cadastral'] ?? 'DESCONHECIDA';
+            $isAtivo = (strtoupper(trim($situacao)) === 'ATIVA');
+
+            return $this->response->setJSON([
+                'success'            => true,
+                'cnpj'               => $cleanCnpj,
+                'situacao_cadastral' => $situacao,
+                'ativo'              => $isAtivo,
+                'razao_social'       => $data['razao_social'] ?? '',
+                'nome_fantasia'      => $data['nome_fantasia'] ?? '',
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'error'   => 'Erro ao conectar à API pública: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

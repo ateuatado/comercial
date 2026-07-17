@@ -220,11 +220,19 @@
 
     <!-- TAB 1: Dados Básicos -->
     <div class="tab-panel active" id="tab-basicos">
+        <!-- Status alerta do CNPJ da API pública -->
+        <div id="cnpjStatusAlert" style="display: none;" class="mb-3"></div>
+
         <div class="info-card">
             <h6><i class="bi bi-building"></i> Dados da Empresa</h6>
-            <div class="info-row">
+            <div class="info-row align-items-center">
                 <span class="label">CNPJ</span>
-                <span class="value"><?= $cnpjFmt ?></span>
+                <span class="value d-flex align-items-center justify-content-end gap-1 flex-wrap">
+                    <span id="cnpjVal"><?= $cnpjFmt ?></span>
+                    <button class="btn btn-xs btn-outline-primary" id="btnVerificarCnpj" style="font-size: 10px; padding: 2px 6px; border-radius: 6px;">
+                        <i class="bi bi-shield-check"></i> Verificar
+                    </button>
+                </span>
             </div>
             <div class="info-row">
                 <span class="label">Razão Social</span>
@@ -544,6 +552,58 @@
             if (btn.dataset.tab === 'estrategia' && !servicesLoaded) loadServices();
         });
     });
+
+    // CNPJ API Verification
+    const btnVerificar = document.getElementById('btnVerificarCnpj');
+    const alertDiv = document.getElementById('cnpjStatusAlert');
+
+    if (btnVerificar && alertDiv) {
+        btnVerificar.addEventListener('click', async () => {
+            btnVerificar.disabled = true;
+            btnVerificar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:10px;height:10px;display:inline-block;border:.1em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite;"></span>...';
+            alertDiv.style.display = 'none';
+
+            try {
+                const res = await fetch('<?= site_url('vendedor/cnpj/verificar/') ?>' + CNPJ, { credentials: 'same-origin' });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (data.ativo) {
+                        alertDiv.className = 'alert alert-success d-flex align-items-center gap-2 border-0 shadow-sm py-2.5 px-3';
+                        alertDiv.style.borderRadius = '12px';
+                        alertDiv.style.backgroundColor = '#dcfce7';
+                        alertDiv.style.color = '#166534';
+                        alertDiv.innerHTML = `
+                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                            <div style="font-size: 12px; font-weight: 600;">
+                                CNPJ ATIVO na Receita Federal (Situação: ATIVA).
+                            </div>
+                        `;
+                    } else {
+                        alertDiv.className = 'alert alert-danger d-flex align-items-center gap-2 border-0 shadow-sm py-3 px-3';
+                        alertDiv.style.borderRadius = '12px';
+                        alertDiv.style.backgroundColor = '#fee2e2';
+                        alertDiv.style.color = '#991b1b';
+                        alertDiv.innerHTML = `
+                            <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+                            <div style="font-size: 12px; font-weight: 700;">
+                                CNPJ INATIVO NA RECEITA FEDERAL<br>
+                                <span class="fw-normal" style="font-size: 11px;">Situação Cadastral: <strong class="text-uppercase">${data.situacao_cadastral}</strong></span>
+                            </div>
+                        `;
+                    }
+                    alertDiv.style.display = 'flex';
+                } else {
+                    showToast('❌ ' + (data.error || 'Erro ao consultar.'));
+                }
+            } catch (e) {
+                showToast('❌ Erro na requisição.');
+            } finally {
+                btnVerificar.disabled = false;
+                btnVerificar.innerHTML = '<i class="bi bi-shield-check"></i> Verificar';
+            }
+        });
+    }
 
     // Capital social reveal
     document.querySelectorAll('.masked').forEach(el => {
