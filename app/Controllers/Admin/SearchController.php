@@ -162,11 +162,21 @@ class SearchController extends BaseController
             ORDER BY cw.cnpj ASC
         ", [$cnpjBasico . '000000', $cnpjBasico . '999999'])->getResultArray();
 
+        // 4. Busca todos os estabelecimentos desta empresa
+        $estabelecimentos = $db->query("
+            SELECT e.*, m.descricao AS municipio_nome
+            FROM receita.estabelecimentos e
+            LEFT JOIN receita.municipios m ON e.municipio = m.codigo
+            WHERE e.cnpj_basico = ?
+            ORDER BY e.cnpj_ordem ASC
+        ", [$cnpjBasico])->getResultArray();
+
         return view('admin/search/show', [
-            'page_title' => 'Detalhes Cadastrais RFB',
-            'empresa'    => $empresa,
-            'socios'     => $socios,
-            'carteiras'  => $carteiras
+            'page_title'       => 'Detalhes Cadastrais RFB',
+            'empresa'          => $empresa,
+            'socios'           => $socios,
+            'carteiras'        => $carteiras,
+            'estabelecimentos' => $estabelecimentos
         ]);
     }
 }

@@ -244,6 +244,51 @@
         </div>
 
         <div class="info-card">
+            <h6><i class="bi bi-telephone text-primary me-2"></i>Contato e Endereço</h6>
+            <div class="info-row">
+                <span class="label">Endereço</span>
+                <span class="value" style="font-size: 11px; text-align: right; line-height: 1.4;">
+                    <?php 
+                        $endParts = [];
+                        if (!empty($cliente['tipo_logradouro'])) $endParts[] = trim($cliente['tipo_logradouro']);
+                        if (!empty($cliente['logradouro'])) $endParts[] = trim($cliente['logradouro']);
+                        if (!empty($cliente['numero'])) $endParts[] = 'Nº ' . trim($cliente['numero']);
+                        if (!empty($cliente['complemento'])) $endParts[] = trim($cliente['complemento']);
+                        if (!empty($cliente['bairro'])) $endParts[] = trim($cliente['bairro']);
+                        if (!empty($cliente['municipio_nome'])) $endParts[] = trim($cliente['municipio_nome']);
+                        if (!empty($cliente['uf'])) $endParts[] = trim($cliente['uf']);
+                        if (!empty($cliente['cep'])) $endParts[] = 'CEP ' . trim($cliente['cep']);
+                        
+                        echo !empty($endParts) ? esc(implode(', ', $endParts)) : '—';
+                    ?>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="label">Telefone(s)</span>
+                <span class="value">
+                    <?php 
+                        $phones = [];
+                        if (!empty($cliente['telefone_1'])) {
+                            $ddd1 = !empty($cliente['ddd_1']) ? '(' . trim($cliente['ddd_1']) . ') ' : '';
+                            $phones[] = $ddd1 . trim($cliente['telefone_1']);
+                        }
+                        if (!empty($cliente['telefone_2'])) {
+                            $ddd2 = !empty($cliente['ddd_2']) ? '(' . trim($cliente['ddd_2']) . ') ' : '';
+                            $phones[] = $ddd2 . trim($cliente['telefone_2']);
+                        }
+                        echo !empty($phones) ? esc(implode(' / ', $phones)) : '—';
+                    ?>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="label">E-mail</span>
+                <span class="value" style="text-transform: lowercase;">
+                    <?= !empty($cliente['email']) ? esc($cliente['email']) : '—' ?>
+                </span>
+            </div>
+        </div>
+
+        <div class="info-card">
             <h6><i class="bi bi-tags"></i> Classificação</h6>
             <div class="info-row">
                 <span class="label">Categoria</span>

@@ -114,7 +114,18 @@ class VendedorController extends BaseController
         if (!$vendorUser) return redirect()->to('/sem-carteira');
 
         $db = db_connect();
-        $cliente = $db->query("SELECT * FROM carteira_raw WHERE cnpj = ? AND matricula_mcmcu = ? LIMIT 1", [$cnpj, $vendorUser['matricula']])->getRowArray();
+        $cliente = $db->query("
+            SELECT c.*, 
+                   e.tipo_logradouro, e.logradouro, e.numero, e.complemento, e.bairro, e.cep, e.uf,
+                   m.descricao AS municipio_nome,
+                   e.ddd_1, e.telefone_1, e.ddd_2, e.telefone_2,
+                   e.email
+            FROM carteira_raw c
+            LEFT JOIN receita.estabelecimentos e ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = c.cnpj
+            LEFT JOIN receita.municipios m ON e.municipio = m.codigo
+            WHERE c.cnpj = ? AND c.matricula_mcmcu = ? 
+            LIMIT 1
+        ", [$cnpj, $vendorUser['matricula']])->getRowArray();
         if (!$cliente) return redirect()->to('/vendedor')->with('error', 'Cliente não encontrado na sua carteira.');
 
         $noteModel = new VendorNoteModel();

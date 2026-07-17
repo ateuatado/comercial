@@ -120,6 +120,80 @@
         </div>
     </div>
 
+    <!-- Seção: Estabelecimentos, Endereço e Contato -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3 border-bottom-0 px-4 pt-4">
+            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-geo-alt text-primary me-2"></i>Estabelecimentos (Endereço, Telefone e E-mail)</h5>
+        </div>
+        <div class="card-body px-4 pb-4">
+            <?php if (empty($estabelecimentos)): ?>
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-geo-alt-fill display-6"></i>
+                    <p class="mt-2 small mb-0">Nenhum estabelecimento ou filial registrado.</p>
+                </div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 20%;">CNPJ (Filial)</th>
+                                <th style="width: 15%;">Nome Fantasia</th>
+                                <th style="width: 35%;">Endereço</th>
+                                <th style="width: 15%;">Telefone(s)</th>
+                                <th style="width: 15%;">E-mail</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($estabelecimentos as $est): ?>
+                                <?php 
+                                    $cnpjFull = $est['cnpj_basico'] . $est['cnpj_ordem'] . $est['cnpj_dv'];
+                                    $cnpjFullFmt = substr($cnpjFull,0,2).'.'.substr($cnpjFull,2,3).'.'.substr($cnpjFull,5,3).'/'.substr($cnpjFull,8,4).'-'.substr($cnpjFull,12,2);
+                                    
+                                    $endParts = [];
+                                    if (!empty($est['tipo_logradouro'])) $endParts[] = trim($est['tipo_logradouro']);
+                                    if (!empty($est['logradouro'])) $endParts[] = trim($est['logradouro']);
+                                    if (!empty($est['numero'])) $endParts[] = 'Nº ' . trim($est['numero']);
+                                    if (!empty($est['complemento'])) $endParts[] = trim($est['complemento']);
+                                    if (!empty($est['bairro'])) $endParts[] = trim($est['bairro']);
+                                    if (!empty($est['municipio_nome'])) $endParts[] = trim($est['municipio_nome']);
+                                    if (!empty($est['uf'])) $endParts[] = trim($est['uf']);
+                                    if (!empty($est['cep'])) $endParts[] = 'CEP ' . trim($est['cep']);
+                                    
+                                    $phones = [];
+                                    if (!empty($est['telefone_1'])) {
+                                        $ddd1 = !empty($est['ddd_1']) ? '(' . trim($est['ddd_1']) . ') ' : '';
+                                        $phones[] = $ddd1 . trim($est['telefone_1']);
+                                    }
+                                    if (!empty($est['telefone_2'])) {
+                                        $ddd2 = !empty($est['ddd_2']) ? '(' . trim($est['ddd_2']) . ') ' : '';
+                                        $phones[] = $ddd2 . trim($est['telefone_2']);
+                                    }
+                                ?>
+                                <tr>
+                                    <td>
+                                        <code class="fw-bold text-dark"><?= esc($cnpjFullFmt) ?></code>
+                                    </td>
+                                    <td>
+                                        <?= esc($est['nome_fantasia'] ?: '—') ?>
+                                    </td>
+                                    <td class="small">
+                                        <?= !empty($endParts) ? esc(implode(', ', $endParts)) : '—' ?>
+                                    </td>
+                                    <td class="small">
+                                        <?= !empty($phones) ? esc(implode(' / ', $phones)) : '—' ?>
+                                    </td>
+                                    <td class="small" style="text-transform: lowercase;">
+                                        <?= !empty($est['email']) ? esc($est['email']) : '—' ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <!-- Seção de baixo: Situação Operacional no SPIV -->
     <div class="card border-0 shadow-sm mt-4">
         <div class="card-header bg-white py-3 border-bottom-0 px-4 pt-4">
