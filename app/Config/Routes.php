@@ -77,6 +77,11 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('maps-contract', 'VendedorController::mockGoogleMaps');
     $routes->get('cnpj/verificar/(:segment)', 'VendedorController::verificarCnpj/$1');
     $routes->post('cnpj/geolocalizar/(:segment)', 'VendedorController::geolocalizarCnpj/$1');
+    
+    // Redes Sociais OSINT
+    $routes->get('cnpj/redes-sociais/buscar/(:segment)', 'VendedorController::buscarRedesSociais/$1');
+    $routes->post('cnpj/redes-sociais/validar/(:num)', 'VendedorController::validarRedeSocial/$1');
+    $routes->post('cnpj/redes-sociais/rejeitar/(:num)', 'VendedorController::rejeitarRedeSocial/$1');
 });
 
 // Coordenador — visão do time (Fase 2.9)

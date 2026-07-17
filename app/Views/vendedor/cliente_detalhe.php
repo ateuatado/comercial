@@ -332,6 +332,55 @@
         </div>
 
         <div class="info-card">
+            <h6 class="d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-share text-primary me-2"></i>Redes Sociais & OSINT</span>
+                <button class="btn btn-xs btn-outline-primary" id="btnBuscarRedes" style="font-size: 10px; padding: 2px 6px; border-radius: 6px;">
+                    <i class="bi bi-search"></i> Buscar Redes
+                </button>
+            </h6>
+            
+            <div id="socialNetworksList" class="mt-2">
+                <?php if (empty($redesSociais)): ?>
+                    <p class="text-muted small text-center mb-0 py-2" id="noSocialMsg">Nenhuma rede social vinculada ou sugerida.</p>
+                <?php else: ?>
+                    <?php foreach ($redesSociais as $rede): ?>
+                        <?php
+                            $icons = [
+                                'instagram' => 'bi-instagram text-danger',
+                                'linkedin' => 'bi-linkedin text-primary',
+                                'facebook' => 'bi-facebook text-primary',
+                                'website' => 'bi-globe text-secondary'
+                            ];
+                            $iconClass = $icons[$rede['network']] ?? 'bi-globe';
+                        ?>
+                        <div class="d-flex align-items-center justify-content-between py-2 border-bottom social-row" data-id="<?= $rede['id'] ?>">
+                            <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                                <i class="bi <?= $iconClass ?> fs-5"></i>
+                                <a href="<?= esc($rede['url']) ?>" target="_blank" class="small text-truncate text-decoration-none" style="max-width: 180px;">
+                                    <?= esc(str_replace(['https://', 'http://', 'www.'], '', $rede['url'])) ?>
+                                </a>
+                            </div>
+                            
+                            <div class="d-flex align-items-center gap-1">
+                                <?php if ($rede['status'] === 'sugestao'): ?>
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle me-1 badge-status" style="font-size: 9px; padding: 2px 5px;">Sugestão</span>
+                                    <button class="btn btn-xs btn-success btn-val-social" data-id="<?= $rede['id'] ?>" style="font-size: 10px; padding: 1px 4px;" title="Validar">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button class="btn btn-xs btn-danger btn-rej-social" data-id="<?= $rede['id'] ?>" style="font-size: 10px; padding: 1px 4px;" title="Rejeitar">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                <?php else: ?>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 9px; padding: 2px 5px;">Validado</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="info-card">
             <h6><i class="bi bi-tags"></i> Classificação</h6>
             <div class="info-row">
                 <span class="label">Categoria</span>
@@ -671,6 +720,138 @@
                 btnGeolocalizar.innerHTML = '<i class="bi bi-geo-alt"></i> Localizar Mapa';
             }
         });
+    }
+
+    // OSINT Buscar Redes Sociais
+    const btnBuscarRedes = document.getElementById('btnBuscarRedes');
+    const socialList = document.getElementById('socialNetworksList');
+
+    if (btnBuscarRedes && socialList) {
+        btnBuscarRedes.addEventListener('click', async () => {
+            btnBuscarRedes.disabled = true;
+            btnBuscarRedes.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:10px;height:10px;display:inline-block;border:.1em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite;"></span>...';
+
+            try {
+                const res = await fetch('<?= site_url('vendedor/cnpj/redes-sociais/buscar/') ?>' + CNPJ, { credentials: 'same-origin' });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast('🔍 Busca concluída! Sugestões carregadas.');
+                    renderSocialNetworks(data.redes);
+                } else {
+                    showToast('❌ ' + (data.error || 'Erro ao buscar.'));
+                }
+            } catch (e) {
+                showToast('❌ Erro na requisição.');
+            } finally {
+                btnBuscarRedes.disabled = false;
+                btnBuscarRedes.innerHTML = '<i class="bi bi-search"></i> Buscar Redes';
+            }
+        });
+
+        // Event delegation for validate/reject buttons
+        socialList.addEventListener('click', async (e) => {
+            const btnVal = e.target.closest('.btn-val-social');
+            const btnRej = e.target.closest('.btn-rej-social');
+
+            if (btnVal) {
+                const id = btnVal.dataset.id;
+                btnVal.disabled = true;
+                try {
+                    const res = await fetch('<?= site_url('vendedor/cnpj/redes-sociais/validar/') ?>' + id, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin'
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('✅ Sugestão validada com sucesso!');
+                        // Update UI
+                        const container = btnVal.parentElement;
+                        container.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 9px; padding: 2px 5px;">Validado</span>';
+                    } else {
+                        showToast('❌ ' + data.error);
+                        btnVal.disabled = false;
+                    }
+                } catch (err) {
+                    showToast('❌ Erro na requisição.');
+                    btnVal.disabled = false;
+                }
+            }
+
+            if (btnRej) {
+                const id = btnRej.dataset.id;
+                btnRej.disabled = true;
+                try {
+                    const res = await fetch('<?= site_url('vendedor/cnpj/redes-sociais/rejeitar/') ?>' + id, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin'
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('🗑️ Sugestão removida.');
+                        const row = btnRej.closest('.social-row');
+                        row.remove();
+                        if (socialList.querySelectorAll('.social-row').length === 0) {
+                            socialList.innerHTML = '<p class="text-muted small text-center mb-0 py-2" id="noSocialMsg">Nenhuma rede social vinculada ou sugerida.</p>';
+                        }
+                    } else {
+                        showToast('❌ ' + data.error);
+                        btnRej.disabled = false;
+                    }
+                } catch (err) {
+                    showToast('❌ Erro na requisição.');
+                    btnRej.disabled = false;
+                }
+            }
+        });
+    }
+
+    function renderSocialNetworks(redes) {
+        if (!redes || redes.length === 0) {
+            socialList.innerHTML = '<p class="text-muted small text-center mb-0 py-2" id="noSocialMsg">Nenhuma rede social vinculada ou sugerida.</p>';
+            return;
+        }
+
+        const icons = {
+            'instagram': 'bi-instagram text-danger',
+            'linkedin': 'bi-linkedin text-primary',
+            'facebook': 'bi-facebook text-primary',
+            'website': 'bi-globe text-secondary'
+        };
+
+        let html = '';
+        redes.forEach(rede => {
+            const iconClass = icons[rede.network] || 'bi-globe';
+            const displayUrl = rede.url.replace(/https?:\/\/(www\.)?/, '');
+            
+            html += `
+                <div class="d-flex align-items-center justify-content-between py-2 border-bottom social-row" data-id="${rede.id}">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                        <i class="bi ${iconClass} fs-5"></i>
+                        <a href="${escHtml(rede.url)}" target="_blank" class="small text-truncate text-decoration-none" style="max-width: 180px;">
+                            ${escHtml(displayUrl)}
+                        </a>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        ${rede.status === 'sugestao' ? `
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle me-1" style="font-size: 9px; padding: 2px 5px;">Sugestão</span>
+                            <button class="btn btn-xs btn-success btn-val-social" data-id="${rede.id}" style="font-size: 10px; padding: 1px 4px;" title="Validar">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            <button class="btn btn-xs btn-danger btn-rej-social" data-id="${rede.id}" style="font-size: 10px; padding: 1px 4px;" title="Rejeitar">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        ` : `
+                            <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 9px; padding: 2px 5px;">Validado</span>
+                        `}
+                    </div>
+                </div>
+            `;
+        });
+
+        socialList.innerHTML = html;
     }
 
     // Capital social reveal
