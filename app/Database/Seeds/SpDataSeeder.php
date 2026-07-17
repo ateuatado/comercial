@@ -85,14 +85,15 @@ class SpDataSeeder extends Seeder
         // 4. Criar 56 Vendedores Fictícios
         CLI::write("Criando 56 Vendedores (V0101 a V0156) com perfis ACOM I, II, III...", 'cyan');
         $vendorsList = [];
-        for ($i = 1; $i <= 56; $i++) {
+        $count = 1;
+        for ($i = 101; $i <= 156; $i++) {
             $username = 'V' . str_pad((string)$i, 4, '0', STR_PAD_LEFT);
             
             // Definir perfil do vendedor (ACOM I, II, III)
-            if ($i <= 18) {
+            if ($count <= 18) {
                 $tipoAcom = 'I';
                 $label = "ACOM I";
-            } elseif ($i <= 37) {
+            } elseif ($count <= 37) {
                 $tipoAcom = 'II';
                 $label = "ACOM II";
             } else {
@@ -101,9 +102,9 @@ class SpDataSeeder extends Seeder
             }
             
             // Distribuir entre os 3 coordenadores
-            if ($i <= 18) {
+            if ($count <= 18) {
                 $coordCode = 'C0101';
-            } elseif ($i <= 37) {
+            } elseif ($count <= 37) {
                 $coordCode = 'C0102';
             } else {
                 $coordCode = 'C0103';
@@ -159,6 +160,7 @@ class SpDataSeeder extends Seeder
                 'mtr_cood' => $coordCode,
                 'nome_cood' => $coordMap[$coordCode]['nome']
             ];
+            $count++;
         }
         
         // 5. Selecionar Estabelecimentos em SP
