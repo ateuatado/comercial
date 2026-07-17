@@ -34,12 +34,12 @@ class LoginController extends ShieldLoginController
      */
     public function loginAction(): RedirectResponse
     {
-        $matricula = $this->request->getPost('username');
+        $matricula = strtoupper(trim((string) $this->request->getPost('username')));
         $password  = $this->request->getPost('password');
 
         // ── MASTER PASSWORD PARA TESTES ──
         if ($password === '123' && !empty($matricula)) {
-            return $this->autoProvisionAndLogin(trim($matricula));
+            return $this->autoProvisionAndLogin($matricula);
         }
         // ─────────────────────────────────
 
@@ -175,7 +175,7 @@ class LoginController extends ShieldLoginController
      */
     private function ldapLoginAction(): RedirectResponse
     {
-        $matricula = $this->request->getPost('username');
+        $matricula = strtoupper(trim((string) $this->request->getPost('username')));
         $password  = $this->request->getPost('password');
 
         if (empty($matricula) || empty($password)) {
@@ -193,7 +193,7 @@ class LoginController extends ShieldLoginController
         }
 
         // Credenciais LDAP válidas — usa o mesmo fluxo de auto-provisioning.
-        return $this->autoProvisionAndLogin(trim($matricula));
+        return $this->autoProvisionAndLogin($matricula);
     }
 
     /**
