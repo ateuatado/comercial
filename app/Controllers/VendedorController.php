@@ -116,11 +116,13 @@ class VendedorController extends BaseController
         $db = db_connect();
         $cliente = $db->query("
             SELECT c.*, 
+                   cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
                    e.tipo_logradouro, e.logradouro, e.numero, e.complemento, e.bairro, e.cep, e.uf,
                    m.descricao AS municipio_nome,
                    e.ddd_1, e.telefone_1, e.ddd_2, e.telefone_2,
                    e.email
             FROM carteira_raw c
+            LEFT JOIN client_wallets cw ON cw.cnpj = c.cnpj
             LEFT JOIN receita.estabelecimentos e ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = c.cnpj
             LEFT JOIN receita.municipios m ON e.municipio = m.codigo
             WHERE c.cnpj = ? AND c.matricula_mcmcu = ? 
@@ -424,11 +426,22 @@ class VendedorController extends BaseController
             $situacao = $data['descricao_situacao_cadastral'] ?? 'DESCONHECIDA';
             $isAtivo = (strtoupper(trim($situacao)) === 'ATIVA');
 
+            // Persistir no banco de dados do SPIV na tabela client_wallets
+            $db = db_connect();
+            $now = date('Y-m-d H:i:s');
+            $db->table('client_wallets')
+               ->where('cnpj', $cleanCnpj)
+               ->update([
+                   'rfb_situacao_cadastral' => $situacao,
+                   'rfb_verificado_em'      => $now,
+               ]);
+
             return $this->response->setJSON([
                 'success'            => true,
                 'cnpj'               => $cleanCnpj,
                 'situacao_cadastral' => $situacao,
                 'ativo'              => $isAtivo,
+                'verificado_em'      => date('d/m/Y H:i', strtotime($now)),
                 'razao_social'       => $data['razao_social'] ?? '',
                 'nome_fantasia'      => $data['nome_fantasia'] ?? '',
             ]);

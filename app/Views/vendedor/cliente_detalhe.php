@@ -221,7 +221,30 @@
     <!-- TAB 1: Dados Básicos -->
     <div class="tab-panel active" id="tab-basicos">
         <!-- Status alerta do CNPJ da API pública -->
-        <div id="cnpjStatusAlert" style="display: none;" class="mb-3"></div>
+        <?php if (!empty($cliente['rfb_situacao_cadastral'])): ?>
+            <?php 
+                $isAtivo = (strtoupper(trim($cliente['rfb_situacao_cadastral'])) === 'ATIVA');
+                $fmtDate = date('d/m/Y H:i', strtotime($cliente['rfb_verificado_em']));
+            ?>
+            <?php if ($isAtivo): ?>
+                <div id="cnpjStatusAlert" class="alert alert-success d-flex align-items-center gap-2 border-0 shadow-sm py-2.5 px-3 mb-3" style="border-radius: 12px; background-color: #dcfce7; color: #166534; display: flex;">
+                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                    <div style="font-size: 12px; font-weight: 600;">
+                        CNPJ ATIVO na Receita Federal (Verificado em <?= $fmtDate ?>).
+                    </div>
+                </div>
+            <?php else: ?>
+                <div id="cnpjStatusAlert" class="alert alert-danger d-flex align-items-center gap-2 border-0 shadow-sm py-3 px-3 mb-3" style="border-radius: 12px; background-color: #fee2e2; color: #991b1b; display: flex;">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+                    <div style="font-size: 12px; font-weight: 700;">
+                        CNPJ INATIVO NA RECEITA FEDERAL<br>
+                        <span class="fw-normal" style="font-size: 11px;">Situação Cadastral: <strong class="text-uppercase"><?= esc($cliente['rfb_situacao_cadastral']) ?></strong> (Verificado em <?= $fmtDate ?>)</span>
+                    </div>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <div id="cnpjStatusAlert" style="display: none;" class="mb-3"></div>
+        <?php endif; ?>
 
         <div class="info-card">
             <h6><i class="bi bi-building"></i> Dados da Empresa</h6>
