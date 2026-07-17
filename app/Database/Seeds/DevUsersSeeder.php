@@ -16,11 +16,11 @@ use CodeIgniter\Shield\Models\UserModel;
  * a integração LDAP não estiver disponível fora da rede interna dos Correios.
  *
  * Usuários criados (senha: 123):
- *   89056580 → ACOM II       (grupo: acom, tipo_acom: II)
- *   89056581 → ACOM II       (grupo: acom, tipo_acom: II)
- *   89056582 → ACOM I        (grupo: acom, tipo_acom: I)
- *   89056583 → Gerente de Conta (grupo: gerente_conta)
- *   89056584 → Admin         (grupo: admin)
+ *   V0021 → ACOM II       (grupo: acom, tipo_acom: II)
+ *   V0022 → ACOM II       (grupo: acom, tipo_acom: II)
+ *   V0023 → ACOM I        (grupo: acom, tipo_acom: I)
+ *   V0024 → Gerente de Conta (grupo: gerente_conta)
+ *   A0001 → Admin         (grupo: admin)
  *
  * Executar com:
  *   php spark db:seed DevUsersSeeder
@@ -34,42 +34,56 @@ class DevUsersSeeder extends Seeder
     {
         /** @var UserModel $userModel */
         $userModel = model(UserModel::class);
+        $db = db_connect();
 
+        // 1. Limpar usuários antigos com matrícula real/realista para não expor dados
+        $oldUsernames = ['89056580', '89056581', '89056582', '89056583', '89056584'];
+        foreach ($oldUsernames as $username) {
+            $existing = $userModel->findByCredentials(['username' => $username]);
+            if ($existing) {
+                CLI::write("Removendo usuário antigo com matrícula realista: {$username}", 'yellow');
+                $userModel->delete($existing->id, true);
+            }
+        }
+        $db->table('vendors')->whereIn('matricula', $oldUsernames)->delete();
+        $db->table('vendor_users')->whereIn('matricula', $oldUsernames)->delete();
+
+        // 2. Definir novos usuários fictícios seguindo o padrão seguro (A0001 para Admin, V0021-V0024 para Vendors)
         $testUsers = [
             [
-                'username'  => '89056580',
+                'username'  => 'V0021',
                 'group'     => 'acom',
                 'label'     => 'ACOM II (dev 1)',
                 'tipo_acom' => 'II',
-                'nome'      => 'Dev ACOM II-A',
+                'nome'      => 'ACOM Fictício II-A',
                 'estado_se' => 'SP',
             ],
             [
-                'username'  => '89056581',
+                'username'  => 'V0022',
                 'group'     => 'acom',
                 'label'     => 'ACOM II (dev 2)',
                 'tipo_acom' => 'II',
-                'nome'      => 'Dev ACOM II-B',
+                'nome'      => 'ACOM Fictício II-B',
                 'estado_se' => 'SP',
             ],
             [
-                'username'  => '89056582',
+                'username'  => 'V0023',
                 'group'     => 'acom',
                 'label'     => 'ACOM I (dev)',
                 'tipo_acom' => 'I',
-                'nome'      => 'Dev ACOM I',
+                'nome'      => 'ACOM Fictício I',
                 'estado_se' => 'SP',
             ],
             [
-                'username'  => '89056583',
+                'username'  => 'V0024',
                 'group'     => 'gerente_conta',
                 'label'     => 'Gerente de Conta (dev)',
                 'tipo_acom' => null,
-                'nome'      => 'Dev Gerente de Conta',
+                'nome'      => 'Gerente de Conta Fictício',
                 'estado_se' => 'SP',
             ],
             [
-                'username'  => '89056584',
+                'username'  => 'A0001',
                 'group'     => 'admin',
                 'label'     => 'Admin (dev)',
                 'tipo_acom' => null, // admin não é vendor
@@ -77,8 +91,6 @@ class DevUsersSeeder extends Seeder
                 'estado_se' => null,
             ],
         ];
-
-        $db = db_connect();
 
         foreach ($testUsers as $data) {
             $existingUser = $userModel->findByCredentials(['username' => $data['username']]);
@@ -101,7 +113,7 @@ class DevUsersSeeder extends Seeder
                 $saved = $userModel->findById($userId);
                 $saved->addGroup($data['group']);
 
-                CLI::write("Criado usuário: {$data['username']} → {$data['label']}", 'green');
+                CLI::write("Criado usuário fictício: {$data['username']} → {$data['label']}", 'green');
             }
 
             // Cria registro em vendors para perfis operacionais (não admin).
