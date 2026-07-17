@@ -151,7 +151,7 @@ class VendedorController extends BaseController
                     $db->table('client_wallets')->insert([
                         'cnpj'               => $cnpj,
                         'vendor_id'          => $vendorUser['id'],
-                        'status_operacional' => 'ativo',
+                        'status_operacional' => 'novo',
                         'created_at'         => date('Y-m-d H:i:s'),
                         'updated_at'         => date('Y-m-d H:i:s'),
                     ]);
@@ -534,6 +534,9 @@ class VendedorController extends BaseController
 
     /**
      * Consulta a API pública do BrasilAPI para checar a situação cadastral do CNPJ.
+     * 
+     * A BrasilAPI tem limite de 3 requisições por segundo por IP.
+     * Se rate-limited (HTTP 429), aguarda 1s e tenta novamente uma vez.
      */
     public function verificarCnpj(string $cnpj)
     {
@@ -548,67 +551,130 @@ class VendedorController extends BaseController
             return $this->response->setJSON(['error' => 'CNPJ deve possuir 14 dígitos.'])->setStatusCode(400);
         }
 
-        $client = \Config\Services::curlrequest();
-        try {
-            $response = $client->get("https://brasilapi.com.br/api/cnpj/v1/{$cleanCnpj}", [
-                'headers' => [
-                    'User-Agent' => 'SPIV-App/1.0',
-                ],
-                'timeout' => 5,
-                'http_errors' => false,
-            ]);
+        // ── Verificação no cache local primeiro ──
+        $db = db_connect();
+        $local = $db->table('client_wallets')
+                    ->select('rfb_situacao_cadastral, rfb_verificado_em')
+                    ->where('cnpj', $cleanCnpj)
+                    ->where('rfb_verificado_em IS NOT NULL')
+                    ->get()
+                    ->getRowArray();
 
-            $statusCode = $response->getStatusCode();
-            if ($statusCode !== 200) {
+        if ($local && !empty($local['rfb_verificado_em'])) {
+            $diffHours = (time() - strtotime($local['rfb_verificado_em'])) / 3600;
+            // Se foi verificado há menos de 24h, usa cache local
+            if ($diffHours < 24) {
+                $isAtivo = (strtoupper(trim($local['rfb_situacao_cadastral'])) === 'ATIVA');
+                return $this->response->setJSON([
+                    'success'            => true,
+                    'cnpj'               => $cleanCnpj,
+                    'situacao_cadastral' => $local['rfb_situacao_cadastral'],
+                    'ativo'              => $isAtivo,
+                    'verificado_em'      => date('d/m/Y H:i', strtotime($local['rfb_verificado_em'])),
+                    'cache'              => true,
+                ]);
+            }
+        }
+
+        // ── Consulta à API externa com retry ──
+        $client = \Config\Services::curlrequest();
+        $maxAttempts = 2;
+
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                $response = $client->get("https://brasilapi.com.br/api/cnpj/v1/{$cleanCnpj}", [
+                    'headers' => [
+                        'User-Agent' => 'SPIV-App/1.0',
+                    ],
+                    'timeout' => 8,
+                    'http_errors' => false,
+                ]);
+
+                $statusCode = $response->getStatusCode();
+
+                // Rate limit — aguarda e tenta novamente
+                if ($statusCode === 429) {
+                    if ($attempt < $maxAttempts) {
+                        sleep(1);
+                        continue;
+                    }
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'error' => 'A API pública de CNPJ está temporariamente indisponível devido a limite de requisições. Tente novamente em alguns instantes.',
+                    ]);
+                }
+
+                // Erro 404 = CNPJ não encontrado na base da Receita
+                if ($statusCode === 404) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'error' => 'CNPJ não encontrado na base da Receita Federal.',
+                    ]);
+                }
+
+                // Outros erros
+                if ($statusCode !== 200) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'error' => 'API pública retornou erro inesperado (HTTP ' . $statusCode . '). Tente novamente mais tarde.',
+                    ]);
+                }
+
+                // Sucesso
+                $data = json_decode($response->getBody(), true);
+                $situacao = $data['descricao_situacao_cadastral'] ?? 'DESCONHECIDA';
+                $isAtivo = (strtoupper(trim($situacao)) === 'ATIVA');
+
+                // Persistir no banco
+                $now = date('Y-m-d H:i:s');
+                $exists = $db->table('client_wallets')->where('cnpj', $cleanCnpj)->get()->getRow();
+                if ($exists) {
+                    $db->table('client_wallets')
+                       ->where('cnpj', $cleanCnpj)
+                       ->update([
+                           'rfb_situacao_cadastral' => $situacao,
+                           'rfb_verificado_em'      => $now,
+                       ]);
+                } else {
+                    $db->table('client_wallets')->insert([
+                        'cnpj'                   => $cleanCnpj,
+                        'rfb_situacao_cadastral' => $situacao,
+                        'rfb_verificado_em'      => $now,
+                        'vendor_id'              => $vendorUser['id'],
+                        'status_operacional'     => 'novo',
+                        'created_at'             => $now,
+                        'updated_at'             => $now,
+                    ]);
+                }
+
+                return $this->response->setJSON([
+                    'success'            => true,
+                    'cnpj'               => $cleanCnpj,
+                    'situacao_cadastral' => $situacao,
+                    'ativo'              => $isAtivo,
+                    'verificado_em'      => date('d/m/Y H:i', strtotime($now)),
+                    'razao_social'       => $data['razao_social'] ?? '',
+                    'nome_fantasia'      => $data['nome_fantasia'] ?? '',
+                ]);
+
+            } catch (\Exception $e) {
+                // Se não for a última tentativa, tenta novamente
+                if ($attempt < $maxAttempts) {
+                    sleep(1);
+                    continue;
+                }
                 return $this->response->setJSON([
                     'success' => false,
-                    'error' => 'Não foi possível consultar a API pública no momento (Status HTTP ' . $statusCode . ').'
+                    'error'   => 'Erro de conexão com a API pública: ' . $e->getMessage(),
                 ]);
             }
-
-            $data = json_decode($response->getBody(), true);
-            $situacao = $data['descricao_situacao_cadastral'] ?? 'DESCONHECIDA';
-            $isAtivo = (strtoupper(trim($situacao)) === 'ATIVA');
-
-            // Persistir no banco de dados do SPIV na tabela client_wallets
-            $db = db_connect();
-            $now = date('Y-m-d H:i:s');
-            $exists = $db->table('client_wallets')->where('cnpj', $cleanCnpj)->get()->getRow();
-            if ($exists) {
-                $db->table('client_wallets')
-                   ->where('cnpj', $cleanCnpj)
-                   ->update([
-                       'rfb_situacao_cadastral' => $situacao,
-                       'rfb_verificado_em'      => $now,
-                   ]);
-            } else {
-                $db->table('client_wallets')->insert([
-                    'cnpj'                   => $cleanCnpj,
-                    'rfb_situacao_cadastral' => $situacao,
-                    'rfb_verificado_em'      => $now,
-                    'vendor_id'              => $vendorUser['id'],
-                    'status_operacional'     => 'ativo',
-                    'created_at'             => $now,
-                    'updated_at'             => $now,
-                ]);
-            }
-
-            return $this->response->setJSON([
-                'success'            => true,
-                'cnpj'               => $cleanCnpj,
-                'situacao_cadastral' => $situacao,
-                'ativo'              => $isAtivo,
-                'verificado_em'      => date('d/m/Y H:i', strtotime($now)),
-                'razao_social'       => $data['razao_social'] ?? '',
-                'nome_fantasia'      => $data['nome_fantasia'] ?? '',
-            ]);
-
-        } catch (\Exception $e) {
-            return $this->response->setJSON([
-                'success' => false,
-                'error'   => 'Erro ao conectar à API pública: ' . $e->getMessage()
-            ]);
         }
+
+        // Fallback (não deve chegar aqui)
+        return $this->response->setJSON([
+            'success' => false,
+            'error' => 'Não foi possível consultar a situação cadastral no momento.',
+        ]);
     }
 
     /**

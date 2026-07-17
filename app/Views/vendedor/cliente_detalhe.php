@@ -681,7 +681,7 @@
                     showToast('❌ ' + (data.error || 'Erro ao consultar.'));
                 }
             } catch (e) {
-                showToast('❌ Erro na requisição.');
+                showToast('❌ Erro de rede: ' + e.message);
             } finally {
                 btnVerificar.disabled = false;
                 btnVerificar.innerHTML = '<i class="bi bi-shield-check"></i> Verificar';
