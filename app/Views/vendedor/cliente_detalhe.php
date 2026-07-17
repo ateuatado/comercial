@@ -736,7 +736,7 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    showToast('🔍 Busca concluída! Sugestões carregadas.');
+                    showToast('🔍 ' + (data.message || 'Busca concluída!'));
                     renderSocialNetworks(data.redes);
                 } else {
                     showToast('❌ ' + (data.error || 'Erro ao buscar.'));

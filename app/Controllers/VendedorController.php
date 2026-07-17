@@ -821,7 +821,13 @@ class VendedorController extends BaseController
     }
 
     /**
-     * OSINT: Busca redes sociais da empresa usando DuckDuckGo HTML Search e persiste como sugestão.
+     * OSINT: Busca redes sociais da empresa em mecanismos de busca públicos.
+     *
+     * Estratégia em camadas:
+     *   1. Tenta Bing HTML search (mais estável que DuckDuckGo para scraping simples)
+     *   2. Se falhar, tenta DuckDuckGo HTML search (fallback)
+     *   3. Se ambos falharem, retorna as redes já salvas no banco sem mensagem de erro
+     *   4. Persiste novas sugestões no banco (ignorando duplicatas pela UNIQUE KEY)
      */
     public function buscarRedesSociais(string $cnpj)
     {
@@ -848,15 +854,100 @@ class VendedorController extends BaseController
         ", [$cleanCnpj])->getRowArray();
 
         if (!$cliente) {
-            return $this->response->setJSON(['success' => false, 'error' => 'Cliente não cadastrado.']);
+            return $this->response->setJSON(['success' => true, 'redes' => [], 'error' => 'Cliente não cadastrado.']);
         }
 
         $nomeBusca = !empty($cliente['nome_fantasia']) ? $cliente['nome_fantasia'] : $cliente['razao_social'];
         $cidade = $cliente['municipio_nome'] ?? '';
 
-        // Monta a query para pesquisar
-        $searchQuery = trim("{$nomeBusca} {$cidade} (site:instagram.com OR site:linkedin.com/company OR site:facebook.com)");
+        // Query de busca
+        $searchQuery = trim("\"{$nomeBusca}\" {$cidade} (instagram OR linkedin OR facebook)");
 
+        $sugestoes = [];
+
+        // ── Tenta Bing primeiro (mais permissivo com scraping simples) ──
+        $sugestoes = $this->scrapeBing($searchQuery, $cleanCnpj);
+
+        // ── Fallback: DuckDuckGo ──
+        if (empty($sugestoes)) {
+            $sugestoes = $this->scrapeDuckDuckGo($searchQuery, $cleanCnpj);
+        }
+
+        // ── Persiste sugestões no banco ──
+        $novasSugestoes = 0;
+        foreach ($sugestoes as $sug) {
+            try {
+                $db->table('client_social_media')->insert($sug);
+                $novasSugestoes++;
+            } catch (\Exception $ex) {
+                // Ignora duplicata pela UNIQUE KEY (cnpj, network, url)
+            }
+        }
+
+        // ── Retorna TODAS as redes ativas deste CNPJ (sugestão + validadas) ──
+        $redes = $db->table('client_social_media')
+                    ->where('cnpj', $cleanCnpj)
+                    ->where('status !=', 'rejeitado')
+                    ->orderBy('status', 'DESC')
+                    ->get()
+                    ->getResultArray();
+
+        $response = [
+            'success' => true,
+            'redes'   => $redes,
+        ];
+
+        if ($novasSugestoes > 0) {
+            $response['message'] = "{$novasSugestoes} nova(s) sugestão(ões) encontrada(s)!";
+        } elseif (!empty($redes)) {
+            $response['message'] = count($redes) . ' rede(s) social(is) já cadastrada(s).';
+        } else {
+            $response['message'] = 'Nenhuma rede social encontrada para esta empresa.';
+        }
+
+        return $this->response->setJSON($response);
+    }
+
+    /**
+     * Scrape Bing HTML search para encontrar links de redes sociais.
+     */
+    private function scrapeBing(string $query, string $cnpj): array
+    {
+        $client = \Config\Services::curlrequest();
+        $sugestoes = [];
+
+        try {
+            $response = $client->get('https://www.bing.com/search', [
+                'headers' => [
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language' => 'pt-BR,pt;q=0.9,en;q=0.8',
+                ],
+                'query' => [
+                    'q' => $query,
+                    'setlang' => 'pt-br',
+                    'cc' => 'br',
+                ],
+                'timeout' => 8,
+                'http_errors' => false,
+            ]);
+
+            if ($response->getStatusCode() === 200) {
+                $html = $response->getBody();
+                $sugestoes = $this->extractSocialLinks($html, $cnpj);
+            }
+        } catch (\Exception $e) {
+            log_message('error', "[OSINT-Bing] Erro: " . $e->getMessage());
+        }
+
+        return $sugestoes;
+    }
+
+    /**
+     * Scrape DuckDuckGo HTML search como fallback.
+     */
+    private function scrapeDuckDuckGo(string $query, string $cnpj): array
+    {
         $client = \Config\Services::curlrequest();
         $sugestoes = [];
 
@@ -864,95 +955,109 @@ class VendedorController extends BaseController
             $response = $client->get('https://html.duckduckgo.com/html/', [
                 'headers' => [
                     'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                     'Accept-Language' => 'pt-BR,pt;q=0.9,en;q=0.8',
                 ],
                 'query' => [
-                    'q' => $searchQuery
+                    'q' => $query,
                 ],
-                'timeout' => 6,
-                'http_errors' => false
+                'timeout' => 8,
+                'http_errors' => false,
             ]);
 
             if ($response->getStatusCode() === 200) {
                 $html = $response->getBody();
-                
-                // Encontrar links de instagram, linkedin e facebook
-                preg_match_all('/href="([^"]*?(?:instagram\.com|linkedin\.com|facebook\.com)[^"]*?)"/i', $html, $matches);
 
-                if (!empty($matches[1])) {
-                    $uniqueUrls = [];
-                    foreach ($matches[1] as $url) {
-                        // Tratar redirecionamento do DuckDuckGo se houver uddg=
-                        if (strpos($url, 'uddg=') !== false) {
-                            parse_str(parse_url($url, PHP_URL_QUERY), $queryParts);
-                            if (!empty($queryParts['uddg'])) {
-                                $url = $queryParts['uddg'];
-                            }
-                        }
-
-                        $url = filter_var($url, FILTER_VALIDATE_URL);
-                        if ($url && !in_array($url, $uniqueUrls, true)) {
-                            $uniqueUrls[] = $url;
-
-                            // Identificar a rede social
-                            $network = 'website';
-                            if (strpos($url, 'instagram.com') !== false) {
-                                $network = 'instagram';
-                            } elseif (strpos($url, 'linkedin.com') !== false) {
-                                $network = 'linkedin';
-                            } elseif (strpos($url, 'facebook.com') !== false) {
-                                $network = 'facebook';
-                            }
-
-                            // Ignorar links genericos de login ou compartilhamento
-                            if (preg_match('/(login|share|status|hashtag|directory|post|jobs|pulse)/i', $url)) {
-                                continue;
-                            }
-
-                            $sugestoes[] = [
-                                'cnpj'       => $cleanCnpj,
-                                'network'    => $network,
-                                'url'        => $url,
-                                'status'     => 'sugestao',
-                                'created_at' => date('Y-m-d H:i:s'),
-                                'updated_at' => date('Y-m-d H:i:s')
-                            ];
-                        }
-                    }
-                }
+                // DuckDuckGo usa redirect via uddg=
+                $sugestoes = $this->extractSocialLinks($html, $cnpj, true);
             }
-
-            // Gravar sugestões no banco de dados com ON CONFLICT (ignorar duplicatas)
-            if (!empty($sugestoes)) {
-                foreach ($sugestoes as $sug) {
-                    try {
-                        $db->table('client_social_media')->insert($sug);
-                    } catch (\Exception $ex) {
-                        // Ignora erro de chave única duplicada
-                    }
-                }
-            }
-
-            // Recarrega as redes ativas (sugestão ou validadas)
-            $redes = $db->table('client_social_media')
-                        ->where('cnpj', $cleanCnpj)
-                        ->where('status !=', 'rejeitado')
-                        ->orderBy('status', 'DESC')
-                        ->get()
-                        ->getResultArray();
-
-            return $this->response->setJSON([
-                'success' => true,
-                'redes'   => $redes
-            ]);
-
         } catch (\Exception $e) {
-            return $this->response->setJSON([
-                'success' => false,
-                'error'   => 'Erro de OSINT: ' . $e->getMessage()
-            ]);
+            log_message('error', "[OSINT-DDG] Erro: " . $e->getMessage());
         }
+
+        return $sugestoes;
+    }
+
+    /**
+     * Extrai links de redes sociais do HTML, filtra e normaliza.
+     *
+     * @param string $html          Conteúdo HTML da página de resultados
+     * @param string $cnpj          CNPJ para associar às sugestões
+     * @param bool   $decodeDdg     Se true, tenta decodificar URLs do DuckDuckGo (uddg=)
+     * @return array
+     */
+    private function extractSocialLinks(string $html, string $cnpj, bool $decodeDdg = false): array
+    {
+        $sugestoes = [];
+        $now = date('Y-m-d H:i:s');
+
+        // Regex para encontrar links
+        preg_match_all('/<a[^>]*href="([^"]*)"[^>]*>/i', $html, $anchorMatches);
+
+        if (empty($anchorMatches[1])) {
+            return $sugestoes;
+        }
+
+        $uniqueUrls = [];
+
+        foreach ($anchorMatches[1] as $href) {
+            $url = $href;
+
+            // Decodificar redirect do DuckDuckGo
+            if ($decodeDdg && strpos($url, 'uddg=') !== false) {
+                parse_str(parse_url($url, PHP_URL_QUERY), $queryParts);
+                if (!empty($queryParts['uddg'])) {
+                    $url = $queryParts['uddg'];
+                }
+            }
+
+            // Só nos interessam URLs absolutas de redes sociais
+            if (!preg_match('#^https?://(www\.)?(instagram\.com|linkedin\.com|facebook\.com)#i', $url)) {
+                continue;
+            }
+
+            // Validar URL
+            $url = filter_var($url, FILTER_VALIDATE_URL);
+            if (!$url) {
+                continue;
+            }
+
+            // Ignorar links genéricos
+            if (preg_match('/(login|signup|download|apps|settings|business|developers|policies|legal|privacy|share\b)/i', $url)) {
+                continue;
+            }
+
+            // Normalizar: remover query strings irrelevantes (utm_, fbclid, etc.)
+            $cleanUrl = preg_replace('/\?(utm_|fbclid|ref|hl|locale|_rdr).*$/', '', $url);
+            // Remover trailing slash
+            $cleanUrl = rtrim($cleanUrl, '/');
+
+            if (isset($uniqueUrls[$cleanUrl])) {
+                continue;
+            }
+            $uniqueUrls[$cleanUrl] = true;
+
+            // Identificar rede social
+            $network = 'website';
+            if (stripos($cleanUrl, 'instagram.com') !== false) {
+                $network = 'instagram';
+            } elseif (stripos($cleanUrl, 'linkedin.com') !== false) {
+                $network = 'linkedin';
+            } elseif (stripos($cleanUrl, 'facebook.com') !== false) {
+                $network = 'facebook';
+            }
+
+            $sugestoes[] = [
+                'cnpj'       => $cnpj,
+                'network'    => $network,
+                'url'        => $cleanUrl,
+                'status'     => 'sugestao',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        return $sugestoes;
     }
 
     /**
