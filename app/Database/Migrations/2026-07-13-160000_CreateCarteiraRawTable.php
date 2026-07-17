@@ -175,12 +175,12 @@ class CreateCarteiraRawTable extends Migration
         $this->forge->createTable('carteira_raw');
 
         // Índices para JOINs e filtros nos painéis
-        $this->db->query('CREATE INDEX idx_carteira_raw_cnpj ON carteira_raw (cnpj)');
-        $this->db->query('CREATE INDEX idx_carteira_raw_matricula ON carteira_raw (matricula_mcmcu)');
-        $this->db->query('CREATE INDEX idx_carteira_raw_se ON carteira_raw (se)');
-        $this->db->query('CREATE INDEX idx_carteira_raw_categoria ON carteira_raw (categoria)');
-        $this->db->query('CREATE INDEX idx_carteira_raw_ciclo ON carteira_raw (ciclo_de_vida)');
-        $this->db->query('CREATE INDEX idx_carteira_raw_segmento ON carteira_raw (segmento_cliente)');
+        $this->db->query('CREATE INDEX idx_carteira_raw_cnpj ON ' . $this->db->prefixTable('carteira_raw') . ' (cnpj)');
+        $this->db->query('CREATE INDEX idx_carteira_raw_matricula ON ' . $this->db->prefixTable('carteira_raw') . ' (matricula_mcmcu)');
+        $this->db->query('CREATE INDEX idx_carteira_raw_se ON ' . $this->db->prefixTable('carteira_raw') . ' (se)');
+        $this->db->query('CREATE INDEX idx_carteira_raw_categoria ON ' . $this->db->prefixTable('carteira_raw') . ' (categoria)');
+        $this->db->query('CREATE INDEX idx_carteira_raw_ciclo ON ' . $this->db->prefixTable('carteira_raw') . ' (ciclo_de_vida)');
+        $this->db->query('CREATE INDEX idx_carteira_raw_segmento ON ' . $this->db->prefixTable('carteira_raw') . ' (segmento_cliente)');
     }
 
     public function down(): void

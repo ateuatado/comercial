@@ -85,7 +85,9 @@ class CreateProspectingFlagsTable extends Migration
         $this->forge->addKey('cpf_socio');
         $this->forge->createTable('prospecting_flags');
 
-        $this->db->query("ALTER TABLE prospecting_flags ADD CONSTRAINT chk_flags_status CHECK (status IN ('pendente','liberado','rejeitado'))");
+        if ($this->db->DBDriver !== 'SQLite3') {
+            $this->db->query("ALTER TABLE prospecting_flags ADD CONSTRAINT chk_flags_status CHECK (status IN ('pendente','liberado','rejeitado'))");
+        }
     }
 
     public function down(): void

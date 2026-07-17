@@ -71,9 +71,11 @@ class CreateClientWalletsTable extends Migration
         $this->forge->addForeignKey('vendor_id', 'vendors', 'id', 'CASCADE', 'SET NULL');
         $this->forge->createTable('client_wallets');
 
-        // Check constraints
-        $this->db->query("ALTER TABLE client_wallets ADD CONSTRAINT chk_wallets_status CHECK (status_operacional IN ('ativo','inativo','bloqueado','suspeito'))");
-        $this->db->query("ALTER TABLE client_wallets ADD CONSTRAINT chk_wallets_origem CHECK (origem_atribuicao IN ('automatica','manual') OR origem_atribuicao IS NULL)");
+        // Check constraints - skip on SQLite3
+        if ($this->db->DBDriver !== 'SQLite3') {
+            $this->db->query("ALTER TABLE client_wallets ADD CONSTRAINT chk_wallets_status CHECK (status_operacional IN ('ativo','inativo','bloqueado','suspeito'))");
+            $this->db->query("ALTER TABLE client_wallets ADD CONSTRAINT chk_wallets_origem CHECK (origem_atribuicao IN ('automatica','manual') OR origem_atribuicao IS NULL)");
+        }
     }
 
     public function down(): void

@@ -1,19 +1,21 @@
 <?php
 
 use CodeIgniter\Test\CIUnitTestCase;
+use CodeIgniter\Test\DatabaseTestTrait;
 use CodeIgniter\Test\FeatureTestTrait;
 
 final class HomeControllerTest extends CIUnitTestCase
 {
+    use DatabaseTestTrait;
     use FeatureTestTrait;
 
-    public function testIndexPageLoads(): void
+    protected $migrate = true;
+    protected $namespace = null;
+
+    public function testIndexPageRedirectsToLogin(): void
     {
         $result = $this->get('/');
 
-        $result->assertOK();
-        $result->assertSee('Gestão de Carteira de Prospecção');
-        $result->assertSee('Área do Vendedor');
-        $result->assertSee('Módulos do Sistema');
+        $result->assertRedirectTo('/login');
     }
 }

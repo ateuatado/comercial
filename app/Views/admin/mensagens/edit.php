@@ -62,7 +62,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="<?= base_url('assets/js/tinymce/tinymce.min.js') ?>"></script>
 <script>
 tinymce.init({
     selector: '#conteudo',

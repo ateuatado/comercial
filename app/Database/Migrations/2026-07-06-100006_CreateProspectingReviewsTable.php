@@ -59,7 +59,9 @@ class CreateProspectingReviewsTable extends Migration
         $this->forge->addForeignKey('flag_id', 'prospecting_flags', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('prospecting_reviews');
 
-        $this->db->query("ALTER TABLE prospecting_reviews ADD CONSTRAINT chk_reviews_decisao CHECK (decisao IN ('liberado','rejeitado'))");
+        if ($this->db->DBDriver !== 'SQLite3') {
+            $this->db->query("ALTER TABLE prospecting_reviews ADD CONSTRAINT chk_reviews_decisao CHECK (decisao IN ('liberado','rejeitado'))");
+        }
     }
 
     public function down(): void

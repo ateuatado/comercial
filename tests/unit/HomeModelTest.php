@@ -29,8 +29,7 @@ final class HomeModelTest extends CIUnitTestCase
         $this->db->query("INSERT INTO db_pages (title, slug, content, is_active, created_at, updated_at) VALUES
             ('Sobre', 'about', 'Página sobre o sistema', 0, datetime('now'), datetime('now'))");
 
-        $this->model = new HomeModel();
-        $this->model->setDB($this->db);
+        $this->model = new HomeModel($this->db);
     }
 
     protected function tearDown(): void

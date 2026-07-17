@@ -71,7 +71,9 @@ class CreateWalletMovementsTable extends Migration
         $this->forge->addKey('vendor_id_novo');
         $this->forge->createTable('wallet_movements');
 
-        $this->db->query("ALTER TABLE wallet_movements ADD CONSTRAINT chk_movements_tipo CHECK (tipo_movimento IN ('automatico','manual'))");
+        if ($this->db->DBDriver !== 'SQLite3') {
+            $this->db->query("ALTER TABLE wallet_movements ADD CONSTRAINT chk_movements_tipo CHECK (tipo_movimento IN ('automatico','manual'))");
+        }
     }
 
     public function down(): void

@@ -78,8 +78,10 @@ class CreateVendorsTable extends Migration
         $this->forge->addKey('user_id');
         $this->forge->createTable('vendors');
 
-        // Check constraint para tipo_acom
-        $this->db->query("ALTER TABLE vendors ADD CONSTRAINT chk_vendors_tipo_acom CHECK (tipo_acom IN ('I', 'II', 'III'))");
+        // Check constraint para tipo_acom - skip on SQLite3 as it doesn't support adding constraints via ALTER TABLE
+        if ($this->db->DBDriver !== 'SQLite3') {
+            $this->db->query("ALTER TABLE vendors ADD CONSTRAINT chk_vendors_tipo_acom CHECK (tipo_acom IN ('I', 'II', 'III'))");
+        }
     }
 
     public function down(): void

@@ -17,20 +17,24 @@ class FixVendorsTipoAcomNullable extends Migration
 {
     public function up(): void
     {
-        // Permite NULL no campo tipo_acom
-        $this->db->query('ALTER TABLE vendors ALTER COLUMN tipo_acom DROP NOT NULL');
+        if ($this->db->DBDriver !== 'SQLite3') {
+            // Permite NULL no campo tipo_acom
+            $this->db->query('ALTER TABLE vendors ALTER COLUMN tipo_acom DROP NOT NULL');
 
-        // Recria o check constraint para permitir NULL (Gerente de Conta)
-        $this->db->query('ALTER TABLE vendors DROP CONSTRAINT IF EXISTS chk_vendors_tipo_acom');
-        $this->db->query("ALTER TABLE vendors ADD CONSTRAINT chk_vendors_tipo_acom CHECK (tipo_acom IS NULL OR tipo_acom IN ('I', 'II', 'III'))");
+            // Recria o check constraint para permitir NULL (Gerente de Conta)
+            $this->db->query('ALTER TABLE vendors DROP CONSTRAINT IF EXISTS chk_vendors_tipo_acom');
+            $this->db->query("ALTER TABLE vendors ADD CONSTRAINT chk_vendors_tipo_acom CHECK (tipo_acom IS NULL OR tipo_acom IN ('I', 'II', 'III'))");
+        }
     }
 
     public function down(): void
     {
-        // Reverte: NULL → vazio, coluna volta a NOT NULL
-        $this->db->query("UPDATE vendors SET tipo_acom = '' WHERE tipo_acom IS NULL");
-        $this->db->query('ALTER TABLE vendors ALTER COLUMN tipo_acom SET NOT NULL');
-        $this->db->query('ALTER TABLE vendors DROP CONSTRAINT IF EXISTS chk_vendors_tipo_acom');
-        $this->db->query("ALTER TABLE vendors ADD CONSTRAINT chk_vendors_tipo_acom CHECK (tipo_acom IN ('I', 'II', 'III'))");
+        if ($this->db->DBDriver !== 'SQLite3') {
+            // Reverte: NULL → vazio, coluna volta a NOT NULL
+            $this->db->query("UPDATE vendors SET tipo_acom = '' WHERE tipo_acom IS NULL");
+            $this->db->query('ALTER TABLE vendors ALTER COLUMN tipo_acom SET NOT NULL');
+            $this->db->query('ALTER TABLE vendors DROP CONSTRAINT IF EXISTS chk_vendors_tipo_acom');
+            $this->db->query("ALTER TABLE vendors ADD CONSTRAINT chk_vendors_tipo_acom CHECK (tipo_acom IN ('I', 'II', 'III'))");
+        }
     }
 }
