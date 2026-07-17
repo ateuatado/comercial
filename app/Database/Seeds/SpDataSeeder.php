@@ -80,6 +80,35 @@ class SpDataSeeder extends Seeder
                 'nome' => $cData['nome'],
                 'gerencia' => $cData['gerencia']
             ];
+
+            // Criar registro na tabela vendors para o coordenador
+            $db->table('vendors')->insert([
+                'user_id'    => $userId,
+                'matricula'  => $cData['username'],
+                'nome'       => $cData['nome'],
+                'tipo_acom'  => null,
+                'estado_se'  => 'SP',
+                'ativo'      => true,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            // Criar registro na tabela vendor_users para o coordenador
+            $db->table('vendor_users')->insert([
+                'matricula'        => $cData['username'],
+                'nome'             => $cData['nome'],
+                'email'            => $cData['username'] . '@spiv.dev',
+                'perfil_vendedor'  => 'COORDENADOR',
+                'se'               => ($cData['username'] === 'C0103') ? 'SPI' : 'SPM',
+                'gerencia'         => $cData['gerencia'],
+                'mtr_coordenador'  => null,
+                'nome_coordenador' => null,
+                'gerencia_vendas'  => 'GEVEN SP',
+                'shield_user_id'   => $userId,
+                'ativo'            => true,
+                'created_at'       => date('Y-m-d H:i:s'),
+                'updated_at'       => date('Y-m-d H:i:s'),
+            ]);
         }
         
         // 4. Criar 56 Vendedores Fictícios
