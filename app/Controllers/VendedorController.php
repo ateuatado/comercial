@@ -117,12 +117,14 @@ class VendedorController extends BaseController
         $cliente = $db->query("
             SELECT c.*, 
                    cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
+                   loc.latitude AS loc_lat, loc.longitude AS loc_lng,
                    e.tipo_logradouro, e.logradouro, e.numero, e.complemento, e.bairro, e.cep, e.uf,
                    m.descricao AS municipio_nome,
                    e.ddd_1, e.telefone_1, e.ddd_2, e.telefone_2,
                    e.email
             FROM carteira_raw c
             LEFT JOIN client_wallets cw ON cw.cnpj = c.cnpj
+            LEFT JOIN client_locations loc ON loc.cnpj = c.cnpj
             LEFT JOIN receita.estabelecimentos e ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = c.cnpj
             LEFT JOIN receita.municipios m ON e.municipio = m.codigo
             WHERE c.cnpj = ? AND c.matricula_mcmcu = ? 
@@ -450,6 +452,149 @@ class VendedorController extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'error'   => 'Erro ao conectar à API pública: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Busca as coordenadas (lat/lng) do endereço do cliente usando Nominatim OpenStreetMap.
+     */
+    public function geolocalizarCnpj(string $cnpj)
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+        }
+
+        $cleanCnpj = preg_replace('/[^0-9]/', '', $cnpj);
+        if (strlen($cleanCnpj) !== 14) {
+            return $this->response->setJSON(['error' => 'CNPJ inválido'])->setStatusCode(400);
+        }
+
+        $db = db_connect();
+
+        // 1. Carrega os dados de endereço da receita.estabelecimentos
+        $est = $db->query("
+            SELECT e.*, m.descricao AS municipio_nome
+            FROM receita.estabelecimentos e
+            LEFT JOIN receita.municipios m ON e.municipio = m.codigo
+            WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
+            LIMIT 1
+        ", [$cleanCnpj])->getRowArray();
+
+        if (!$est) {
+            return $this->response->setJSON(['success' => false, 'error' => 'Dados de endereço não encontrados no banco da Receita.']);
+        }
+
+        // Construir string de busca para a API de Geocoding
+        $logradouroCompleto = trim(($est['tipo_logradouro'] ?? '') . ' ' . ($est['logradouro'] ?? ''));
+        $numero = trim($est['numero'] ?? '');
+        $bairro = trim($est['bairro'] ?? '');
+        $cidade = trim($est['municipio_nome'] ?? '');
+        $uf = trim($est['uf'] ?? '');
+        $cep = trim($est['cep'] ?? '');
+
+        if (empty($logradouroCompleto) || empty($cidade)) {
+            return $this->response->setJSON(['success' => false, 'error' => 'Endereço incompleto no cadastro para geolocalização.']);
+        }
+
+        // String para Nominatim
+        $addressQuery = "{$logradouroCompleto}, {$numero} - {$bairro}, {$cidade} - {$uf}, {$cep}, Brasil";
+        $fallbackQuery = "{$logradouroCompleto}, {$cidade} - {$uf}, Brasil";
+
+        $client = \Config\Services::curlrequest();
+        $lat = null;
+        $lon = null;
+
+        // Tenta buscar pelo endereço completo
+        try {
+            $response = $client->get('https://nominatim.openstreetmap.org/search', [
+                'headers' => [
+                    'User-Agent' => 'SPIV-App/1.0 (contact@spiv.dev)',
+                    'Accept-Language' => 'pt-BR,pt;q=0.9',
+                ],
+                'query' => [
+                    'q' => $addressQuery,
+                    'format' => 'json',
+                    'limit' => 1,
+                    'countrycodes' => 'br'
+                ],
+                'timeout' => 5,
+                'http_errors' => false
+            ]);
+
+            if ($response->getStatusCode() === 200) {
+                $results = json_decode($response->getBody(), true);
+                if (!empty($results[0])) {
+                    $lat = $results[0]['lat'];
+                    $lon = $results[0]['lon'];
+                }
+            }
+
+            // Se falhar, tenta o fallback (sem o número e bairro)
+            if (($lat === null || $lon === null)) {
+                $responseFallback = $client->get('https://nominatim.openstreetmap.org/search', [
+                    'headers' => [
+                        'User-Agent' => 'SPIV-App/1.0 (contact@spiv.dev)',
+                        'Accept-Language' => 'pt-BR,pt;q=0.9',
+                    ],
+                    'query' => [
+                        'q' => $fallbackQuery,
+                        'format' => 'json',
+                        'limit' => 1,
+                        'countrycodes' => 'br'
+                    ],
+                    'timeout' => 5,
+                    'http_errors' => false
+                ]);
+
+                if ($responseFallback->getStatusCode() === 200) {
+                    $resultsFallback = json_decode($responseFallback->getBody(), true);
+                    if (!empty($resultsFallback[0])) {
+                        $lat = $resultsFallback[0]['lat'];
+                        $lon = $resultsFallback[0]['lon'];
+                    }
+                }
+            }
+
+            if ($lat === null || $lon === null) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'error' => 'Endereço não localizado no mapa pela API pública.'
+                ]);
+            }
+
+            // 2. Persistir na tabela client_locations
+            $enderecoFormatado = trim("{$logradouroCompleto}, {$numero}, {$bairro}, {$cidade} - {$uf}");
+            $exists = $db->table('client_locations')->where('cnpj', $cleanCnpj)->get()->getRow();
+
+            $locationData = [
+                'cnpj'               => $cleanCnpj,
+                'latitude'           => (float) $lat,
+                'longitude'          => (float) $lon,
+                'endereco_formatado' => $enderecoFormatado,
+                'registrado_por'     => $vendorUser['matricula'],
+                'updated_at'         => date('Y-m-d H:i:s')
+            ];
+
+            if ($exists) {
+                $db->table('client_locations')->where('cnpj', $cleanCnpj)->update($locationData);
+            } else {
+                $locationData['created_at'] = date('Y-m-d H:i:s');
+                $db->table('client_locations')->insert($locationData);
+            }
+
+            return $this->response->setJSON([
+                'success'   => true,
+                'latitude'  => $lat,
+                'longitude' => $lon,
+                'endereco'  => $enderecoFormatado
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'error'   => 'Erro de conexão com geocoding: ' . $e->getMessage()
             ]);
         }
     }

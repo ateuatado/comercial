@@ -277,21 +277,33 @@
         <div class="info-card">
             <h6><i class="bi bi-telephone text-primary me-2"></i>Contato e Endereço</h6>
             <div class="info-row">
-                <span class="label">Endereço</span>
-                <span class="value" style="font-size: 11px; text-align: right; line-height: 1.4;">
-                    <?php 
-                        $endParts = [];
-                        if (!empty($cliente['tipo_logradouro'])) $endParts[] = trim($cliente['tipo_logradouro']);
-                        if (!empty($cliente['logradouro'])) $endParts[] = trim($cliente['logradouro']);
-                        if (!empty($cliente['numero'])) $endParts[] = 'Nº ' . trim($cliente['numero']);
-                        if (!empty($cliente['complemento'])) $endParts[] = trim($cliente['complemento']);
-                        if (!empty($cliente['bairro'])) $endParts[] = trim($cliente['bairro']);
-                        if (!empty($cliente['municipio_nome'])) $endParts[] = trim($cliente['municipio_nome']);
-                        if (!empty($cliente['uf'])) $endParts[] = trim($cliente['uf']);
-                        if (!empty($cliente['cep'])) $endParts[] = 'CEP ' . trim($cliente['cep']);
-                        
-                        echo !empty($endParts) ? esc(implode(', ', $endParts)) : '—';
-                    ?>
+                <span class="label d-flex flex-column align-items-start gap-1">
+                    Endereço
+                    <span id="geoBadge" style="<?= empty($cliente['loc_lat']) ? 'display: none;' : '' ?>">
+                        <span class="badge bg-success text-white" style="font-size: 9px; padding: 2px 6px; border-radius: 6px;">
+                            <i class="bi bi-geo-alt-fill"></i> Localizado
+                        </span>
+                    </span>
+                </span>
+                <span class="value d-flex flex-column align-items-end gap-1">
+                    <span style="font-size: 11px; text-align: right; line-height: 1.4;">
+                        <?php 
+                            $endParts = [];
+                            if (!empty($cliente['tipo_logradouro'])) $endParts[] = trim($cliente['tipo_logradouro']);
+                            if (!empty($cliente['logradouro'])) $endParts[] = trim($cliente['logradouro']);
+                            if (!empty($cliente['numero'])) $endParts[] = 'Nº ' . trim($cliente['numero']);
+                            if (!empty($cliente['complemento'])) $endParts[] = trim($cliente['complemento']);
+                            if (!empty($cliente['bairro'])) $endParts[] = trim($cliente['bairro']);
+                            if (!empty($cliente['municipio_nome'])) $endParts[] = trim($cliente['municipio_nome']);
+                            if (!empty($cliente['uf'])) $endParts[] = trim($cliente['uf']);
+                            if (!empty($cliente['cep'])) $endParts[] = 'CEP ' . trim($cliente['cep']);
+                            
+                            echo !empty($endParts) ? esc(implode(', ', $endParts)) : '—';
+                        ?>
+                    </span>
+                    <button class="btn btn-xs btn-outline-primary" id="btnGeolocalizar" style="font-size: 10px; padding: 2px 6px; border-radius: 6px; <?= !empty($cliente['loc_lat']) ? 'display: none;' : '' ?>">
+                        <i class="bi bi-geo-alt"></i> Localizar Mapa
+                    </button>
                 </span>
             </div>
             <div class="info-row">
@@ -624,6 +636,39 @@
             } finally {
                 btnVerificar.disabled = false;
                 btnVerificar.innerHTML = '<i class="bi bi-shield-check"></i> Verificar';
+            }
+        });
+    }
+
+    // Geolocalizar Address API
+    const btnGeolocalizar = document.getElementById('btnGeolocalizar');
+    const geoBadge = document.getElementById('geoBadge');
+
+    if (btnGeolocalizar && geoBadge) {
+        btnGeolocalizar.addEventListener('click', async () => {
+            btnGeolocalizar.disabled = true;
+            btnGeolocalizar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:10px;height:10px;display:inline-block;border:.1em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite;"></span>...';
+
+            try {
+                const res = await fetch('<?= site_url('vendedor/cnpj/geolocalizar/') ?>' + CNPJ, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast('✅ Endereço localizado e mapeado!');
+                    geoBadge.style.display = 'inline-block';
+                    btnGeolocalizar.style.display = 'none';
+                } else {
+                    showToast('❌ ' + (data.error || 'Erro ao geolocalizar.'));
+                }
+            } catch (e) {
+                showToast('❌ Erro na requisição.');
+            } finally {
+                btnGeolocalizar.disabled = false;
+                btnGeolocalizar.innerHTML = '<i class="bi bi-geo-alt"></i> Localizar Mapa';
             }
         });
     }
