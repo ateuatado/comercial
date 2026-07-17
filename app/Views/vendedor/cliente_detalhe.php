@@ -200,7 +200,7 @@
 
     <!-- Top bar -->
     <div class="detalhe-topbar">
-        <a href="<?= site_url('vendedor/clientes') ?>" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <a href="<?= site_url('vendedor/clientes') ?>" id="btnBackToWallet" class="back-btn"><i class="bi bi-arrow-left"></i></a>
         <h6>Detalhe do Cliente</h6>
     </div>
 
@@ -1003,6 +1003,40 @@
         t.textContent = msg;
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 3000);
+    }
+})();
+
+// ─── Botão Voltar — detecta se veio da Prospecção ──────────────
+(function() {
+    const btnBack = document.getElementById('btnBackToWallet');
+    if (!btnBack) return;
+
+    const prospeccaoUrl = '<?= site_url('vendedor/prospectar/pesquisa') ?>';
+    const walletUrl     = '<?= site_url('vendedor/clientes') ?>';
+
+    const savedQuery = sessionStorage.getItem('last_prospect_query');
+    const savedResults = sessionStorage.getItem('last_prospect_results');
+
+    if (savedQuery && savedResults) {
+        // Veio da prospecção — adapta o botão
+        btnBack.href = prospeccaoUrl;
+        btnBack.title = 'Voltar à Prospecção';
+
+        // Troca o ícone de seta por um ícone de busca + seta
+        btnBack.innerHTML = '<i class="bi bi-arrow-left"></i>';
+
+        // Adiciona pequena tag indicativa
+        const tag = document.createElement('span');
+        tag.textContent = 'Prospecção';
+        tag.style.cssText = 'font-size: 9px; font-weight: 700; color: #3b82f6; letter-spacing: 0.5px; text-transform: uppercase; margin-left: 2px; display: block; line-height: 1;';
+
+        const topbar = btnBack.closest('.detalhe-topbar');
+        if (topbar) {
+            const h6 = topbar.querySelector('h6');
+            if (h6) {
+                h6.insertAdjacentElement('afterend', tag);
+            }
+        }
     }
 })();
 </script>

@@ -215,6 +215,18 @@ searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') performSearch();
 });
 
+// Restaurar busca salva ao carregar a página
+document.addEventListener("DOMContentLoaded", () => {
+    const savedQuery = sessionStorage.getItem('last_prospect_query');
+    const savedResults = sessionStorage.getItem('last_prospect_results');
+    if (savedQuery) {
+        searchInput.value = savedQuery;
+    }
+    if (savedResults) {
+        renderResults(JSON.parse(savedResults));
+    }
+});
+
 async function performSearch() {
     const q = searchInput.value.trim();
     if (q.length < 3) {
@@ -231,6 +243,9 @@ async function performSearch() {
         const data = await res.json();
 
         if (data.success) {
+            // Salvar no cache de sessão para quando o usuário voltar
+            sessionStorage.setItem('last_prospect_query', q);
+            sessionStorage.setItem('last_prospect_results', JSON.stringify(data.resultados));
             renderResults(data.resultados);
         } else {
             resultsSection.innerHTML = '<div class="text-center py-5 text-danger">Erro ao realizar busca.</div>';
