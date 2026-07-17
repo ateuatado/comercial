@@ -62,7 +62,11 @@
                                 <i class="bi bi-briefcase-fill me-1"></i>Minha Carteira
                             </a>
                         </li>
-
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= base_url('vendedor/prospectar/pesquisa') ?>">
+                                <i class="bi bi-search me-1"></i>Prospecção
+                            </a>
+                        </li>
                     <?php endif; ?>
 
                 <?php endif; ?>

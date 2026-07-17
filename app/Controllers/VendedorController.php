@@ -114,6 +114,56 @@ class VendedorController extends BaseController
         if (!$vendorUser) return redirect()->to('/sem-carteira');
 
         $db = db_connect();
+
+        // Verificar e auto-prospectar (vincular na carteira) se o cliente não estiver vinculado a este vendedor
+        $existsRaw = $db->table('carteira_raw')
+                        ->where('cnpj', $cnpj)
+                        ->where('matricula_mcmcu', $vendorUser['matricula'])
+                        ->get()
+                        ->getRow();
+
+        if (!$existsRaw) {
+            $est = $db->query("
+                SELECT e.*, emp.razao_social
+                FROM receita.estabelecimentos e
+                LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
+                WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
+                LIMIT 1
+            ", [$cnpj])->getRowArray();
+
+            if ($est) {
+                // Insere na carteira_raw do vendedor
+                $db->table('carteira_raw')->insert([
+                    'se'                 => $est['uf'] === 'SP' ? 'SPM' : 'SPI',
+                    'categoria'          => 'BRONZE',
+                    'cnpj'               => $cnpj,
+                    'razao_social'       => $est['razao_social'] ?? 'PROSPECTO',
+                    'matricula_mcmcu'    => $vendorUser['matricula'],
+                    'forca_vendas_nome'  => $vendorUser['nome'] ?? $vendorUser['username'],
+                    'ciclo_de_vida'      => 'Ativo',
+                    'cnae'               => $est['cnae_fiscal_principal'] ?? null,
+                    'created_at'         => date('Y-m-d H:i:s'),
+                ]);
+
+                // Garante que existe ou atualiza na client_wallets
+                $existsWallet = $db->table('client_wallets')->where('cnpj', $cnpj)->get()->getRow();
+                if (!$existsWallet) {
+                    $db->table('client_wallets')->insert([
+                        'cnpj'               => $cnpj,
+                        'vendor_id'          => $vendorUser['id'],
+                        'status_operacional' => 'ativo',
+                        'created_at'         => date('Y-m-d H:i:s'),
+                        'updated_at'         => date('Y-m-d H:i:s'),
+                    ]);
+                } else {
+                    $db->table('client_wallets')->where('cnpj', $cnpj)->update([
+                        'vendor_id'          => $vendorUser['id'],
+                        'updated_at'         => date('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
+        }
+
         $cliente = $db->query("
             SELECT c.*, 
                    cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
@@ -252,6 +302,90 @@ class VendedorController extends BaseController
         if (!$vendorUser) return redirect()->to('/sem-carteira');
 
         return view('vendedor/prospectar', compact('vendorUser'));
+    }
+
+    public function prospeccaoPesquisaView()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return redirect()->to('/sem-carteira');
+
+        return view('vendedor/prospeccao_pesquisa', compact('vendorUser'));
+    }
+
+    public function prospeccaoBuscarApi()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+        }
+
+        $searchTerm = strtolower(trim($this->request->getGet('q') ?? ''));
+        if (strlen($searchTerm) < 3) {
+            return $this->response->setJSON(['success' => true, 'resultados' => []]);
+        }
+
+        $db = db_connect();
+
+        $cleanCnpj = preg_replace('/[^0-9]/', '', $searchTerm);
+        if (strlen($cleanCnpj) >= 8 && is_numeric($cleanCnpj)) {
+            $query = "
+                SELECT (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) AS cnpj,
+                       emp.razao_social, e.nome_fantasia,
+                       e.tipo_logradouro, e.logradouro, e.numero, e.complemento, e.bairro, e.cep, e.uf,
+                       m.descricao AS municipio_nome,
+                       loc.latitude AS loc_lat, loc.longitude AS loc_lng,
+                       cw.rfb_situacao_cadastral, cw.rfb_verificado_em
+                FROM receita.estabelecimentos e
+                LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
+                LEFT JOIN receita.municipios m ON e.municipio = m.codigo
+                LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) LIKE ?
+                LIMIT 30
+            ";
+            $resultados = $db->query($query, ['%' . $cleanCnpj . '%'])->getResultArray();
+        } else {
+            $query = "
+                SELECT (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) AS cnpj,
+                       emp.razao_social, e.nome_fantasia,
+                       e.tipo_logradouro, e.logradouro, e.numero, e.complemento, e.bairro, e.cep, e.uf,
+                       m.descricao AS municipio_nome,
+                       loc.latitude AS loc_lat, loc.longitude AS loc_lng,
+                       cw.rfb_situacao_cadastral, cw.rfb_verificado_em
+                FROM receita.estabelecimentos e
+                LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
+                LEFT JOIN receita.municipios m ON e.municipio = m.codigo
+                LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                WHERE LOWER(emp.razao_social) LIKE ?
+                   OR LOWER(e.nome_fantasia) LIKE ?
+                   OR LOWER(e.logradouro) LIKE ?
+                   OR LOWER(e.bairro) LIKE ?
+                LIMIT 30
+            ";
+            $param = '%' . $searchTerm . '%';
+            $resultados = $db->query($query, [$param, $param, $param, $param])->getResultArray();
+        }
+
+        foreach ($resultados as &$res) {
+            $endParts = [];
+            if (!empty($res['tipo_logradouro'])) $endParts[] = trim($res['tipo_logradouro']);
+            if (!empty($res['logradouro'])) $endParts[] = trim($res['logradouro']);
+            if (!empty($res['numero'])) $endParts[] = 'Nº ' . trim($res['numero']);
+            if (!empty($res['complemento'])) $endParts[] = trim($res['complemento']);
+            if (!empty($res['bairro'])) $endParts[] = trim($res['bairro']);
+            if (!empty($res['municipio_nome'])) $endParts[] = trim($res['municipio_nome']);
+            if (!empty($res['uf'])) $endParts[] = trim($res['uf']);
+            if (!empty($res['cep'])) $endParts[] = 'CEP ' . trim($res['cep']);
+
+            $res['endereco_completo'] = implode(', ', $endParts);
+            $res['rfb_verificado_em_fmt'] = !empty($res['rfb_verificado_em']) ? date('d/m/Y H:i', strtotime($res['rfb_verificado_em'])) : null;
+        }
+
+        return $this->response->setJSON([
+            'success'    => true,
+            'resultados' => $resultados
+        ]);
     }
 
     public function mockGoogleMaps()
@@ -439,12 +573,25 @@ class VendedorController extends BaseController
             // Persistir no banco de dados do SPIV na tabela client_wallets
             $db = db_connect();
             $now = date('Y-m-d H:i:s');
-            $db->table('client_wallets')
-               ->where('cnpj', $cleanCnpj)
-               ->update([
-                   'rfb_situacao_cadastral' => $situacao,
-                   'rfb_verificado_em'      => $now,
-               ]);
+            $exists = $db->table('client_wallets')->where('cnpj', $cleanCnpj)->get()->getRow();
+            if ($exists) {
+                $db->table('client_wallets')
+                   ->where('cnpj', $cleanCnpj)
+                   ->update([
+                       'rfb_situacao_cadastral' => $situacao,
+                       'rfb_verificado_em'      => $now,
+                   ]);
+            } else {
+                $db->table('client_wallets')->insert([
+                    'cnpj'                   => $cleanCnpj,
+                    'rfb_situacao_cadastral' => $situacao,
+                    'rfb_verificado_em'      => $now,
+                    'vendor_id'              => $vendorUser['id'],
+                    'status_operacional'     => 'ativo',
+                    'created_at'             => $now,
+                    'updated_at'             => $now,
+                ]);
+            }
 
             return $this->response->setJSON([
                 'success'            => true,

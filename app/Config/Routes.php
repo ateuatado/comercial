@@ -73,6 +73,8 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     // Geolocalização e Prospecção (Fase 2.6b)
     $routes->get('prospectar', 'VendedorController::prospectarView');
     $routes->get('prospectar/api', 'VendedorController::prospectarApi');
+    $routes->get('prospectar/pesquisa', 'VendedorController::prospeccaoPesquisaView');
+    $routes->get('prospectar/pesquisa/buscar', 'VendedorController::prospeccaoBuscarApi');
     $routes->post('pre-visita', 'VendedorController::preVisitaSalvar');
     $routes->get('maps-contract', 'VendedorController::mockGoogleMaps');
     $routes->get('cnpj/verificar/(:segment)', 'VendedorController::verificarCnpj/$1');
