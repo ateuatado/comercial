@@ -109,6 +109,36 @@
 }
 .filter-chip:hover:not(.active) { border-color: #3b82f6; color: #3b82f6; }
 
+/* Category specific colors */
+.filter-chip[data-value="BRONZE"] { border-color: #cd7f32; color: #cd7f32; }
+.filter-chip[data-value="BRONZE"].active { background: #cd7f32 !important; color: #fff !important; border-color: #cd7f32 !important; }
+.filter-chip[data-value="BRONZE"]:hover:not(.active) { background: #cd7f32; color: #fff; border-color: #cd7f32; }
+
+.filter-chip[data-value="OURO"] { border-color: #b8860b; color: #b8860b; }
+.filter-chip[data-value="OURO"].active { background: #b8860b !important; color: #fff !important; border-color: #b8860b !important; }
+.filter-chip[data-value="OURO"]:hover:not(.active) { background: #b8860b; color: #fff; border-color: #b8860b; }
+
+.filter-chip[data-value="PRATA"] { border-color: #8a8a8a; color: #8a8a8a; }
+.filter-chip[data-value="PRATA"].active { background: #8a8a8a !important; color: #fff !important; border-color: #8a8a8a !important; }
+.filter-chip[data-value="PRATA"]:hover:not(.active) { background: #8a8a8a; color: #fff; border-color: #8a8a8a; }
+
+.filter-chip[data-value="DIAMANTE"] { border-color: #185abc; color: #185abc; }
+.filter-chip[data-value="DIAMANTE"].active { background: #185abc !important; color: #fff !important; border-color: #185abc !important; }
+.filter-chip[data-value="DIAMANTE"]:hover:not(.active) { background: #185abc; color: #fff; border-color: #185abc; }
+
+.filter-chip[data-value="PLATINUM"] { border-color: #6b21a8; color: #6b21a8; }
+.filter-chip[data-value="PLATINUM"].active { background: #6b21a8 !important; color: #fff !important; border-color: #6b21a8 !important; }
+.filter-chip[data-value="PLATINUM"]:hover:not(.active) { background: #6b21a8; color: #fff; border-color: #6b21a8; }
+
+.filter-chip[data-value="INFINITE"] { border-color: #1e293b; color: #1e293b; }
+.filter-chip[data-value="INFINITE"].active { background: #1e293b !important; color: #fff !important; border-color: #1e293b !important; }
+.filter-chip[data-value="INFINITE"]:hover:not(.active) { background: #1e293b; color: #fff; border-color: #1e293b; }
+
+.filter-chip[data-value="CLUBE"] { border-color: #047857; color: #047857; }
+.filter-chip[data-value="CLUBE"].active { background: #047857 !important; color: #fff !important; border-color: #047857 !important; }
+.filter-chip[data-value="CLUBE"]:hover:not(.active) { background: #047857; color: #fff; border-color: #047857; }
+
+
 /* Card deck area */
 .card-deck {
     padding: 16px;
