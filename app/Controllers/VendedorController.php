@@ -860,8 +860,21 @@ class VendedorController extends BaseController
         $nomeBusca = !empty($cliente['nome_fantasia']) ? $cliente['nome_fantasia'] : $cliente['razao_social'];
         $cidade = $cliente['municipio_nome'] ?? '';
 
-        // Query de busca
-        $searchQuery = trim("\"{$nomeBusca}\" {$cidade} (instagram OR linkedin OR facebook)");
+        // ── Normalização inteligente do termo de busca (especialmente para MEIs e nomes com CNPJ) ──
+        $nomeLimpo = $nomeBusca;
+        
+        // 1. Remove padrão de CNPJ/MEI inicial (ex: "33.525.997 " ou "33525997000152 ")
+        $nomeLimpo = preg_replace('/^\d{2}\.?\d{3}\.?\d{3}\s+/', '', $nomeLimpo);
+        $nomeLimpo = preg_replace('/^\d+\s+/', '', $nomeLimpo);
+        
+        // 2. Remove sufixos corporativos comuns do final
+        $nomeLimpo = preg_replace('/\b(LTDA|S\.?A\.?|EIRELI|MEI|ME|EPP|LIMITADA|CNPJ|UNIPESSOAL)\b/i', '', $nomeLimpo);
+        
+        // 3. Remove traços, pontuações extras e espaços múltiplos
+        $nomeLimpo = trim(preg_replace('/\s+/', ' ', $nomeLimpo));
+
+        // Query de busca (sem aspas duplas obrigatórias para dar flexibilidade ao Google)
+        $searchQuery = trim("{$nomeLimpo} {$cidade} (instagram OR linkedin OR facebook)");
 
         $sugestoes = [];
         $errorMsg = null;
