@@ -72,8 +72,9 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('/', 'VendedorController::index');
     $routes->get('clientes', 'VendedorController::clientesView');
     $routes->get('clientes/api', 'VendedorController::clientesApi');
-    $routes->get('clientes/mapa', 'VendedorController::clientesMapaApi');  // API JSON para o mapa
+    $routes->get('clientes/mapa', 'VendedorController::clientesMapaApi');   // API: meus clientes com coords
     $routes->get('clientes/ver-mapa', 'VendedorController::clientesMapaView'); // View do mapa
+    $routes->get('livres/mapa', 'VendedorController::livresMapaApi');          // API: livres com coords
     $routes->get('cliente/(:segment)', 'VendedorController::clienteDetalhe/$1');
     $routes->get('cliente/(:segment)/nota', 'VendedorController::notaForm/$1');
     $routes->post('nota', 'VendedorController::notaSalvar');

@@ -153,6 +153,46 @@ class VendedorController extends BaseController
         ]);
     }
 
+    /**
+     * Retorna todos os CNPJs que possuem coordenadas em client_locations
+     * mas NÃO estão em nenhuma carteira (carteira_raw). São os "livres para prospecção".
+     */
+    public function livresMapaApi()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return $this->response->setJSON(['error' => 'Sem acesso'])->setStatusCode(403);
+
+        $db = db_connect();
+
+        $rows = $db->query("
+            SELECT
+                cl.cnpj,
+                cl.latitude,
+                cl.longitude,
+                COALESCE(emp.razao_social, cl.cnpj) AS razao_social,
+                COALESCE(est.cnae_fiscal_principal, '') AS cnae,
+                COALESCE(ce.logistics_score, 0) AS score,
+                COALESCE(ce.score_breakdown::text, '{}') AS score_breakdown
+            FROM client_locations cl
+            LEFT JOIN receita.empresas emp
+                   ON emp.cnpj_basico = SUBSTRING(cl.cnpj, 1, 8)
+            LEFT JOIN receita.estabelecimentos est
+                   ON (est.cnpj_basico || est.cnpj_ordem || est.cnpj_dv) = cl.cnpj
+            LEFT JOIN client_enrichment ce ON ce.cnpj = cl.cnpj
+            WHERE cl.latitude IS NOT NULL
+              AND cl.longitude IS NOT NULL
+              AND cl.cnpj NOT IN (SELECT DISTINCT cnpj FROM carteira_raw WHERE cnpj IS NOT NULL)
+            ORDER BY ce.logistics_score DESC NULLS LAST
+            LIMIT 3000
+        ")->getResultArray();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'total'   => count($rows),
+            'livres'  => $rows,
+        ]);
+    }
+
     // ─── Detalhe do Cliente ──────────────────────────────────────
 
     public function clienteDetalhe(string $cnpj)
