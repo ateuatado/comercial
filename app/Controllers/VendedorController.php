@@ -225,23 +225,76 @@ class VendedorController extends BaseController
         // NÃO auto-adiciona mais. Se não pertence ao vendedor, abre em modo prospecto.
         $modoProspecto = !$existsRaw;
 
-        $cliente = $db->query("
-            SELECT c.*, 
-                   cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
-                   loc.latitude AS loc_lat, loc.longitude AS loc_lng,
-                   e.tipo_logradouro, e.logradouro, e.numero, e.complemento, e.bairro, e.cep, e.uf,
-                   m.descricao AS municipio_nome,
-                   e.ddd_1, e.telefone_1, e.ddd_2, e.telefone_2,
-                   e.email
-            FROM carteira_raw c
-            LEFT JOIN client_wallets cw ON cw.cnpj = c.cnpj
-            LEFT JOIN client_locations loc ON loc.cnpj = c.cnpj
-            LEFT JOIN receita.estabelecimentos e ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = c.cnpj
-            LEFT JOIN receita.municipios m ON e.municipio = m.codigo
-            WHERE c.cnpj = ? AND c.matricula_mcmcu = ? 
-            LIMIT 1
-        ", [$cnpj, $vendorUser['matricula']])->getRowArray();
-        if (!$cliente) return redirect()->to('/vendedor')->with('error', 'Cliente não encontrado na sua carteira.');
+        if ($modoProspecto) {
+            // ── Modo Prospecto: dados públicos da Receita Federal ──────────
+            // O vendedor pode visualizar QUALQUER CNPJ — a tela é pública para leitura.
+            // Nenhum dado de carteira exclusivo é exibido.
+            $receitaRow = $db->query("
+                SELECT
+                    c.cnpj AS cnpj,
+                    emp.razao_social,
+                    'Prospecto' AS categoria,
+                    NULL AS segmento_cliente,
+                    NULL AS segmento_mercado,
+                    NULL AS ciclo_de_vida,
+                    NULL AS canais_vendas,
+                    NULL AS forca_vendas_nome,
+                    NULL AS matricula_mcmcu,
+                    NULL AS conta_numero,
+                    NULL AS conta_nome,
+                    NULL AS gerencia,
+                    NULL AS nat_juridica,
+                    emp.capital_social,
+                    e.tipo_logradouro, e.logradouro, e.numero, e.complemento,
+                    e.bairro, e.cep, e.uf,
+                    m.descricao AS municipio_nome,
+                    e.ddd_1, e.telefone_1, e.ddd_2, e.telefone_2,
+                    e.email, e.cnae_fiscal_principal AS cnae,
+                    sit.descricao AS situacao_desc,
+                    cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
+                    loc.latitude AS loc_lat, loc.longitude AS loc_lng
+                FROM receita.estabelecimentos e
+                JOIN (SELECT ? AS cnpj) c ON true
+                LEFT JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
+                LEFT JOIN receita.municipios m ON m.codigo = e.municipio
+                LEFT JOIN receita.situacoes_cadastrais sit ON sit.codigo = e.situacao_cadastral
+                LEFT JOIN client_wallets cw ON cw.cnpj = c.cnpj
+                LEFT JOIN client_locations loc ON loc.cnpj = c.cnpj
+                WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
+                LIMIT 1
+            ", [$cnpj, $cnpj])->getRowArray();
+
+            // Se não encontrou na Receita, retorna dados mínimos com o CNPJ
+            $cliente = $receitaRow ?: [
+                'cnpj'        => $cnpj,
+                'razao_social'=> 'CNPJ não localizado na base da Receita',
+                'categoria'   => 'Prospecto',
+            ];
+        } else {
+            // ── Modo Carteira: dados completos da carteira do vendedor ──────
+            $cliente = $db->query("
+                SELECT c.*,
+                       emp.capital_social,
+                       cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
+                       loc.latitude AS loc_lat, loc.longitude AS loc_lng,
+                       e.tipo_logradouro, e.logradouro, e.numero, e.complemento, e.bairro, e.cep, e.uf,
+                       m.descricao AS municipio_nome,
+                       e.ddd_1, e.telefone_1, e.ddd_2, e.telefone_2,
+                       e.email, e.cnae_fiscal_principal AS cnae
+                FROM carteira_raw c
+                LEFT JOIN receita.empresas emp ON emp.cnpj_basico = SUBSTRING(c.cnpj,1,8)
+                LEFT JOIN client_wallets cw ON cw.cnpj = c.cnpj
+                LEFT JOIN client_locations loc ON loc.cnpj = c.cnpj
+                LEFT JOIN receita.estabelecimentos e ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = c.cnpj
+                LEFT JOIN receita.municipios m ON e.municipio = m.codigo
+                WHERE c.cnpj = ? AND c.matricula_mcmcu = ?
+                LIMIT 1
+            ", [$cnpj, $vendorUser['matricula']])->getRowArray();
+
+            if (!$cliente) {
+                return redirect()->to('/vendedor')->with('error', 'Cliente não encontrado.');
+            }
+        }
 
         $noteModel = new VendorNoteModel();
         $notas = $noteModel->getByClientAndVendor($cnpj, $vendorUser['matricula']);
