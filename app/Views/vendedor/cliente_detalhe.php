@@ -338,6 +338,9 @@
                     <i class="bi bi-search"></i> Buscar Redes
                 </button>
             </h6>
+
+            <!-- Alertas e Erros de Busca de Redes -->
+            <div id="socialErrorAlert" style="display: none; font-size: 11px; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border: 1px solid #fee2e2; background-color: #fee2e2; color: #991b1b;" class="d-flex align-items-center gap-1"></div>
             
             <div id="socialNetworksList" class="mt-2">
                 <?php if (empty($redesSociais)): ?>
@@ -725,11 +728,16 @@
     // OSINT Buscar Redes Sociais
     const btnBuscarRedes = document.getElementById('btnBuscarRedes');
     const socialList = document.getElementById('socialNetworksList');
+    const socialError = document.getElementById('socialErrorAlert');
 
     if (btnBuscarRedes && socialList) {
         btnBuscarRedes.addEventListener('click', async () => {
             btnBuscarRedes.disabled = true;
             btnBuscarRedes.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:10px;height:10px;display:inline-block;border:.1em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite;"></span>...';
+            if (socialError) {
+                socialError.style.display = 'none';
+                socialError.innerHTML = '';
+            }
 
             try {
                 const res = await fetch('<?= site_url('vendedor/cnpj/redes-sociais/buscar/') ?>' + CNPJ, { credentials: 'same-origin' });
@@ -738,11 +746,38 @@
                 if (data.success) {
                     showToast('🔍 ' + (data.message || 'Busca concluída!'));
                     renderSocialNetworks(data.redes);
+                    
+                    if (data.warning && socialError) {
+                        socialError.className = 'd-flex align-items-center gap-1';
+                        socialError.style.border = '1px solid #fef3c7';
+                        socialError.style.backgroundColor = '#fef3c7';
+                        socialError.style.color = '#92400e';
+                        socialError.innerHTML = '⚠️ ' + data.warning;
+                        socialError.style.display = 'flex';
+                    }
                 } else {
-                    showToast('❌ ' + (data.error || 'Erro ao buscar.'));
+                    if (socialError) {
+                        socialError.className = 'd-flex align-items-center gap-1';
+                        socialError.style.border = '1px solid #fee2e2';
+                        socialError.style.backgroundColor = '#fee2e2';
+                        socialError.style.color = '#991b1b';
+                        socialError.innerHTML = '❌ ' + (data.error || 'Erro ao buscar.');
+                        socialError.style.display = 'flex';
+                    } else {
+                        showToast('❌ ' + (data.error || 'Erro ao buscar.'));
+                    }
                 }
             } catch (e) {
-                showToast('❌ Erro na requisição.');
+                if (socialError) {
+                    socialError.className = 'd-flex align-items-center gap-1';
+                    socialError.style.border = '1px solid #fee2e2';
+                    socialError.style.backgroundColor = '#fee2e2';
+                    socialError.style.color = '#991b1b';
+                    socialError.innerHTML = '❌ Erro de rede: ' + e.message;
+                    socialError.style.display = 'flex';
+                } else {
+                    showToast('❌ Erro na requisição.');
+                }
             } finally {
                 btnBuscarRedes.disabled = false;
                 btnBuscarRedes.innerHTML = '<i class="bi bi-search"></i> Buscar Redes';
