@@ -843,9 +843,9 @@ class VendedorController extends BaseController
 
         $db = db_connect();
 
-        // Carrega razão social e cidade do cliente para busca direcionada
+        // Carrega razão social, e-mail e cidade do cliente para busca direcionada
         $cliente = $db->query("
-            SELECT c.razao_social, e.nome_fantasia, m.descricao AS municipio_nome
+            SELECT c.razao_social, e.nome_fantasia, e.email, m.descricao AS municipio_nome
             FROM carteira_raw c
             LEFT JOIN receita.estabelecimentos e ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = c.cnpj
             LEFT JOIN receita.municipios m ON e.municipio = m.codigo
@@ -879,6 +879,31 @@ class VendedorController extends BaseController
         $sugestoes = [];
         $errorMsg = null;
         $isError = false;
+
+        // ── Extração inteligente de website a partir do E-mail Corporativo da Receita ──
+        if (!empty($cliente['email']) && filter_var($cliente['email'], FILTER_VALIDATE_EMAIL)) {
+            $parts = explode('@', $cliente['email']);
+            $domain = strtolower(trim($parts[1] ?? ''));
+            
+            // Provedores públicos a ignorar
+            $provedoresPublicos = [
+                'gmail.com', 'hotmail.com', 'yahoo.com', 'outlook.com', 'live.com', 'icloud.com',
+                'uol.com.br', 'bol.com.br', 'terra.com.br', 'ig.com.br', 'globomail.com', 'oi.com.br',
+                'pop.com.br', 'r7.com', 'zipmail.com.br', 'protonmail.com', 'zoho.com', 'aol.com',
+                'adv.oab.org.br', 'yandex.com', 'mail.com', 'msn.com', 'gmx.com'
+            ];
+            
+            if (!empty($domain) && !in_array($domain, $provedoresPublicos)) {
+                $sugestoes[] = [
+                    'cnpj'       => $cleanCnpj,
+                    'network'    => 'website',
+                    'url'        => 'https://www.' . $domain,
+                    'status'     => 'sugestao',
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ];
+            }
+        }
 
         // Tenta obter a API key
         $apiKey = env('serper.apiKey') ?: env('SERPER_API_KEY') ?: getenv('serper.apiKey') ?: getenv('SERPER_API_KEY');
