@@ -452,8 +452,10 @@ class VendedorController extends BaseController
             $captacaoId = $existente->id;
         } else {
             $data['created_at'] = date('Y-m-d H:i:s');
+            // insertID() não funciona com PostgreSQL 12+ (pg_last_oid foi removido).
+            // Usamos SELECT lastval() logo após o insert para pegar o ID correto.
             $db->table('captacao_requests')->insert($data);
-            $captacaoId = $db->insertID();
+            $captacaoId = (int) $db->query('SELECT lastval() AS id')->getRowArray()['id'];
         }
 
         // ── Upload de Anexos ────────────────────────────────────────────
