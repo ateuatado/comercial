@@ -854,14 +854,26 @@
             'instagram': 'bi-instagram text-danger',
             'linkedin': 'bi-linkedin text-primary',
             'facebook': 'bi-facebook text-primary',
-            'website': 'bi-globe text-secondary'
+            'website': 'bi-globe text-secondary',
+            'phone': 'bi-telephone text-success'
         };
 
         let html = '';
         redes.forEach(rede => {
             const iconClass = icons[rede.network] || 'bi-globe';
-            const displayUrl = rede.url.replace(/https?:\/\/(www\.)?/, '');
+            let displayUrl = rede.url.replace(/https?:\/\/(www\.)?/, '');
             
+            if (rede.network === 'phone') {
+                const rawNum = rede.url.replace('tel:', '');
+                if (rawNum.length === 10) {
+                    displayUrl = `(${rawNum.substring(0,2)}) ${rawNum.substring(2,6)}-${rawNum.substring(6)}`;
+                } else if (rawNum.length === 11) {
+                    displayUrl = `(${rawNum.substring(0,2)}) ${rawNum.substring(2,7)}-${rawNum.substring(7)}`;
+                } else {
+                    displayUrl = rawNum;
+                }
+            }
+
             html += `
                 <div class="d-flex align-items-center justify-content-between py-2 border-bottom social-row" data-id="${rede.id}">
                     <div class="d-flex align-items-center gap-2 overflow-hidden me-2">

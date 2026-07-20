@@ -884,9 +884,21 @@ class VendedorController extends BaseController
         $apiKey = env('serper.apiKey') ?: env('SERPER_API_KEY') ?: getenv('serper.apiKey') ?: getenv('SERPER_API_KEY');
 
         if (!empty($apiKey)) {
+            // 1. Tenta obter dados do estabelecimento via Google Local / Places (Maps)
+            $searchQueryPlaces = trim("{$nomeLimpo} {$cidade}");
+            $placesSugestoes = $this->querySerperPlaces($searchQueryPlaces, $cleanCnpj, $apiKey);
+            if (!empty($placesSugestoes)) {
+                $sugestoes = array_merge($sugestoes, $placesSugestoes);
+            }
+
+            // 2. Tenta obter os resultados orgânicos gerais
             $apiResult = $this->querySerperApi($searchQuery, $cleanCnpj, $apiKey, $nomeLimpo);
             if ($apiResult['success']) {
-                $sugestoes = $apiResult['results'];
+                $searchSugestoes = $apiResult['results'];
+                if (!empty($searchSugestoes)) {
+                    $sugestoes = array_merge($sugestoes, $searchSugestoes);
+                }
+                
                 if (empty($sugestoes)) {
                     // Se a API funcionou mas não achou nada, tenta o scraping como último fallback
                     $sugestoes = $this->scrapeBing($searchQuery, $cleanCnpj);
@@ -896,7 +908,10 @@ class VendedorController extends BaseController
                 }
             } else {
                 $errorMsg = $apiResult['error'];
-                $isError = true;
+                // Se a API orgânica falhou mas temos dados do Places, não consideramos erro crítico para a UI
+                if (empty($sugestoes)) {
+                    $isError = true;
+                }
             }
         } else {
             // Se não houver chave API cadastrada, tenta os scrapers legados diretamente
@@ -942,12 +957,83 @@ class VendedorController extends BaseController
         if ($novasSugestoes > 0) {
             $response['message'] = "{$novasSugestoes} nova(s) sugestão(ões) encontrada(s)!";
         } elseif (!empty($redes)) {
-            $response['message'] = count($redes) . ' rede(s) social(is) já cadastrada(s).';
+            $response['message'] = count($redes) . ' rede(s) social(is) já cadastrada(s)/site(s) encontrado(s).';
         } else {
-            $response['message'] = 'Nenhuma rede social encontrada para esta empresa.';
+            $response['message'] = 'Nenhuma rede social ou site encontrado para esta empresa.';
         }
 
         return $this->response->setJSON($response);
+    }
+
+    /**
+     * Consulta a API do Serper.dev Places (Google Maps) para obter dados oficiais do estabelecimento.
+     */
+    private function querySerperPlaces(string $query, string $cnpj, string $apiKey): array
+    {
+        $client = \Config\Services::curlrequest();
+        $sugestoes = [];
+        $now = date('Y-m-d H:i:s');
+
+        try {
+            $response = $client->post('https://google.serper.dev/places', [
+                'headers' => [
+                    'X-API-KEY'    => $apiKey,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'q'  => $query,
+                    'gl' => 'br',
+                    'hl' => 'pt-br'
+                ],
+                'timeout' => 5, // Timeout curto
+                'http_errors' => false
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode === 200) {
+                $data = json_decode($response->getBody(), true);
+                if (!empty($data['places'])) {
+                    $place = $data['places'][0]; // Ficha mais relevante
+                    
+                    // 1. Website cadastrado na ficha do Maps
+                    if (!empty($place['website'])) {
+                        $webUrl = filter_var($place['website'], FILTER_VALIDATE_URL);
+                        if ($webUrl) {
+                            $sugestoes[] = [
+                                'cnpj'       => $cnpj,
+                                'network'    => 'website',
+                                'url'        => rtrim($webUrl, '/'),
+                                'status'     => 'sugestao',
+                                'created_at' => $now,
+                                'updated_at' => $now,
+                            ];
+                        }
+                    }
+
+                    // 2. Telefone cadastrado na ficha do Maps
+                    if (!empty($place['phoneNumber'])) {
+                        $rawPhone = preg_replace('/\D/', '', $place['phoneNumber']);
+                        if (!empty($rawPhone)) {
+                            // Salva a sugestão de telefone
+                            $sugestoes[] = [
+                                'cnpj'       => $cnpj,
+                                'network'    => 'phone',
+                                'url'        => 'tel:' . $rawPhone,
+                                'status'     => 'sugestao',
+                                'created_at' => $now,
+                                'updated_at' => $now,
+                            ];
+                        }
+                    }
+                }
+            } else {
+                log_message('error', "[OSINT-Places] Erro HTTP " . $statusCode);
+            }
+        } catch (\Exception $e) {
+            log_message('error', "[OSINT-Places] Erro de rede: " . $e->getMessage());
+        }
+
+        return $sugestoes;
     }
 
     /**
@@ -990,16 +1076,49 @@ class VendedorController extends BaseController
                         }
                     }
 
+                    // Lista de sites agregadores a descartar na detecção de website
+                    $agregadores = [
+                        'instagram.com', 'facebook.com', 'linkedin.com', 'twitter.com', 'youtube.com', 'pinterest.com',
+                        'cnpj.biz', 'consultasocio.com', 'serasaexperian.com.br', 'jusbrasil.com.br',
+                        'econodata.com.br', 'casadosdados.com.br', 'cnpj.info', 'transparencia.cc',
+                        'solutudo.com.br', 'apontador.com.br', 'guiamais.com.br', 'cadastrocnpj.com.br',
+                        'qualocnpj.com', 'neoway.com.br', 'ccfacil.com.br', 'empresascnpj.com', 'infocnpj.com',
+                        'informecadastral.com.br', 'cnpj.rocks', 'consultas.plus', 'registro.br'
+                    ];
+
                     $uniqueUrls = [];
+                    $websiteCount = 0;
+
                     foreach ($data['organic'] as $item) {
                         $url = $item['link'] ?? '';
                         if (empty($url)) {
                             continue;
                         }
 
-                        // Só nos interessam URLs absolutas de redes sociais
-                        if (!preg_match('#^https?://(www\.)?(instagram\.com|linkedin\.com|facebook\.com)#i', $url)) {
-                            continue;
+                        // Identifica se é rede social clássica
+                        $isSocial = preg_match('#^https?://(www\.)?(instagram\.com|linkedin\.com|facebook\.com)#i', $url);
+                        
+                        $network = 'website';
+                        if ($isSocial) {
+                            if (stripos($url, 'instagram.com') !== false) {
+                                $network = 'instagram';
+                            } elseif (stripos($url, 'linkedin.com') !== false) {
+                                $network = 'linkedin';
+                            } elseif (stripos($url, 'facebook.com') !== false) {
+                                $network = 'facebook';
+                            }
+                        } else {
+                            // Se não for rede social, avaliamos se é um website corporativo legítimo
+                            $isAgregador = false;
+                            foreach ($agregadores as $agregador) {
+                                if (stripos($url, $agregador) !== false) {
+                                    $isAgregador = true;
+                                    break;
+                                }
+                            }
+                            if ($isAgregador) {
+                                continue;
+                            }
                         }
 
                         // Validar URL
@@ -1013,7 +1132,7 @@ class VendedorController extends BaseController
                             continue;
                         }
 
-                        // Normalizar: remover query strings irrelevantes (utm_, fbclid, etc.)
+                        // Normalizar: remover query strings
                         $cleanUrl = preg_replace('/\?(utm_|fbclid|ref|hl|locale|_rdr).*$/', '', $url);
                         $cleanUrl = rtrim($cleanUrl, '/');
 
@@ -1030,26 +1149,23 @@ class VendedorController extends BaseController
                                 }
                             }
                             
-                            // Se nenhuma das palavras-chave do nome da empresa bater com o link/título, descarta
+                            // Se nenhuma das palavras-chave bater com o link/título, descarta
                             if (!$matched) {
                                 continue;
                             }
+                        }
+
+                        if ($network === 'website') {
+                            if ($websiteCount >= 1) {
+                                continue;
+                            }
+                            $websiteCount++;
                         }
 
                         if (isset($uniqueUrls[$cleanUrl])) {
                             continue;
                         }
                         $uniqueUrls[$cleanUrl] = true;
-
-                        // Identificar rede social
-                        $network = 'website';
-                        if (stripos($cleanUrl, 'instagram.com') !== false) {
-                            $network = 'instagram';
-                        } elseif (stripos($cleanUrl, 'linkedin.com') !== false) {
-                            $network = 'linkedin';
-                        } elseif (stripos($cleanUrl, 'facebook.com') !== false) {
-                            $network = 'facebook';
-                        }
 
                         $sugestoes[] = [
                             'cnpj'       => $cnpj,
