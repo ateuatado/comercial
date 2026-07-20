@@ -1,43 +1,75 @@
 # Tasks 002 - Checklist de Implementação de Inteligência Comercial (Fase 3)
 
-Esta checklist organiza granularmente o desenvolvimento do módulo de **Scoring Preditivo e Inteligência** da Fase 3 do SPIV. As tarefas estão ordenadas de forma lógica e devem ser marcadas e seguidas rigorosamente.
+Esta checklist organiza granularmente o desenvolvimento do módulo de **Scoring Preditivo e Inteligência** da Fase 3 do SPIV.
+
+---
 
 ## 1. Estrutura do Banco de Dados e Migrations
 
-- [ ] Criar migration para a tabela `scoring_config` para gerenciar chaves-valores globais de peso.
-- [ ] Criar migration para a tabela `cnae_scoring_rules` para mapear o peso de cada código de CNAE (chave primária de 7 dígitos).
-- [ ] Criar migration para a tabela `client_enrichment` com chaves estrangeiras, índices de busca rápida baseados em score e campos JSONB.
-- [ ] Criar Seeder inicial (`CnaeRulesSeeder`) populando regras padrão para pelo menos 50 CNAEs de comércio varejista (PAC/SEDEX preferencial) com pesos elevados (ex: 40 pontos).
-- [ ] Criar Seeder inicial (`ScoringConfigSeeder`) para gravar os pesos iniciais das categorias:
-  - `weight_cnae` = 40
-  - `weight_capital` = 20
-  - `weight_email` = 15
-  - `weight_nome_fantasia` = 10
-  - `weight_localizacao` = 15
-  - `amortization_factor` = 70 (Fator de Amortização dos CNAEs secundários)
+- [x] Criar migration para a tabela `scoring_config`. — Migration `2026-07-19-000001_CreateScoringConfigTable` criada.
+- [x] Criar migration para a tabela `cnae_scoring_rules`. — Migration `2026-07-19-000002_CreateCnaeScoringRulesTable` criada.
+- [x] Criar migration para a tabela `client_enrichment`. — Migration `2026-07-19-000003_CreateClientEnrichmentTable` criada.
+- [x] Criar Seeder `CnaeRulesSeeder` com regras para CNAEs de e-commerce/varejo. — 50+ CNAEs com pesos elevados.
+- [x] Criar Seeder `ScoringConfigSeeder` com pesos iniciais. — weight_cnae=40, weight_capital=20, weight_email=15, weight_nome_fantasia=10, weight_localizacao=15, amortization=70.
 
-## 2. Interface Administrativa de Parametrizador de Scores (Frontend)
+## 2. Interface Administrativa de Parametrizador de Scores
 
-- [ ] Desenvolver a rota `/admin/scoring` associada ao controlador de gerenciamento do admin.
-- [ ] Criar a view `app/Views/admin/scoring_config.php` contendo:
-  - Formulário com sliders ou campos de número para os 5 blocos do algoritmo.
-  - Script JS de validação em tempo real que garante que a soma das 5 categorias resulte obrigatoriamente em **100** antes de habilitar o botão de envio.
-  - Controle deslizante (slider) ou input numérico de **Fator de Amortização de CNAEs Secundários** (0% a 100%).
-  - Tabela CRUD responsiva conectada à API local para gerenciar a lista de CNAEs específicos mapeados com seus respectivos pesos individuais.
-  - Seção de gatilho contendo o botão "Salvar e Recalcular Score da Base".
-  - Componente de Barra de Progresso do Bootstrap (invisível por padrão) que aparece e atualiza com animação de preenchimento quando o recalque é disparado.
+- [x] Rota `/admin/scoring` implementada. — AdminController::scoringConfig().
+- [x] View `scoring_config.php` com sliders, validação 100%, tabela CRUD de CNAEs e barra de progresso. — Implementada com JS em tempo real.
+- [x] Painel Preditivo acessível via engrenagem no admin dashboard. — Link no gear dropdown.
 
-## 3. Backend e Lógicas de API AJAX (Controllers & CLI Jobs)
+## 3. Backend e Lógicas de API AJAX
 
-- [ ] Desenvolver a rota POST `/admin/scoring/salvar` para persistir as alterações de peso na tabela `scoring_config`.
-- [ ] Criar o comando CLI Spark em PHP (`app/Commands/RecalculateScores.php`) que execute a query PostgreSQL CTE com a lógica `unnest()` e `string_to_array()` para processar com performance de alto nível as regras de CNAEs principal e secundário amortizado.
-- [ ] O comando Spark deve escrever a porcentagem de conclusão a cada chunk de 5.000 registros no cache de dados da aplicação (`Cache::save('scoring_recalculation_progress', $percent)`).
-- [ ] Criar a rota POST `/admin/scoring/recalcular` que aciona de forma segura o comando CLI Spark em background (execução em background que não trava o Apache/Nginx).
-- [ ] Criar a rota GET `/admin/scoring/progresso` que lê o percentual salvo em cache e o retorna no formato JSON (`{ "progresso": 72 }`).
-- [ ] Implementar a função JavaScript de Polling AJAX na view que faz GETs na rota `/admin/scoring/progresso` a cada 2 segundos até atingir 100%, ocultando a barra e recarregando a página com o aviso de sucesso.
+- [x] Rota POST `/admin/scoring/salvar`. — AdminController::scoringSalvar().
+- [x] Comando CLI `RecalculateScores.php` com query PostgreSQL CTE + unnest() + amortização. — App\Commands\RecalculateScores.
+- [x] Escrita de progresso em cache a cada chunk de 5.000 registros. — Cache::save('scoring_recalculation_progress').
+- [x] Rota POST `/admin/scoring/recalcular` dispara CLI em background. — proc_open() no AdminController.
+- [x] Rota GET `/admin/scoring/progresso` retorna JSON com percentual. — AdminController::scoringProgresso().
+- [x] Polling AJAX na view até 100%, oculta barra e recarrega. — JavaScript implementado em scoring_config.php.
+- [x] CRUD de CNAEs via API: adicionar/remover regras individuais. — AdminController::cnaeAdicionar() e ::cnaeRemover().
 
 ## 4. Testes e Validação de Dados
 
-- [ ] Criar testes unitários simulando CNPJ com CNAE varejista como principal (deve ganhar peso máximo de CNAE).
-- [ ] Criar testes unitários simulando CNPJ com CNAE varejista como secundário (deve ganhar peso amortizado, ex: `40 * 0.70 = 28` no bloco).
-- [ ] Validar a query PostgreSQL contra cenários em que o campo de e-mail de `receita.estabelecimentos` possui e-mail institucional e público, certificando que o score e a extração funcionem conforme planejado.
+- [ ] Criar testes unitários para CNAE varejista como principal.
+- [ ] Criar testes unitários para CNAE varejista como secundário (amortizado).
+- [ ] Validar e-mail institucional no score.
+
+---
+
+## 3.2 — Ranking Preditivo na Prospecção (Fase 3.2)
+
+- [x] Aba "Ranking de Potencial" na tela de prospecção/pesquisa. — Tab em prospeccao_pesquisa.php.
+- [x] Endpoint GET `/vendedor/prospectar/pesquisa/ranking` retorna leads ordenados por score DESC. — rankingApi() no VendedorController.
+- [x] Cards de ranking com barra visual de score, CNAE, badge colorido. — Implementado com buildScoreTooltipHtml().
+- [x] Tooltip com breakdown por fator (pts por CNAE, capital, email, etc.). — Tooltip expandível com mini-barras por fator.
+- [x] Load more paginado (offset/limit). — Implementado com botão "Carregar mais".
+- [x] Score badge nos cards da busca geral também. — Badge com score + classe de cor.
+
+---
+
+## 3.3 — Mapa da Carteira (Fase 3.3)
+
+- [x] Tela `/vendedor/clientes/ver-mapa` com mapa Leaflet/OSM. — View `clientes_mapa.php`.
+- [x] Camada azul: meus clientes (coloridos por score). — `clientesMapaApi()`.
+- [x] Camada vermelha: CNPJs livres (sem carteira) com lat/lng. — Corrigido para: livres = sem carteira do próprio vendedor.
+- [x] Camada laranja: CNPJs em carteira de outro vendedor mas já geocodificados. — Flag `ocupado` no `livresMapaApi()`.
+- [x] Toggle independente por camada com contador. — 3 botões com layerState.
+- [x] Bottom sheet ao clicar: nome, CNPJ, score, botão de ação contextual. — Sheet com pill colorido por tipo.
+- [x] Botão "Mapa da Carteira" no dashboard do vendedor. — Adicionado na seção de ações rápidas.
+
+---
+
+## 3.4 — PR-CAP: Pedido de Captação de Clientes (Fase 3.4)
+
+- [x] Remover auto-add de `clienteDetalhe()`. — Bloco de insert automático removido.
+- [x] Criar migration `captacao_requests` com campos de declaração e fluxo administrativo. — 2026-07-20-200001.
+- [x] Banner "Este cliente não está na sua carteira" + botão "Solicitar Adição" no detalhe. — Modo prospecto no cliente_detalhe.php.
+- [x] View `captacao_form.php` com evidências do sistema pré-carregadas (geocod, RFB, redes, notas). — Formulário mobile-first.
+- [x] Endpoint `captacaoSolicitar($cnpj)` e `captacaoSalvar()` no VendedorController. — POST gravado em captacao_requests.
+- [x] View `minhas_captacoes.php` com lista de PR-CAPs e status colorido. — Badge por status + ações contextuais.
+- [x] Botão "Minhas Solicitações de Captação" no dashboard do vendedor. — Adicionado.
+- [x] Painel admin `/admin/captacoes` com abas por status e indicador de disputa. — AdminController::captacoesIndex().
+- [x] Tela de decisão `/admin/captacoes/{id}` com evidências do sistema, score e 3 botões. — captacao_detalhe.php.
+- [x] POST `/admin/captacoes/decisao`: aprovação insere/transfere em carteira_raw; rejeição e mais_info notificam vendedor. — captacaoDecisao().
+- [x] Coordenador também acessa `/coordenador/captacoes`. — Rotas mapeadas + botão na tela do coordenador.
+- [x] Link "Pedidos de Captação" no gear menu e Ações Rápidas do admin dashboard. — Adicionado.

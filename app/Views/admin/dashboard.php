@@ -62,6 +62,17 @@
                         </div>
                     </a>
                 </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header text-uppercase" style="font-size:10px;">Operações</h6></li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="<?= site_url('admin/captacoes') ?>">
+                        <i class="bi bi-inbox-fill text-warning"></i>
+                        <div>
+                            <div class="fw-semibold" style="font-size:13px;">Pedidos de Captação</div>
+                            <small class="text-muted">Solicitações de vendedores</small>
+                        </div>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
@@ -179,6 +190,13 @@
                             <div class="text-start">
                                 <div class="fw-bold">Consulta RFB</div>
                                 <small class="text-muted">Buscar empresas na Receita Federal</small>
+                            </div>
+                        </a>
+                        <a href="<?= site_url('admin/captacoes') ?>" class="btn btn-outline-warning d-flex align-items-center gap-2">
+                            <i class="bi bi-inbox-fill fs-5"></i>
+                            <div class="text-start">
+                                <div class="fw-bold">Pedidos de Captação</div>
+                                <small class="text-muted">Solicitações de adição à carteira</small>
                             </div>
                         </a>
                     </div>

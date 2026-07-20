@@ -41,6 +41,17 @@
     </div>
 
     <div class="vendor-list">
+        <!-- Ações rápidas do coordenador -->
+        <a href="<?= site_url('coordenador/captacoes') ?>"
+           style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.04);text-decoration:none;color:inherit;border-left:4px solid #f59e0b;">
+            <i class="bi bi-inbox-fill" style="font-size:24px;color:#f59e0b;"></i>
+            <div>
+                <div style="font-weight:700;font-size:14px;color:#1e293b;">Pedidos de Captação</div>
+                <div style="font-size:11px;color:#94a3b8;">Analisar e decidir sobre solicitações do time</div>
+            </div>
+            <i class="bi bi-chevron-right" style="margin-left:auto;color:#94a3b8;"></i>
+        </a>
+
         <h6 style="font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding:0 4px;">
             <i class="bi bi-people"></i> Seus Vendedores
         </h6>
