@@ -324,6 +324,13 @@ class VendedorController extends BaseController
             return $this->response->setJSON(['success' => true, 'resultados' => []]);
         }
 
+        $onlyCorpEmail = $this->request->getGet('only_corp_email') === '1';
+        $emailFilterSql = "";
+        if ($onlyCorpEmail) {
+            // Rejeita emails nulos, vazios ou de provedores públicos/genéricos do Brasil e internacionais
+            $emailFilterSql = " AND e.email IS NOT NULL AND e.email != '' AND e.email !~* '@(gmail\\.com|hotmail\\.com|yahoo\\.com|outlook\\.com|live\\.com|icloud\\.com|uol\\.com\\.br|bol\\.com\\.br|terra\\.com\\.br|ig\\.com\\.br|globomail\\.com|oi\\.com\\.br|pop\\.com\\.br|r7\\.com|zipmail\\.com\\.br|protonmail\\.com|zoho\\.com|aol\\.com|yandex\\.com|mail\\.com|msn\\.com|gmx\\.com)$' ";
+        }
+
         $db = db_connect();
 
         $cleanCnpj = preg_replace('/[^0-9]/', '', $searchTerm);
@@ -341,6 +348,7 @@ class VendedorController extends BaseController
                 LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) LIKE ?
+                {$emailFilterSql}
                 LIMIT 30
             ";
             $resultados = $db->query($query, ['%' . $cleanCnpj . '%'])->getResultArray();
@@ -357,10 +365,11 @@ class VendedorController extends BaseController
                 LEFT JOIN receita.municipios m ON e.municipio = m.codigo
                 LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
-                WHERE LOWER(emp.razao_social) LIKE ?
+                WHERE (LOWER(emp.razao_social) LIKE ?
                    OR LOWER(e.nome_fantasia) LIKE ?
                    OR LOWER(e.logradouro) LIKE ?
-                   OR LOWER(e.bairro) LIKE ?
+                   OR LOWER(e.bairro) LIKE ?)
+                   {$emailFilterSql}
                 LIMIT 30
             ";
             $param = '%' . $searchTerm . '%';

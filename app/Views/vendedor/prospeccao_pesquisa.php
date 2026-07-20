@@ -189,8 +189,14 @@
             <input type="text" id="searchInput" placeholder="Pesquise por CNPJ, Nome ou Endereço..." autocomplete="off">
             <button class="btn-search-go" id="btnSearchGo">Pesquisar</button>
         </div>
-        <div class="text-muted small mt-2" style="font-size: 10px;">
-            Digite no mínimo 3 caracteres. Busca na base de São Paulo/RFB.
+        <div class="mt-2 d-flex align-items-center justify-content-between">
+            <div class="text-muted small" style="font-size: 10px;">
+                Digite no mínimo 3 caracteres. Busca na base de São Paulo/RFB.
+            </div>
+            <div class="form-check form-switch small">
+                <input class="form-check-input" type="checkbox" role="switch" id="chkOnlyCorpEmail" style="cursor: pointer;">
+                <label class="form-check-label text-muted" for="chkOnlyCorpEmail" style="font-size: 10px; cursor: pointer; user-select: none;">Apenas e-mail corporativo</label>
+            </div>
         </div>
     </div>
 
@@ -209,6 +215,7 @@
 const searchInput = document.getElementById('searchInput');
 const btnSearchGo = document.getElementById('btnSearchGo');
 const resultsSection = document.getElementById('resultsSection');
+const chkOnlyCorpEmail = document.getElementById('chkOnlyCorpEmail');
 
 btnSearchGo.addEventListener('click', performSearch);
 searchInput.addEventListener('keypress', (e) => {
@@ -219,8 +226,12 @@ searchInput.addEventListener('keypress', (e) => {
 document.addEventListener("DOMContentLoaded", () => {
     const savedQuery = sessionStorage.getItem('last_prospect_query');
     const savedResults = sessionStorage.getItem('last_prospect_results');
+    const savedOnlyCorp = sessionStorage.getItem('last_prospect_only_corp');
     if (savedQuery) {
         searchInput.value = savedQuery;
+    }
+    if (savedOnlyCorp === '1' && chkOnlyCorpEmail) {
+        chkOnlyCorpEmail.checked = true;
     }
     if (savedResults) {
         renderResults(JSON.parse(savedResults));
@@ -238,13 +249,16 @@ async function performSearch() {
     btnSearchGo.textContent = 'Buscando...';
     resultsSection.innerHTML = '<div class="text-center py-5 text-muted">Buscando na base de dados...</div>';
 
+    const onlyCorp = chkOnlyCorpEmail && chkOnlyCorpEmail.checked ? '1' : '0';
+
     try {
-        const res = await fetch('<?= site_url('vendedor/prospectar/pesquisa/buscar') ?>?q=' + encodeURIComponent(q));
+        const res = await fetch('<?= site_url('vendedor/prospectar/pesquisa/buscar') ?>?q=' + encodeURIComponent(q) + '&only_corp_email=' + onlyCorp);
         const data = await res.json();
 
         if (data.success) {
             // Salvar no cache de sessão para quando o usuário voltar
             sessionStorage.setItem('last_prospect_query', q);
+            sessionStorage.setItem('last_prospect_only_corp', onlyCorp);
             sessionStorage.setItem('last_prospect_results', JSON.stringify(data.resultados));
             renderResults(data.resultados);
         } else {
