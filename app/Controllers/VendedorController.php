@@ -864,13 +864,27 @@ class VendedorController extends BaseController
         $searchQuery = trim("\"{$nomeBusca}\" {$cidade} (instagram OR linkedin OR facebook)");
 
         $sugestoes = [];
+        $errorMsg = null;
 
-        // ── Tenta Bing primeiro (mais permissivo com scraping simples) ──
-        $sugestoes = $this->scrapeBing($searchQuery, $cleanCnpj);
+        // Tenta obter a API key
+        $apiKey = env('serper.apiKey') ?: env('SERPER_API_KEY') ?: getenv('serper.apiKey') ?: getenv('SERPER_API_KEY');
 
-        // ── Fallback: DuckDuckGo ──
-        if (empty($sugestoes)) {
-            $sugestoes = $this->scrapeDuckDuckGo($searchQuery, $cleanCnpj);
+        if (!empty($apiKey)) {
+            $sugestoes = $this->querySerperApi($searchQuery, $cleanCnpj, $apiKey);
+            if (empty($sugestoes)) {
+                // Caso a API da Serper falhe ou não ache nada, tenta o scraping como último fallback
+                $sugestoes = $this->scrapeBing($searchQuery, $cleanCnpj);
+                if (empty($sugestoes)) {
+                    $sugestoes = $this->scrapeDuckDuckGo($searchQuery, $cleanCnpj);
+                }
+            }
+        } else {
+            // Se não houver chave API cadastrada, tenta os scrapers legados diretamente
+            $sugestoes = $this->scrapeBing($searchQuery, $cleanCnpj);
+            if (empty($sugestoes)) {
+                $sugestoes = $this->scrapeDuckDuckGo($searchQuery, $cleanCnpj);
+            }
+            $errorMsg = 'Para resultados automatizados mais robustos e sem captcha, configure serper.apiKey no arquivo .env.';
         }
 
         // ── Persiste sugestões no banco ──
@@ -896,6 +910,10 @@ class VendedorController extends BaseController
             'success' => true,
             'redes'   => $redes,
         ];
+
+        if ($errorMsg) {
+            $response['warning'] = $errorMsg;
+        }
 
         if ($novasSugestoes > 0) {
             $response['message'] = "{$novasSugestoes} nova(s) sugestão(ões) encontrada(s)!";
