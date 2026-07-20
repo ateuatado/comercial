@@ -855,7 +855,12 @@
             'linkedin': 'bi-linkedin text-primary',
             'facebook': 'bi-facebook text-primary',
             'website': 'bi-globe text-secondary',
-            'phone': 'bi-telephone text-success'
+            'phone': 'bi-telephone text-success',
+            'shopify': 'bi-bag-check-fill text-success',
+            'woocommerce': 'bi-bag-check-fill text-primary',
+            'nuvemshop': 'bi-bag-check-fill text-info',
+            'tray': 'bi-bag-check-fill text-warning',
+            'vtex': 'bi-bag-check-fill text-danger'
         };
 
         let html = '';
@@ -872,6 +877,15 @@
                 } else {
                     displayUrl = rawNum;
                 }
+            } else if (['shopify', 'woocommerce', 'nuvemshop', 'tray', 'vtex'].includes(rede.network)) {
+                const names = {
+                    'shopify': 'Shopify',
+                    'woocommerce': 'WooCommerce',
+                    'nuvemshop': 'Nuvemshop',
+                    'tray': 'Tray',
+                    'vtex': 'VTEX'
+                };
+                displayUrl = names[rede.network] || rede.network;
             }
 
             html += `

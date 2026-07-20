@@ -922,6 +922,28 @@ class VendedorController extends BaseController
             $errorMsg = 'Para resultados automatizados mais robustos e sem captcha, configure serper.apiKey no arquivo .env.';
         }
 
+        // ── Detecta E-commerce se tivermos um website sugerido ──
+        $techSugestoes = [];
+        $now = date('Y-m-d H:i:s');
+        foreach ($sugestoes as $sug) {
+            if ($sug['network'] === 'website') {
+                $detected = $this->detectECommerce($sug['url']);
+                foreach ($detected as $platform) {
+                    $techSugestoes[] = [
+                        'cnpj'       => $cleanCnpj,
+                        'network'    => $platform,
+                        'url'        => $sug['url'],
+                        'status'     => 'sugestao',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+            }
+        }
+        if (!empty($techSugestoes)) {
+            $sugestoes = array_merge($sugestoes, $techSugestoes);
+        }
+
         // ── Persiste sugestões no banco ──
         $novasSugestoes = 0;
         foreach ($sugestoes as $sug) {
@@ -963,6 +985,54 @@ class VendedorController extends BaseController
         }
 
         return $this->response->setJSON($response);
+    }
+
+    /**
+     * Tenta identificar se o website é um e-commerce e qual plataforma utiliza.
+     */
+    private function detectECommerce(string $url): array
+    {
+        $client = \Config\Services::curlrequest();
+        $platforms = [];
+
+        try {
+            $response = $client->get($url, [
+                'headers' => [
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                ],
+                'timeout' => 4, // timeout curto para não travar a requisição AJAX
+                'http_errors' => false
+            ]);
+
+            if ($response->getStatusCode() === 200) {
+                $html = $response->getBody();
+
+                // 1. Shopify
+                if (stripos($html, 'cdn.shopify.com') !== false || stripos($html, 'Shopify.theme') !== false) {
+                    $platforms[] = 'shopify';
+                }
+                // 2. WooCommerce
+                if (stripos($html, 'wp-content/plugins/woocommerce') !== false || stripos($html, 'wc-ajax') !== false) {
+                    $platforms[] = 'woocommerce';
+                }
+                // 3. Nuvemshop
+                if (stripos($html, 'nuvemshop') !== false || stripos($html, 'tiendanube') !== false) {
+                    $platforms[] = 'nuvemshop';
+                }
+                // 4. Tray
+                if (stripos($html, 'tray.com.br') !== false || stripos($html, 'tray-cdn') !== false) {
+                    $platforms[] = 'tray';
+                }
+                // 5. VTEX
+                if (stripos($html, 'vtex.js') !== false || stripos($html, 'vteximg.com.br') !== false || stripos($html, 'vtex-commerce') !== false) {
+                    $platforms[] = 'vtex';
+                }
+            }
+        } catch (\Exception $e) {
+            // Silencia erros de timeout ou conexão para não quebrar a prospecção
+        }
+
+        return $platforms;
     }
 
     /**
