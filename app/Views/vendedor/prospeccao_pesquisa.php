@@ -523,12 +523,88 @@ SCORE_STYLE.textContent = `
 `;
 document.head.appendChild(SCORE_STYLE);
 
-function renderScoreBadge(score) {
+// A função buildScoreTooltipHtml é compartilhada entre Busca e Ranking
+function buildScoreTooltipHtml(bd, score) {
+    const maxes = { cnae: 40, capital: 20, email: 15, nome_fantasia: 10, localizacao: 15 };
+    const factors = [
+        {
+            key: 'cnae', icon: '🏭', label: 'Ramo de Atividade (CNAE)', color: '#3b82f6',
+            desc: () => (bd.cnae||0) >= 35
+                ? 'CNAE fortemente relacionado a comércio varejista de bens físicos (e-commerce, logística).'
+                : (bd.cnae||0) >= 20
+                ? 'CNAE com atividade moderada de expedição ou distribuição física.'
+                : 'CNAE com baixa relação direta com logística de distribuição.',
+        },
+        {
+            key: 'capital', icon: '💰', label: 'Porte da Empresa (Capital Social)', color: '#22c55e',
+            desc: () => (bd.capital||0) >= 20
+                ? 'Capital social alto (acima de R$ 100 mil) — empresa consolidada, alto potencial de envios.'
+                : (bd.capital||0) >= 10
+                ? 'Capital social médio (R$ 20–100 mil) — porte relevante para expedição periódica.'
+                : 'Capital social baixo — micro/pequena empresa; volume provável menor.',
+        },
+        {
+            key: 'email', icon: '✉️', label: 'Maturidade Digital (E-mail)', color: '#06b6d4',
+            desc: () => (bd.email||0) > 0
+                ? 'E-mail corporativo próprio — forte indício de presença online e e-commerce ativo.'
+                : 'Sem e-mail ou usa provedor genérico (Gmail etc.) — menor chance de operação digital estruturada.',
+        },
+        {
+            key: 'nome_fantasia', icon: '🏷️', label: 'Presença Comercial (Marca)', color: '#f59e0b',
+            desc: () => (bd.nome_fantasia||0) > 0
+                ? 'Nome Fantasia registrado — empresa com identidade comercial ativa no mercado.'
+                : 'Sem Nome Fantasia — opera só com a Razão Social, comum em MEIs e iniciantes.',
+        },
+        {
+            key: 'localizacao', icon: '📍', label: 'Localização Estratégica', color: '#8b5cf6',
+            desc: () => (bd.localizacao||0) >= 15
+                ? 'Coordenadas GPS mapeadas — endereço exato validado para roteirização.'
+                : 'Coordenadas não mapeadas — endereço estimado pelo CEP/bairro.',
+        },
+    ];
+
+    let rows = '';
+    factors.forEach(f => {
+        const pts = bd[f.key] || 0;
+        const pct = Math.round((pts / maxes[f.key]) * 100);
+        if (pts === 0 && f.key !== 'localizacao' && f.key !== 'nome_fantasia') return;
+        rows += `
+            <div class="score-factor-row">
+                <div class="score-factor-icon">${f.icon}</div>
+                <div class="score-factor-body">
+                    <div class="score-factor-label">${f.label}</div>
+                    <div class="score-factor-desc">${f.desc()}</div>
+                </div>
+                <div class="score-factor-mini-bar">
+                    <div class="score-factor-mini-fill" style="width:${pct}%;background:${f.color};"></div>
+                </div>
+                <div class="score-factor-pts">${pts}</div>
+            </div>`;
+    });
+    rows += `
+        <div class="score-total-line">
+            <span class="score-total-label">Pontuação Total</span>
+            <span class="score-total-pts">${score} <small>/100</small></span>
+        </div>`;
+    return rows;
+}
+
+function renderScoreBadge(score, bd, tooltipId) {
     const s = parseInt(score) || 0;
     if (s === 0) return '';
-    const cls = s >= 60 ? 'high' : (s >= 30 ? 'medium' : 'low');
+    const cls  = s >= 60 ? 'high' : (s >= 30 ? 'medium' : 'low');
     const icon = s >= 60 ? '🔥' : (s >= 30 ? '⚡' : '·');
-    return `<span class="score-badge ${cls}" title="Score Preditivo de Potencial Logístico">${icon} Score ${s}</span>`;
+    if (!bd || !tooltipId) {
+        return `<span class="score-badge ${cls}">${icon} Score ${s}</span>`;
+    }
+    return `
+        <span class="score-badge ${cls}">${icon} Score ${s}</span>
+        <button class="score-info-btn" data-tooltip="${tooltipId}" title="Ver detalhes do score">
+            <i class="bi bi-info"></i>
+        </button>
+        <div class="score-tooltip-panel" id="${tooltipId}">
+            ${buildScoreTooltipHtml(bd, s)}
+        </div>`;
 }
 
 function renderResults(list) {
@@ -569,11 +645,14 @@ function renderResults(list) {
             addressMarkerHtml = `<span class="badge bg-success text-white ms-2" style="font-size: 9px;"><i class="bi bi-geo-alt-fill"></i> Localizado</span>`;
         }
 
+        const bd         = item.score_breakdown ? (typeof item.score_breakdown === 'string' ? JSON.parse(item.score_breakdown) : item.score_breakdown) : null;
+        const tooltipId  = `stt_${cleanCnpj}`;
+
         card.innerHTML = `
             <h3>${item.nome_fantasia || item.razao_social}</h3>
             <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
                 <div class="result-cnpj">${formattedCnpj}</div>
-                ${renderScoreBadge(item.logistics_score)}
+                ${renderScoreBadge(item.logistics_score, bd, tooltipId)}
             </div>
             <div class="result-address">
                 <i class="bi bi-geo-alt text-muted"></i> ${item.endereco_completo}
@@ -599,6 +678,18 @@ function renderResults(list) {
 
             <div class="social-box-container" style="display: none;"></div>
         `;
+
+        // Bind tooltip toggle (se houver score)
+        const infoBtn = card.querySelector('.score-info-btn');
+        if (infoBtn) {
+            const panel = document.getElementById(tooltipId);
+            infoBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = panel.classList.toggle('open');
+                infoBtn.classList.toggle('open', isOpen);
+            });
+        }
+
         resultsSection.appendChild(card);
     });
 
@@ -785,82 +876,9 @@ async function loadRanking(offset) {
             const cidade = [item.municipio_nome, item.uf].filter(Boolean).join(' - ');
             const email  = item.email ? `· ${item.email}` : '';
 
-            // ── Montar HTML do tooltip de score ─────────────────
-            const bd = item.score_breakdown || {};
-            const maxes = { cnae: 40, capital: 20, email: 15, nome_fantasia: 10, localizacao: 15 };
-            const factors = [
-                {
-                    key: 'cnae',
-                    icon: '🏭',
-                    label: 'Ramo de Atividade (CNAE)',
-                    desc: () => bd.cnae >= 35
-                        ? 'CNAE principal ou secundário fortemente relacionado a comércio varejista de bens físicos (e-commerce, logística).'
-                        : bd.cnae >= 20
-                        ? 'CNAE com atividade moderada de expedição ou distribuição física de produtos.'
-                        : 'CNAE com baixa relação direta com envio de encomendas ou logística de distribuição.',
-                    color: '#3b82f6',
-                },
-                {
-                    key: 'capital',
-                    icon: '💰',
-                    label: 'Porte da Empresa (Capital Social)',
-                    desc: () => bd.capital >= 20
-                        ? 'Capital social alto (acima de R$ 100 mil) — indica empresa consolidada com volume potencial de envios elevado.'
-                        : bd.capital >= 10
-                        ? 'Capital social médio (entre R$ 20 mil e R$ 100 mil) — porte relevante para serviços de expedição periódica.'
-                        : 'Capital social baixo (abaixo de R$ 20 mil) — micro/pequena empresa; volume de envios provavelmente menor.',
-                    color: '#22c55e',
-                },
-                {
-                    key: 'email',
-                    icon: '✉️',
-                    label: 'Maturidade Digital (E-mail)',
-                    desc: () => bd.email > 0
-                        ? 'Possui e-mail corporativo próprio (domínio não-público) — indício forte de presensão online e e-commerce ativo.'
-                        : 'Sem e-mail ou utiliza provedor genérico (Gmail, Hotmail, etc.) — menor probabilidade de operação digital estruturada.',
-                    color: '#06b6d4',
-                },
-                {
-                    key: 'nome_fantasia',
-                    icon: '🏷️',
-                    label: 'Presença Comercial (Marca)',
-                    desc: () => bd.nome_fantasia > 0
-                        ? 'Nome Fantasia registrado na Receita Federal — empresa com identidade comercial ativa, provavelmente já em operação no mercado.'
-                        : 'Sem Nome Fantasia — opera apenas com a Razão Social, comum em MEIs e empresas iniciantes.',
-                    color: '#f59e0b',
-                },
-                {
-                    key: 'localizacao',
-                    icon: '📍',
-                    label: 'Localização Estratégica',
-                    desc: () => bd.localizacao >= 15
-                        ? 'Coordenadas GPS mapeadas — endereço exato validado, facilita roteirização e abordagem presencial pelo vendedor.'
-                        : 'Coordenadas não mapeadas ainda — endereço estimado com base no CEP/bairro da Receita Federal.',
-                    color: '#8b5cf6',
-                },
-            ];
-
+            // Reutiliza a função compartilhada
+            const bd        = item.score_breakdown || {};
             const tooltipId = `tt_${item.cnpj}`;
-            let tooltipRows = '';
-            factors.forEach(f => {
-                const pts = bd[f.key] || 0;
-                const max = maxes[f.key];
-                const pct = max > 0 ? Math.round((pts / max) * 100) : 0;
-                if (pts === 0 && f.key !== 'localizacao' && f.key !== 'nome_fantasia') return; // omite zeros não relevantes
-                tooltipRows += `
-                    <div class="score-factor-row">
-                        <div class="score-factor-icon">${f.icon}</div>
-                        <div class="score-factor-body">
-                            <div class="score-factor-label">${f.label}</div>
-                            <div class="score-factor-desc">${f.desc()}</div>
-                        </div>
-                        <div class="score-factor-mini-bar">
-                            <div class="score-factor-mini-fill" style="width:${pct}%; background:${f.color};"></div>
-                        </div>
-                        <div class="score-factor-pts">${pts}</div>
-                    </div>`;
-            });
-
             const scoreLabel = score >= 60 ? '🔥 Alto potencial' : score >= 30 ? '⚡ Potencial moderado' : '· Baixo potencial';
 
             const card = document.createElement('div');
@@ -881,11 +899,7 @@ async function loadRanking(offset) {
                     </div>
                     <div class="rank-breakdown">${scoreLabel}</div>
                     <div class="score-tooltip-panel" id="${tooltipId}">
-                        ${tooltipRows}
-                        <div class="score-total-line">
-                            <span class="score-total-label">Pontuação Total</span>
-                            <span class="score-total-pts">${score} <small>/100</small></span>
-                        </div>
+                        ${buildScoreTooltipHtml(bd, score)}
                     </div>
                 </div>
                 <button class="rank-action-btn" onclick="location.href='<?= site_url('vendedor/cliente/') ?>' + '${item.cnpj}'">
@@ -903,6 +917,7 @@ async function loadRanking(offset) {
             });
 
             section.appendChild(card);
+
         });
 
         // Botão carregar mais
