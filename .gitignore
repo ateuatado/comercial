@@ -59,6 +59,9 @@ Vagrantfile
 
 /writable/uploads/*
 !/writable/uploads/index.html
+!/writable/uploads/captacoes/
+/writable/uploads/captacoes/*
+!/writable/uploads/captacoes/.gitkeep
 
 /writable/debugbar/*
 !/writable/debugbar/index.html
