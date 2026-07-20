@@ -350,11 +350,15 @@ class AdminController extends BaseController
         // Dados completos da Receita
         $receita = $db->query("
             SELECT e.*, emp.razao_social, m.descricao AS municipio_nome,
-                   sit.descricao AS situacao_desc, emp.capital_social
+                   CASE e.situacao_cadastral
+                       WHEN '01' THEN 'Nula' WHEN '02' THEN 'Ativa'
+                       WHEN '03' THEN 'Suspensa' WHEN '04' THEN 'Inapta' WHEN '08' THEN 'Baixada'
+                       ELSE 'Situacao ' || COALESCE(e.situacao_cadastral, '?')
+                   END AS situacao_desc,
+                   emp.capital_social
             FROM receita.estabelecimentos e
             LEFT JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
             LEFT JOIN receita.municipios m ON m.codigo = e.municipio
-            LEFT JOIN receita.situacoes_cadastrais sit ON sit.codigo = e.situacao_cadastral
             WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
             LIMIT 1
         ", [$cnpj])->getRowArray();

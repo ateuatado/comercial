@@ -250,14 +250,17 @@ class VendedorController extends BaseController
                     m.descricao AS municipio_nome,
                     e.ddd_1, e.telefone_1, e.ddd_2, e.telefone_2,
                     e.email, e.cnae_fiscal_principal AS cnae,
-                    sit.descricao AS situacao_desc,
+                    CASE e.situacao_cadastral
+                        WHEN '01' THEN 'Nula' WHEN '02' THEN 'Ativa'
+                        WHEN '03' THEN 'Suspensa' WHEN '04' THEN 'Inapta' WHEN '08' THEN 'Baixada'
+                        ELSE 'Situação ' || COALESCE(e.situacao_cadastral, '?')
+                    END AS situacao_desc,
                     cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
                     loc.latitude AS loc_lat, loc.longitude AS loc_lng
                 FROM receita.estabelecimentos e
                 JOIN (SELECT ? AS cnpj) c ON true
                 LEFT JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
                 LEFT JOIN receita.municipios m ON m.codigo = e.municipio
-                LEFT JOIN receita.situacoes_cadastrais sit ON sit.codigo = e.situacao_cadastral
                 LEFT JOIN client_wallets cw ON cw.cnpj = c.cnpj
                 LEFT JOIN client_locations loc ON loc.cnpj = c.cnpj
                 WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
@@ -351,11 +354,14 @@ class VendedorController extends BaseController
         // Dados da Receita
         $receita = $db->query("
             SELECT e.*, emp.razao_social, m.descricao AS municipio_nome,
-                   sit.descricao AS situacao_desc
+                   CASE e.situacao_cadastral
+                       WHEN '01' THEN 'Nula' WHEN '02' THEN 'Ativa'
+                       WHEN '03' THEN 'Suspensa' WHEN '04' THEN 'Inapta' WHEN '08' THEN 'Baixada'
+                       ELSE 'Situacao ' || COALESCE(e.situacao_cadastral, '?')
+                   END AS situacao_desc
             FROM receita.estabelecimentos e
             LEFT JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
             LEFT JOIN receita.municipios m ON m.codigo = e.municipio
-            LEFT JOIN receita.situacoes_cadastrais sit ON sit.codigo = e.situacao_cadastral
             WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
             LIMIT 1
         ", [$cleanCnpj])->getRowArray();
