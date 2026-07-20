@@ -30,6 +30,7 @@ O foco atual é o MVP da carteira de clientes, conforme definido em:
 - Sempre que uma tarefa for concluída, atualize a checklist em [specs/001-carteira-clientes/tasks.md](specs/001-carteira-clientes/tasks.md).
 - Antes de iniciar um trabalho relevante, leia esta instrução, a constitution, a spec, o plano e as tasks do feature atual.
 - Use a checklist como fonte única de progresso e mantenha os status alinhados com o que foi realmente implementado.
+- **Sincronização GitHub/VPS**: Sempre faça commit e envie (push) as alterações para o GitHub. A implantação no VPS é baseada no repositório remoto, portanto, manter o GitHub atualizado é obrigatório para cada entrega ou alteração relevante realizada.
 
 ## Estratégia de acompanhamento de tarefas
 
