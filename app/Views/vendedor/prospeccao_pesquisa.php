@@ -589,22 +589,15 @@ function buildScoreTooltipHtml(bd, score) {
     return rows;
 }
 
-function renderScoreBadge(score, bd, tooltipId) {
+function renderScoreBadge(score, hasTooltip) {
     const s = parseInt(score) || 0;
     if (s === 0) return '';
     const cls  = s >= 60 ? 'high' : (s >= 30 ? 'medium' : 'low');
     const icon = s >= 60 ? '🔥' : (s >= 30 ? '⚡' : '·');
-    if (!bd || !tooltipId) {
-        return `<span class="score-badge ${cls}">${icon} Score ${s}</span>`;
-    }
-    return `
-        <span class="score-badge ${cls}">${icon} Score ${s}</span>
-        <button class="score-info-btn" data-tooltip="${tooltipId}" title="Ver detalhes do score">
-            <i class="bi bi-info"></i>
-        </button>
-        <div class="score-tooltip-panel" id="${tooltipId}">
-            ${buildScoreTooltipHtml(bd, s)}
-        </div>`;
+    const btn  = hasTooltip
+        ? `<button class="score-info-btn" title="Ver detalhes do score"><i class="bi bi-info"></i></button>`
+        : '';
+    return `<span class="score-badge ${cls}">${icon} Score ${s}</span>${btn}`;
 }
 
 function renderResults(list) {
@@ -652,8 +645,9 @@ function renderResults(list) {
             <h3>${item.nome_fantasia || item.razao_social}</h3>
             <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
                 <div class="result-cnpj">${formattedCnpj}</div>
-                ${renderScoreBadge(item.logistics_score, bd, tooltipId)}
+                ${renderScoreBadge(item.logistics_score, !!bd)}
             </div>
+            ${bd ? `<div class="score-tooltip-panel" id="${tooltipId}">${buildScoreTooltipHtml(bd, parseInt(item.logistics_score)||0)}</div>` : ''}
             <div class="result-address">
                 <i class="bi bi-geo-alt text-muted"></i> ${item.endereco_completo}
                 <span class="geo-status-indicator">${addressMarkerHtml}</span>
@@ -682,7 +676,7 @@ function renderResults(list) {
         // Bind tooltip toggle (se houver score)
         const infoBtn = card.querySelector('.score-info-btn');
         if (infoBtn) {
-            const panel = document.getElementById(tooltipId);
+            const panel = card.querySelector('.score-tooltip-panel');
             infoBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isOpen = panel.classList.toggle('open');
