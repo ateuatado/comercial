@@ -312,6 +312,84 @@ class VendedorController extends BaseController
         return view('vendedor/prospeccao_pesquisa', compact('vendorUser'));
     }
 
+    /**
+     * Retorna o Ranking de Potencial Logístico: leads livres (fora de qualquer carteira)
+     * ordenados por logistics_score DESC. Usados na aba "Ranking" da prospecção.
+     */
+    public function rankingApi()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+        }
+
+        $db     = db_connect();
+        $limit  = max(1, min(100, (int) ($this->request->getGet('limit') ?? 50)));
+        $offset = max(0, (int) ($this->request->getGet('offset') ?? 0));
+
+        // Só exibe CNPJs com score calculado, excluindo os já em carteira_raw
+        $rows = $db->query("
+            SELECT
+                ce.cnpj,
+                ce.logistics_score,
+                ce.score_breakdown,
+                ce.score_justification,
+                COALESCE(e.nome_fantasia, '')     AS nome_fantasia,
+                COALESCE(emp.razao_social, '')    AS razao_social,
+                e.cnae_fiscal_principal,
+                COALESCE(e.email, '')             AS email,
+                COALESCE(
+                    TRIM(e.tipo_logradouro || ' ' || e.logradouro || ', ' || e.numero
+                        || CASE WHEN e.bairro <> '' THEN ' - ' || e.bairro ELSE '' END),
+                    ''
+                ) AS endereco_resumo,
+                e.municipio AS municipio_codigo,
+                e.uf,
+                COALESCE(cl.latitude,  0) AS loc_lat,
+                COALESCE(cl.longitude, 0) AS loc_lng
+            FROM client_enrichment ce
+            JOIN receita.estabelecimentos e
+                ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ce.cnpj
+            JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
+            LEFT JOIN client_locations cl ON cl.cnpj = ce.cnpj
+            WHERE ce.logistics_score > 0
+              AND ce.cnpj NOT IN (SELECT cnpj FROM carteira_raw WHERE cnpj IS NOT NULL)
+            ORDER BY ce.logistics_score DESC
+            LIMIT {$limit} OFFSET {$offset}
+        ")->getResultArray();
+
+        // Resolver nome dos municípios em batch
+        $codigos = array_unique(array_filter(array_column($rows, 'municipio_codigo')));
+        $munMap  = [];
+        if (!empty($codigos)) {
+            $placeholders = implode(',', array_fill(0, count($codigos), '?'));
+            $munRows = $db->query("SELECT codigo, descricao FROM receita.municipios WHERE codigo IN ({$placeholders})", $codigos)->getResultArray();
+            foreach ($munRows as $m) {
+                $munMap[$m['codigo']] = $m['descricao'];
+            }
+        }
+
+        foreach ($rows as &$row) {
+            $row['municipio_nome']   = $munMap[$row['municipio_codigo']] ?? '';
+            $row['score_breakdown']  = json_decode($row['score_breakdown'] ?? '{}', true);
+        }
+
+        // Contar total de leads livres com score
+        $total = (int) ($db->query("
+            SELECT COUNT(*) AS c FROM client_enrichment ce
+            WHERE ce.logistics_score > 0
+              AND ce.cnpj NOT IN (SELECT cnpj FROM carteira_raw WHERE cnpj IS NOT NULL)
+        ")->getRow()->c ?? 0);
+
+        return $this->response->setJSON([
+            'success'  => true,
+            'total'    => $total,
+            'offset'   => $offset,
+            'limit'    => $limit,
+            'ranking'  => $rows,
+        ]);
+    }
+
     public function prospeccaoBuscarApi()
     {
         $vendorUser = $this->getVendorUser();

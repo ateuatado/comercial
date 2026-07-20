@@ -83,6 +83,7 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('prospectar/api', 'VendedorController::prospectarApi');
     $routes->get('prospectar/pesquisa', 'VendedorController::prospeccaoPesquisaView');
     $routes->get('prospectar/pesquisa/buscar', 'VendedorController::prospeccaoBuscarApi');
+    $routes->get('prospectar/pesquisa/ranking', 'VendedorController::rankingApi');
     $routes->post('pre-visita', 'VendedorController::preVisitaSalvar');
     $routes->get('maps-contract', 'VendedorController::mockGoogleMaps');
     $routes->get('cnpj/verificar/(:segment)', 'VendedorController::verificarCnpj/$1');
