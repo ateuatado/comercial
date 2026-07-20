@@ -53,6 +53,14 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     // Gestão Manual de Localizações (Fase 2.6b)
     $routes->get('localizacao',           '\App\Controllers\AdminController::localizacaoManual');
     $routes->post('localizacao',          '\App\Controllers\AdminController::localizacaoManualSalvar');
+
+    // Scoring Preditivo (Fase 3)
+    $routes->get('scoring',                   '\App\Controllers\AdminController::scoringConfig');
+    $routes->post('scoring/salvar',            '\App\Controllers\AdminController::scoringSalvar');
+    $routes->post('scoring/recalcular',        '\App\Controllers\AdminController::scoringRecalcular');
+    $routes->get('scoring/progresso',          '\App\Controllers\AdminController::scoringProgresso');
+    $routes->post('scoring/cnae/adicionar',    '\App\Controllers\AdminController::cnaeAdicionar');
+    $routes->post('scoring/cnae/remover',      '\App\Controllers\AdminController::cnaeRemover');
 });
 
 // Portal operacional — acom e gerente_conta (legado Fase 1)

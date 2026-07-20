@@ -156,30 +156,138 @@ class AdminController extends BaseController
         return view('admin/localizacao', compact('clientes', 'busca'));
     }
 
-    public function localizacaoManualSalvar()
+    // ─── Scoring Preditivo (Fase 3) ────────────────────────────────
+
+    /**
+     * Painel de configuração de pesos do Score Preditivo de leads logísticos.
+     */
+    public function scoringConfig(): string
     {
-        $cnpj = $this->request->getPost('cnpj');
-        $lat  = $this->request->getPost('lat');
-        $lng  = $this->request->getPost('lng');
+        $db = db_connect();
 
-        if (empty($cnpj) || $lat === '' || $lng === '') {
-            return $this->response->setJSON(['error' => 'Dados incompletos.'])->setStatusCode(422);
+        // Ler todas as configurações de peso
+        $rows = $db->query("SELECT key, value FROM scoring_config")->getResultArray();
+        $config = [];
+        foreach ($rows as $row) {
+            $config[$row['key']] = $row['value'];
         }
 
-        $locationModel = new \App\Models\ClientLocationModel();
+        // Ler regras de CNAE ordenadas por peso desc
+        $cnaeRules = $db->query("SELECT cnae_code, weight, description FROM cnae_scoring_rules ORDER BY weight DESC, cnae_code ASC")->getResultArray();
 
-        $salvo = $locationModel->upsert([
-            'cnpj'               => $cnpj,
-            'latitude'           => (float)$lat,
-            'longitude'          => (float)$lng,
-            'endereco_formatado' => 'Cadastro Manual Admin',
-            'registrado_por'     => 'admin'
+        // Verificar se há recálculo em andamento
+        $cache       = \Config\Services::cache();
+        $progress    = $cache->get('scoring_recalculation_progress');
+        $recalculating = ($progress !== null && $progress < 100);
+
+        return view('admin/scoring_config', [
+            'config'        => $config,
+            'cnaeRules'     => $cnaeRules,
+            'recalculating' => $recalculating,
+            'flash_success' => session()->getFlashdata('scoring_success'),
         ]);
+    }
 
-        if ($salvo) {
-            return $this->response->setJSON(['success' => true]);
+    /**
+     * Persiste os pesos alterados pelo administrador.
+     */
+    public function scoringSalvar()
+    {
+        $db = db_connect();
+        $now = date('Y-m-d H:i:s');
+
+        $fields = ['weight_cnae', 'weight_capital', 'weight_email', 'weight_nome_fantasia', 'weight_localizacao', 'amortization_factor', 'capital_tier_high', 'capital_tier_mid'];
+
+        foreach ($fields as $field) {
+            $value = $this->request->getPost($field);
+            if ($value !== null) {
+                $db->query(
+                    "INSERT INTO scoring_config (key, value, updated_at, created_at)
+                     VALUES (?, ?, ?, ?)
+                     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()",
+                    [$field, (string) $value, $now, $now]
+                );
+            }
         }
 
-        return $this->response->setJSON(['error' => 'Falha ao salvar no banco.'])->setStatusCode(500);
+        // Verificar se o parâmetro de recalcular foi passado
+        if ($this->request->getPost('recalculate') === '1') {
+            // Iniciar recálculo em background (Windows-compatible)
+            $phpPath  = PHP_BINARY;
+            $sparkPath = ROOTPATH . 'spark';
+            pclose(popen("start /B {$phpPath} {$sparkPath} enrich:recalculate", "r"));
+
+            // Inicializar o progresso no cache
+            \Config\Services::cache()->save('scoring_recalculation_progress', 0, 3600);
+        }
+
+        session()->setFlashdata('scoring_success', 'Configurações salvas com sucesso!');
+        return redirect()->to(site_url('admin/scoring'));
+    }
+
+    /**
+     * Dispara o recálculo em background via POST AJAX.
+     */
+    public function scoringRecalcular()
+    {
+        $phpPath  = PHP_BINARY;
+        $sparkPath = ROOTPATH . 'spark';
+        pclose(popen("start /B {$phpPath} {$sparkPath} enrich:recalculate", "r"));
+        \Config\Services::cache()->save('scoring_recalculation_progress', 0, 3600);
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Recálculo iniciado em background.']);
+    }
+
+    /**
+     * Retorna o percentual de progresso do recálculo (polling AJAX).
+     */
+    public function scoringProgresso()
+    {
+        $progress = \Config\Services::cache()->get('scoring_recalculation_progress');
+        return $this->response->setJSON(['progresso' => (int) ($progress ?? 0)]);
+    }
+
+    /**
+     * Adiciona uma nova regra de CNAE via AJAX.
+     */
+    public function cnaeAdicionar()
+    {
+        $input  = json_decode($this->request->getBody(), true);
+        $code   = trim($input['cnae_code'] ?? '');
+        $desc   = trim($input['description'] ?? '');
+        $weight = (int) ($input['weight'] ?? 0);
+        $now    = date('Y-m-d H:i:s');
+
+        if (empty($code) || $weight < 0 || $weight > 100) {
+            return $this->response->setJSON(['error' => 'Dados inválidos.'])->setStatusCode(422);
+        }
+
+        $db = db_connect();
+        $db->query(
+            "INSERT INTO cnae_scoring_rules (cnae_code, weight, description, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?)
+             ON CONFLICT (cnae_code) DO UPDATE SET weight = EXCLUDED.weight, description = EXCLUDED.description, updated_at = NOW()",
+            [$code, $weight, $desc, $now, $now]
+        );
+
+        return $this->response->setJSON(['success' => true]);
+    }
+
+    /**
+     * Remove uma regra de CNAE via AJAX.
+     */
+    public function cnaeRemover()
+    {
+        $input = json_decode($this->request->getBody(), true);
+        $code  = trim($input['cnae_code'] ?? '');
+
+        if (empty($code)) {
+            return $this->response->setJSON(['error' => 'Código CNAE não informado.'])->setStatusCode(422);
+        }
+
+        db_connect()->query("DELETE FROM cnae_scoring_rules WHERE cnae_code = ?", [$code]);
+
+        return $this->response->setJSON(['success' => true]);
     }
 }
+
