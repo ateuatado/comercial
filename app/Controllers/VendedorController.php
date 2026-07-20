@@ -381,7 +381,7 @@ class VendedorController extends BaseController
         $locLog   = $db->table('client_locations')->where('cnpj', $cleanCnpj)->get()->getRowArray();
         $walletLog= $db->table('client_wallets')->where('cnpj', $cleanCnpj)->get()->getRowArray();
         $socialLog= $db->query("SELECT MAX(updated_at) AS dt FROM client_social_media WHERE cnpj = ?", [$cleanCnpj])->getRowArray();
-        $notasLog = $db->query("SELECT COUNT(*) AS total, MAX(created_at) AS dt FROM vendor_notes WHERE cnpj = ? AND vendor_id = ?", [$cleanCnpj, $vendorUser['id']])->getRowArray();
+        $notasLog = $db->query("SELECT COUNT(*) AS total, MAX(created_at) AS dt FROM vendor_notes WHERE cnpj = ? AND matricula_vendedor = ?", [$cleanCnpj, $mat])->getRowArray();
 
         // PR-CAP existente (pendente ou mais_info) — para modo de complementação
         $pedidoExistente = $db->table('captacao_requests')
@@ -1017,7 +1017,6 @@ class VendedorController extends BaseController
                         'cnpj'                   => $cleanCnpj,
                         'rfb_situacao_cadastral' => $situacao,
                         'rfb_verificado_em'      => $now,
-                        'vendor_id'              => $vendorUser['id'],
                         'status_operacional'     => 'novo',
                         'created_at'             => $now,
                         'updated_at'             => $now,
