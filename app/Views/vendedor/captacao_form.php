@@ -209,6 +209,66 @@
     .btn-submit:hover {
         background-color: #0b5ed7;
     }
+
+    /* Upload de Anexos */
+    .upload-zone {
+        border: 2px dashed #ced4da;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        background: #f8f9fa;
+        transition: border-color .2s, background .2s;
+        position: relative;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: #0d6efd;
+        background: #e8f0fe;
+    }
+    .upload-zone input[type=file] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-zone .icon { font-size: 32px; color: #6c757d; margin-bottom: 6px; }
+    .upload-zone .hint { font-size: 13px; color: #6c757d; }
+    .upload-zone .hint strong { color: #0d6efd; }
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+    }
+    .preview-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #e9ecef;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .preview-item img {
+        width: 100%; height: 100%; object-fit: cover;
+    }
+    .preview-item.pdf {
+        flex-direction: column;
+        gap: 4px;
+        font-size: 11px;
+        color: #495057;
+        padding: 4px;
+        text-align: center;
+    }
+    .preview-item .remove-file {
+        position: absolute; top: 3px; right: 3px;
+        background: rgba(0,0,0,.55); color: #fff;
+        border: none; border-radius: 50%;
+        width: 20px; height: 20px; font-size: 11px;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        line-height: 1;
+    }
+    .file-count {
+        font-size: 12px; color: #6c757d; margin-top: 6px; text-align: center;
+    }
 </style>
 
 <div class="prcap-container">
@@ -299,7 +359,7 @@
     <?php endif; ?>
 
     <!-- Formulário -->
-    <form action="<?= site_url('vendedor/captacao/salvar') ?>" method="POST">
+    <form action="<?= site_url('vendedor/captacao/salvar') ?>" method="POST" enctype="multipart/form-data">
         <?= csrf_field() ?>
         <input type="hidden" name="cnpj" value="<?= esc($cleanCnpj) ?>">
 
@@ -329,10 +389,79 @@
             <textarea name="referencia_doc" id="referencia_doc" class="form-control" placeholder="Ex: Link para e-mail, proposta enviada..." style="min-height: 80px;"></textarea>
         </div>
 
+        <!-- Upload de Anexos -->
+        <div class="form-group">
+            <label class="form-label"><i class="bi bi-paperclip"></i> Anexar evidências (opcional)</label>
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" name="anexos[]" id="anexosInput" multiple accept="image/jpeg,image/png,image/gif,image/webp,application/pdf">
+                <div class="icon">📎</div>
+                <div class="hint"><strong>Toque para selecionar</strong> ou arraste aqui</div>
+                <div class="hint" style="margin-top:4px;">Fotos (JPG, PNG) e PDFs · Máx. 10MB por arquivo</div>
+            </div>
+            <div id="previewGrid" class="preview-grid" style="display:none;"></div>
+            <div id="fileCount" class="file-count"></div>
+        </div>
+
         <button type="submit" class="btn-submit">
             <i class="bi bi-send-fill"></i> Enviar Pedido de Captação
         </button>
     </form>
 </div>
+
+<script>
+(function(){
+    const input   = document.getElementById('anexosInput');
+    const zone    = document.getElementById('uploadZone');
+    const grid    = document.getElementById('previewGrid');
+    const counter = document.getElementById('fileCount');
+    let files = [];
+
+    zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+        e.preventDefault(); zone.classList.remove('dragover');
+        addFiles(e.dataTransfer.files);
+    });
+    input.addEventListener('change', () => { addFiles(input.files); input.value = ''; });
+
+    function addFiles(newFiles) {
+        Array.from(newFiles).forEach(f => {
+            if (f.size > 10*1024*1024) { alert('Arquivo "' + f.name + '" excede 10MB.'); return; }
+            files.push(f);
+        });
+        renderPreviews();
+    }
+
+    function renderPreviews() {
+        grid.innerHTML = '';
+        if (!files.length) { grid.style.display='none'; counter.textContent=''; return; }
+        grid.style.display = 'grid';
+        files.forEach((f, idx) => {
+            const item = document.createElement('div');
+            item.className = f.type.startsWith('image/') ? 'preview-item' : 'preview-item pdf';
+            if (f.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(f);
+                item.appendChild(img);
+            } else {
+                item.innerHTML = '<i class="bi bi-file-earmark-pdf" style="font-size:28px;color:#dc3545;"></i><span style="word-break:break-all;font-size:10px;">' + f.name.substring(0,20) + '</span>';
+            }
+            const btn = document.createElement('button');
+            btn.type='button'; btn.className='remove-file'; btn.textContent='×';
+            btn.onclick = () => { files.splice(idx,1); renderPreviews(); };
+            item.appendChild(btn);
+            grid.appendChild(item);
+        });
+        counter.textContent = files.length + ' arquivo(s) selecionado(s)';
+        syncInput();
+    }
+
+    function syncInput() {
+        const dt = new DataTransfer();
+        files.forEach(f => dt.items.add(f));
+        input.files = dt.files;
+    }
+})();
+</script>
 
 <?= $this->endSection() ?>

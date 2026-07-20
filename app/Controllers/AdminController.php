@@ -384,10 +384,16 @@ class AdminController extends BaseController
             LIMIT 1
         ", [$cnpj])->getRowArray();
 
+        // Anexos enviados pelo vendedor
+        $anexos = $db->table('captacao_attachments')
+            ->where('captacao_id', $pedido['id'])
+            ->orderBy('created_at', 'ASC')
+            ->get()->getResultArray();
+
         return view('admin/captacao_detalhe', compact(
             'pedido', 'receita', 'enrichment',
             'locLog', 'walletLog', 'socialLog', 'notas',
-            'carteiraAtual'
+            'carteiraAtual', 'anexos'
         ));
     }
 
@@ -494,6 +500,29 @@ class AdminController extends BaseController
             'mais_info' => '🔵 Solicitação de mais informações enviada ao vendedor.',
         ];
         return redirect()->to(site_url('admin/captacoes'))->with('success', $msgs[$novoStatus]);
+    }
+
+    /**
+     * Serve um anexo de captação para o admin (sem restrição de matrícula).
+     */
+    public function captacaoAnexo(int $anexoId)
+    {
+        $db    = db_connect();
+        $anexo = $db->table('captacao_attachments')->where('id', $anexoId)->get()->getRowArray();
+
+        if (!$anexo) {
+            return $this->response->setStatusCode(404)->setBody('Arquivo não encontrado.');
+        }
+
+        $path = WRITEPATH . 'uploads/captacoes/' . $anexo['captacao_id'] . '/' . $anexo['filename'];
+        if (!file_exists($path)) {
+            return $this->response->setStatusCode(404)->setBody('Arquivo removido do servidor.');
+        }
+
+        return $this->response
+            ->setHeader('Content-Type', $anexo['mime_type'])
+            ->setHeader('Content-Disposition', 'inline; filename="' . $anexo['original_name'] . '"')
+            ->setBody(file_get_contents($path));
     }
 }
 

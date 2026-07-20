@@ -130,6 +130,36 @@ $canaisArr = json_decode($pedido['canais_contato'] ?? '[]', true) ?: [];
         </div>
         <?php endif; ?>
 
+        <!-- Anexos enviados pelo vendedor -->
+        <?php if (!empty($anexos)): ?>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white fw-bold py-2">
+                <i class="bi bi-paperclip me-1"></i> Anexos (<?= count($anexos) ?>)
+            </div>
+            <div class="card-body">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                    <?php foreach ($anexos as $a): ?>
+                    <?php $urlAnexo = site_url('admin/captacoes/anexo/' . $a['id']); ?>
+                    <?php if (str_starts_with($a['mime_type'], 'image/')): ?>
+                        <a href="<?= $urlAnexo ?>" target="_blank" title="<?= esc($a['original_name']) ?>"
+                           style="display:block;border-radius:8px;overflow:hidden;aspect-ratio:1;background:#e9ecef;">
+                            <img src="<?= $urlAnexo ?>" alt="<?= esc($a['original_name']) ?>"
+                                 style="width:100%;height:100%;object-fit:cover;">
+                        </a>
+                    <?php else: ?>
+                        <a href="<?= $urlAnexo ?>" target="_blank" title="<?= esc($a['original_name']) ?>"
+                           style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:8px;aspect-ratio:1;background:#e9ecef;text-decoration:none;color:#495057;font-size:11px;padding:4px;text-align:center;">
+                            <i class="bi bi-file-earmark-pdf" style="font-size:28px;color:#dc3545;"></i>
+                            <span style="word-break:break-all;"><?= esc(substr($a['original_name'], 0, 18)) ?></span>
+                        </a>
+                    <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+                <small class="text-muted d-block mt-2">Clique em cada arquivo para abrir em nova aba.</small>
+            </div>
+        </div>
+        <?php endif; ?>
+
     </div>
 
     <!-- Coluna direita: Evidências do sistema + Score + Decisão -->

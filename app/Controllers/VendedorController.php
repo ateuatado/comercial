@@ -449,12 +449,75 @@ class VendedorController extends BaseController
 
         if ($existente) {
             $db->table('captacao_requests')->where('id', $existente->id)->update($data);
+            $captacaoId = $existente->id;
         } else {
             $data['created_at'] = date('Y-m-d H:i:s');
             $db->table('captacao_requests')->insert($data);
+            $captacaoId = $db->insertID();
+        }
+
+        // ── Upload de Anexos ────────────────────────────────────────────
+        $arquivos = $this->request->getFiles();
+        if (!empty($arquivos['anexos'])) {
+            $uploadDir = WRITEPATH . 'uploads/captacoes/' . $captacaoId . '/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            foreach ($arquivos['anexos'] as $file) {
+                if (!$file->isValid() || $file->hasMoved()) continue;
+
+                $mime = $file->getMimeType();
+                $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+                if (!in_array($mime, $allowed)) continue;
+
+                if ($file->getSize() > 10 * 1024 * 1024) continue; // máx 10MB
+
+                $newName = $file->getRandomName();
+                $file->move($uploadDir, $newName);
+
+                $db->table('captacao_attachments')->insert([
+                    'captacao_id'   => $captacaoId,
+                    'cnpj'          => $cnpj,
+                    'matricula'     => $mat,
+                    'filename'      => $newName,
+                    'original_name' => $file->getClientName(),
+                    'mime_type'     => $mime,
+                    'file_size'     => $file->getSize(),
+                    'created_at'    => date('Y-m-d H:i:s'),
+                ]);
+            }
         }
 
         return redirect()->to(site_url('vendedor/minhas-captacoes'))->with('success', 'Pedido enviado! Aguarde a análise administrativa.');
+    }
+
+    /**
+     * Serve um anexo de forma protegida (apenas para o próprio vendedor ou admin).
+     */
+    public function captacaoAnexo(int $anexoId)
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return $this->response->setStatusCode(403)->setBody('Acesso negado.');
+
+        $db = db_connect();
+        $anexo = $db->table('captacao_attachments')
+            ->where('id', $anexoId)
+            ->where('matricula', $vendorUser['matricula'])
+            ->get()->getRowArray();
+
+        if (!$anexo) {
+            return $this->response->setStatusCode(404)->setBody('Arquivo não encontrado.');
+        }
+
+        $path = WRITEPATH . 'uploads/captacoes/' . $anexo['captacao_id'] . '/' . $anexo['filename'];
+        if (!file_exists($path)) {
+            return $this->response->setStatusCode(404)->setBody('Arquivo removido do servidor.');
+        }
+
+        return $this->response
+            ->setHeader('Content-Type', $anexo['mime_type'])
+            ->setHeader('Content-Disposition', 'inline; filename="' . $anexo['original_name'] . '"')
+            ->setBody(file_get_contents($path));
     }
 
     /**

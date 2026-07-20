@@ -66,6 +66,7 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     $routes->get('captacoes',              '\App\Controllers\AdminController::captacoesIndex');
     $routes->get('captacoes/(:num)',       '\App\Controllers\AdminController::captacaoDetalhe/$1');
     $routes->post('captacoes/decisao',     '\App\Controllers\AdminController::captacaoDecisao');
+    $routes->get('captacoes/anexo/(:num)', '\App\Controllers\AdminController::captacaoAnexo/$1');
 });
 
 // Portal operacional — acom e gerente_conta (legado Fase 1)
@@ -105,6 +106,7 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     // Captação de Clientes (PR-CAP — Fase 3.5)
     $routes->get('captacao/solicitar/(:segment)', 'VendedorController::captacaoSolicitar/$1');
     $routes->post('captacao/salvar', 'VendedorController::captacaoSalvar');
+    $routes->get('captacao/anexo/(:num)', 'VendedorController::captacaoAnexo/$1');
     $routes->get('minhas-captacoes', 'VendedorController::minhasCaptacoes');
 });
 
