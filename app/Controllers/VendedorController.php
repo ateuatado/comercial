@@ -154,14 +154,17 @@ class VendedorController extends BaseController
     }
 
     /**
-     * Retorna todos os CNPJs que possuem coordenadas em client_locations
-     * mas NÃO estão em nenhuma carteira (carteira_raw). São os "livres para prospecção".
+     * Retorna todos os CNPJs com coordenadas em client_locations
+     * que NÃO pertencem à carteira DO VENDEDOR LOGADO.
+     * Inclui o campo 'ocupado' = true quando pertence a OUTRO vendedor (laranja),
+     * false = livre para prospecção (vermelho).
      */
     public function livresMapaApi()
     {
         $vendorUser = $this->getVendorUser();
         if (!$vendorUser) return $this->response->setJSON(['error' => 'Sem acesso'])->setStatusCode(403);
 
+        $matricula = $vendorUser['matricula'];
         $db = db_connect();
 
         $rows = $db->query("
@@ -172,7 +175,12 @@ class VendedorController extends BaseController
                 COALESCE(emp.razao_social, cl.cnpj) AS razao_social,
                 COALESCE(est.cnae_fiscal_principal, '') AS cnae,
                 COALESCE(ce.logistics_score, 0) AS score,
-                COALESCE(ce.score_breakdown::text, '{}') AS score_breakdown
+                -- true = pertence a outro vendedor; false = livre
+                EXISTS (
+                    SELECT 1 FROM carteira_raw cr
+                    WHERE cr.cnpj = cl.cnpj
+                      AND cr.matricula_mcmcu != ?
+                ) AS ocupado
             FROM client_locations cl
             LEFT JOIN receita.empresas emp
                    ON emp.cnpj_basico = SUBSTRING(cl.cnpj, 1, 8)
@@ -181,10 +189,15 @@ class VendedorController extends BaseController
             LEFT JOIN client_enrichment ce ON ce.cnpj = cl.cnpj
             WHERE cl.latitude IS NOT NULL
               AND cl.longitude IS NOT NULL
-              AND cl.cnpj NOT IN (SELECT DISTINCT cnpj FROM carteira_raw WHERE cnpj IS NOT NULL)
+              -- Exclui apenas os que já são da carteira DO próprio vendedor
+              AND cl.cnpj NOT IN (
+                  SELECT DISTINCT cnpj FROM carteira_raw
+                  WHERE matricula_mcmcu = ?
+                    AND cnpj IS NOT NULL
+              )
             ORDER BY ce.logistics_score DESC NULLS LAST
-            LIMIT 3000
-        ")->getResultArray();
+            LIMIT 5000
+        ", [$matricula, $matricula])->getResultArray();
 
         return $this->response->setJSON([
             'success' => true,

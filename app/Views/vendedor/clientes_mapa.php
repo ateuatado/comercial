@@ -85,6 +85,7 @@
 }
 .sheet-type-pill.meu    { background: #eff6ff; color: #1d4ed8; }
 .sheet-type-pill.livre  { background: #fef2f2; color: #b91c1c; }
+.sheet-type-pill.ocupado{ background: #fff7ed; color: #c2410c; }
 .sheet-name { font-size: 15px; font-weight: 800; color: #1e293b; margin-bottom: 4px; line-height: 1.3; }
 .sheet-cnpj { font-size: 11px; color: #64748b; font-family: monospace; margin-bottom: 10px; }
 .sheet-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -131,6 +132,9 @@
         <button class="layer-toggle active-layer layer-livres" id="toggleLivres" onclick="toggleLayer('livres')">
             <span class="dot" style="background:#ef4444;"></span> Livres
         </button>
+        <button class="layer-toggle active-layer layer-ocup" id="toggleOcup" onclick="toggleLayer('ocup')">
+            <span class="dot" style="background:#f97316;"></span> Outro Vendedor
+        </button>
         <span class="counter-pill" id="counterPill">Carregando...</span>
     </div>
 
@@ -172,9 +176,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const layerMeus   = L.layerGroup().addTo(map);
 const layerLivres = L.layerGroup().addTo(map);
-const layerState  = { meus: true, livres: true };
+const layerOcup   = L.layerGroup().addTo(map);
+const layerState  = { meus: true, livres: true, ocup: true };
 
-let totalMeus = 0, totalLivres = 0;
+let totalMeus = 0, totalLivres = 0, totalOcup = 0;
 
 // GPS do usuário
 if (navigator.geolocation) {
@@ -193,8 +198,10 @@ if (navigator.geolocation) {
 // ── Toggle de camada ─────────────────────────────────────────
 function toggleLayer(which) {
     layerState[which] = !layerState[which];
-    const btn = document.getElementById(which === 'meus' ? 'toggleMeus' : 'toggleLivres');
-    const layer = which === 'meus' ? layerMeus : layerLivres;
+    const ids = { meus: 'toggleMeus', livres: 'toggleLivres', ocup: 'toggleOcup' };
+    const layers = { meus: layerMeus, livres: layerLivres, ocup: layerOcup };
+    const btn   = document.getElementById(ids[which]);
+    const layer = layers[which];
 
     if (layerState[which]) {
         map.addLayer(layer);
@@ -209,8 +216,9 @@ function toggleLayer(which) {
 function updateCounter() {
     const m = layerState.meus   ? totalMeus   : 0;
     const l = layerState.livres ? totalLivres : 0;
+    const o = layerState.ocup   ? totalOcup   : 0;
     document.getElementById('counterPill').textContent =
-        `${m} meus · ${l} livres`;
+        `${m} meus · ${l} livres · ${o} outros`;
 }
 
 // ── Carregar dados ───────────────────────────────────────────
@@ -223,7 +231,8 @@ async function loadAll() {
     const dataLivres = await resLivres.json();
 
     totalMeus   = dataMeus.total   || 0;
-    totalLivres = dataLivres.total || 0;
+    totalLivres = 0;
+    totalOcup   = 0;
 
     // Marcadores — meus clientes (azul/verde/amarelo por score)
     (dataMeus.clientes || []).forEach(c => {
@@ -233,11 +242,15 @@ async function loadAll() {
             .on('click', () => openSheet(c, 'meu'));
     });
 
-    // Marcadores — livres (vermelho)
+    // Marcadores — livres (vermelho) e de outro vendedor (laranja)
     (dataLivres.livres || []).forEach(c => {
-        L.marker([parseFloat(c.latitude), parseFloat(c.longitude)], { icon: dotIcon('#ef4444', 11) })
-            .addTo(layerLivres)
-            .on('click', () => openSheet(c, 'livre'));
+        const isOcup = c.ocupado === true || c.ocupado === 't' || c.ocupado === '1' || c.ocupado === 1;
+        const color  = isOcup ? '#f97316' : '#ef4444';
+        const layer  = isOcup ? layerOcup : layerLivres;
+        if (isOcup) totalOcup++; else totalLivres++;
+        L.marker([parseFloat(c.latitude), parseFloat(c.longitude)], { icon: dotIcon(color, 10) })
+            .addTo(layer)
+            .on('click', () => openSheet(c, isOcup ? 'ocupado' : 'livre'));
     });
 
     updateCounter();
@@ -251,6 +264,8 @@ async function loadAll() {
     if (allPoints.length > 0) {
         map.fitBounds(L.latLngBounds(allPoints).pad(0.1));
     }
+
+    updateCounter();
 }
 
 // ── Bottom Sheet ─────────────────────────────────────────────
@@ -262,6 +277,8 @@ function openSheet(c, tipo) {
 
     const pill = tipo === 'livre'
         ? `<span class="sheet-type-pill livre">🔴 Livre para Prospecção</span>`
+        : tipo === 'ocupado'
+        ? `<span class="sheet-type-pill ocupado">🟠 Em carteira de outro vendedor</span>`
         : `<span class="sheet-type-pill meu">🔵 Meu Cliente</span>`;
 
     const scoreRow = score > 0 ? `
