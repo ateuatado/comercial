@@ -373,7 +373,7 @@ class AdminController extends BaseController
         $notas     = $db->query("
             SELECT vn.*, vu.nome AS nome_autor
             FROM vendor_notes vn
-            LEFT JOIN vendor_users vu ON vu.id = vn.vendor_id
+            LEFT JOIN vendor_users vu ON vu.matricula = vn.matricula_vendedor
             WHERE vn.cnpj = ? ORDER BY vn.created_at DESC LIMIT 10
         ", [$cnpj])->getResultArray();
 
