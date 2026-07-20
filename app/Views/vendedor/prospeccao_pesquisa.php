@@ -274,6 +274,103 @@
     font-size: 9px;
     color: #94a3b8;
 }
+
+/* ── Tooltip de Score Expandido ── */
+.score-info-btn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: #94a3b8;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-left: 4px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+.score-info-btn:hover,
+.score-info-btn.open { background: #eff6ff; border-color: #3b82f6; color: #2563eb; }
+
+.score-tooltip-panel {
+    display: none;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    animation: fadeSlideDown 0.18s ease;
+}
+.score-tooltip-panel.open { display: block; }
+@keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.score-factor-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.score-factor-row:last-child { border-bottom: none; }
+.score-factor-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    width: 22px;
+    text-align: center;
+}
+.score-factor-body { flex: 1; min-width: 0; }
+.score-factor-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.score-factor-desc {
+    font-size: 9px;
+    color: #64748b;
+    line-height: 1.3;
+    margin-top: 1px;
+}
+.score-factor-mini-bar {
+    width: 36px;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 99px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.score-factor-mini-fill { height: 100%; border-radius: 99px; }
+.score-factor-pts {
+    font-size: 11px;
+    font-weight: 800;
+    color: #1e3a8a;
+    flex-shrink: 0;
+    min-width: 26px;
+    text-align: right;
+}
+.score-total-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 6px;
+    margin-top: 4px;
+    border-top: 1.5px solid #e2e8f0;
+}
+.score-total-label { font-size: 10px; font-weight: 700; color: #334155; }
+.score-total-pts {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1e3a8a;
+}
+.score-total-pts small { font-size: 10px; font-weight: 500; color: #64748b; }
 .rank-action-btn {
     background: var(--primary);
     color: #fff;
@@ -688,15 +785,83 @@ async function loadRanking(offset) {
             const cidade = [item.municipio_nome, item.uf].filter(Boolean).join(' - ');
             const email  = item.email ? `· ${item.email}` : '';
 
-            // Breakdown detalhado
+            // ── Montar HTML do tooltip de score ─────────────────
             const bd = item.score_breakdown || {};
-            const bdParts = [];
-            if (bd.cnae)          bdParts.push(`CNAE ${bd.cnae}`);
-            if (bd.capital)       bdParts.push(`Capital ${bd.capital}`);
-            if (bd.email)         bdParts.push(`Email ${bd.email}`);
-            if (bd.nome_fantasia) bdParts.push(`Marca ${bd.nome_fantasia}`);
-            if (bd.localizacao)   bdParts.push(`Loc ${bd.localizacao}`);
-            const bdStr = bdParts.join(' + ');
+            const maxes = { cnae: 40, capital: 20, email: 15, nome_fantasia: 10, localizacao: 15 };
+            const factors = [
+                {
+                    key: 'cnae',
+                    icon: '🏭',
+                    label: 'Ramo de Atividade (CNAE)',
+                    desc: () => bd.cnae >= 35
+                        ? 'CNAE principal ou secundário fortemente relacionado a comércio varejista de bens físicos (e-commerce, logística).'
+                        : bd.cnae >= 20
+                        ? 'CNAE com atividade moderada de expedição ou distribuição física de produtos.'
+                        : 'CNAE com baixa relação direta com envio de encomendas ou logística de distribuição.',
+                    color: '#3b82f6',
+                },
+                {
+                    key: 'capital',
+                    icon: '💰',
+                    label: 'Porte da Empresa (Capital Social)',
+                    desc: () => bd.capital >= 20
+                        ? 'Capital social alto (acima de R$ 100 mil) — indica empresa consolidada com volume potencial de envios elevado.'
+                        : bd.capital >= 10
+                        ? 'Capital social médio (entre R$ 20 mil e R$ 100 mil) — porte relevante para serviços de expedição periódica.'
+                        : 'Capital social baixo (abaixo de R$ 20 mil) — micro/pequena empresa; volume de envios provavelmente menor.',
+                    color: '#22c55e',
+                },
+                {
+                    key: 'email',
+                    icon: '✉️',
+                    label: 'Maturidade Digital (E-mail)',
+                    desc: () => bd.email > 0
+                        ? 'Possui e-mail corporativo próprio (domínio não-público) — indício forte de presensão online e e-commerce ativo.'
+                        : 'Sem e-mail ou utiliza provedor genérico (Gmail, Hotmail, etc.) — menor probabilidade de operação digital estruturada.',
+                    color: '#06b6d4',
+                },
+                {
+                    key: 'nome_fantasia',
+                    icon: '🏷️',
+                    label: 'Presença Comercial (Marca)',
+                    desc: () => bd.nome_fantasia > 0
+                        ? 'Nome Fantasia registrado na Receita Federal — empresa com identidade comercial ativa, provavelmente já em operação no mercado.'
+                        : 'Sem Nome Fantasia — opera apenas com a Razão Social, comum em MEIs e empresas iniciantes.',
+                    color: '#f59e0b',
+                },
+                {
+                    key: 'localizacao',
+                    icon: '📍',
+                    label: 'Localização Estratégica',
+                    desc: () => bd.localizacao >= 15
+                        ? 'Coordenadas GPS mapeadas — endereço exato validado, facilita roteirização e abordagem presencial pelo vendedor.'
+                        : 'Coordenadas não mapeadas ainda — endereço estimado com base no CEP/bairro da Receita Federal.',
+                    color: '#8b5cf6',
+                },
+            ];
+
+            const tooltipId = `tt_${item.cnpj}`;
+            let tooltipRows = '';
+            factors.forEach(f => {
+                const pts = bd[f.key] || 0;
+                const max = maxes[f.key];
+                const pct = max > 0 ? Math.round((pts / max) * 100) : 0;
+                if (pts === 0 && f.key !== 'localizacao' && f.key !== 'nome_fantasia') return; // omite zeros não relevantes
+                tooltipRows += `
+                    <div class="score-factor-row">
+                        <div class="score-factor-icon">${f.icon}</div>
+                        <div class="score-factor-body">
+                            <div class="score-factor-label">${f.label}</div>
+                            <div class="score-factor-desc">${f.desc()}</div>
+                        </div>
+                        <div class="score-factor-mini-bar">
+                            <div class="score-factor-mini-fill" style="width:${pct}%; background:${f.color};"></div>
+                        </div>
+                        <div class="score-factor-pts">${pts}</div>
+                    </div>`;
+            });
+
+            const scoreLabel = score >= 60 ? '🔥 Alto potencial' : score >= 30 ? '⚡ Potencial moderado' : '· Baixo potencial';
 
             const card = document.createElement('div');
             card.className = 'rank-card';
@@ -705,15 +870,38 @@ async function loadRanking(offset) {
                 <div class="rank-body">
                     <div class="rank-name" title="${nome}">${nome}</div>
                     <div class="rank-meta">${cnpj} ${cidade ? '· ' + cidade : ''}</div>
-                    <div class="score-bar-wrap">
-                        <div class="score-bar-fill ${bar}" style="width: ${score}%"></div>
+                    <div style="display:flex; align-items:center; gap:4px; margin-bottom:4px;">
+                        <div class="score-bar-wrap" style="flex:1; margin-bottom:0;">
+                            <div class="score-bar-fill ${bar}" style="width: ${score}%"></div>
+                        </div>
+                        <span style="font-size:10px;font-weight:700;color:#1e3a8a;min-width:30px;text-align:right;">${score}<small style="font-weight:400;color:#94a3b8;">/100</small></span>
+                        <button class="score-info-btn" data-tooltip="${tooltipId}" title="Ver detalhes do score">
+                            <i class="bi bi-info"></i>
+                        </button>
                     </div>
-                    <div class="rank-breakdown">${bdStr ? `Score ${score}/100 · ` + bdStr : `Score ${score}/100`}</div>
+                    <div class="rank-breakdown">${scoreLabel}</div>
+                    <div class="score-tooltip-panel" id="${tooltipId}">
+                        ${tooltipRows}
+                        <div class="score-total-line">
+                            <span class="score-total-label">Pontuação Total</span>
+                            <span class="score-total-pts">${score} <small>/100</small></span>
+                        </div>
+                    </div>
                 </div>
                 <button class="rank-action-btn" onclick="location.href='<?= site_url('vendedor/cliente/') ?>' + '${item.cnpj}'">
                     <i class="bi bi-arrow-right"></i>
                 </button>
             `;
+
+            // Bind toggle do tooltip
+            const infoBtn = card.querySelector('.score-info-btn');
+            const panel   = card.querySelector('.score-tooltip-panel');
+            infoBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = panel.classList.toggle('open');
+                infoBtn.classList.toggle('open', isOpen);
+            });
+
             section.appendChild(card);
         });
 
