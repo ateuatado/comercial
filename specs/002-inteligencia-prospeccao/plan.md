@@ -28,16 +28,77 @@ CREATE TABLE client_enrichment (
 CREATE INDEX idx_enrichment_score ON client_enrichment(logistics_score DESC);
 ```
 
-### Configuração de Chaves API Individuais
-Na tabela `vendor_users` (ou tabela equivalente de perfis de vendedores), adicionaremos uma coluna para chaves de API:
+### Configurações de Pesos e Parâmetros de Scoring
+Adicionaremos as tabelas para suportar a parametrização em tempo real pelo administrador:
 
 ```sql
+-- Guarda as chaves e valores globais do Score de 0 a 100
+CREATE TABLE scoring_config (
+    key VARCHAR(50) PRIMARY KEY,
+    value VARCHAR(255) NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL
+);
+
+-- Regras de pesos individuais de cada código de CNAE
+CREATE TABLE cnae_scoring_rules (
+    cnae_code VARCHAR(7) PRIMARY KEY,
+    weight INT CHECK (weight >= 0 AND weight <= 100),
+    description VARCHAR(255) NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);
+
+-- Adiciona a coluna de API Key pessoal do vendedor
 ALTER TABLE vendor_users ADD COLUMN serper_api_key VARCHAR(255) NULL;
 ```
 
 ---
 
-## 2. Serviço de Detecção de E-commerce (`ECommerceDetector`)
+## 2. Query de Recálculo em Massa com Amortização (PostgreSQL)
+
+A query de recalque deve ler os CNAEs Principal e Secundários de `receita.estabelecimentos` e associar aos pesos cadastrados. 
+A coluna `cnae_fiscal_secundaria` é uma string separada por vírgulas. Usamos `string_to_array` e `unnest` do PostgreSQL para ler cada código e aplicar o **Fator de Amortização** de forma unificada:
+
+```sql
+WITH cnae_scores AS (
+    SELECT 
+        e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv AS cnpj,
+        
+        -- 1. Peso do CNAE Principal (100% do peso da regra)
+        COALESCE(p_rule.weight, 0) AS principal_score,
+        
+        -- 2. Maior peso entre todos os CNAEs Secundários (multiplicado pelo Fator de Amortização, ex: 0.70)
+        COALESCE((
+            SELECT MAX(s_rule.weight * :amortization_factor::float)
+            FROM unnest(string_to_array(e.cnae_fiscal_secundaria, ',')) AS sec_cnae
+            LEFT JOIN cnae_scoring_rules s_rule ON s_rule.cnae_code = sec_cnae
+        ), 0) AS secundario_score
+        
+    FROM receita.estabelecimentos e
+    LEFT JOIN cnae_scoring_rules p_rule ON p_rule.cnae_code = e.cnae_fiscal_principal
+)
+UPDATE client_enrichment ce
+SET 
+    -- O score final do bloco de CNAE será o maior valor entre o Principal e o Secundário amortizado
+    logistics_score = GREATEST(cs.principal_score, cs.secundario_score),
+    updated_at = NOW()
+FROM cnae_scores cs
+WHERE ce.cnpj = cs.cnpj;
+```
+
+---
+
+## 3. Fluxo de Execução Assíncrono do Recálculo
+
+Para evitar timeouts na requisição do Admin:
+1.  **POST `/admin/scoring/recalcular`:** O administrador clica no botão. O controller cria um arquivo de lock e inicia a tarefa CLI `php spark enrich:recalculate` em segundo plano (usando `shell_exec` ou background job runner). Retorna `success => true`.
+2.  **Job CLI (`Enrichment::recalculate`):** A tarefa lê o total de registros. Divide o processamento em chunks de 5.000 CNPJs e atualiza uma chave em memória (Redis/Cache do CodeIgniter) contendo a porcentagem concluída: `scoring_recalculation_progress = 45`.
+3.  **GET `/admin/scoring/progresso`:** A tela do admin faz chamadas de polling AJAX a cada 2 segundos a esta rota para ler a chave de cache e mover a barra de progresso no frontend.
+
+---
+
+## 4. Serviço de Detecção de E-commerce (`ECommerceDetector`)
 
 Criaremos uma classe de serviço em `app/Services/ECommerceDetector.php` encarregada de raspar e identificar tecnologias:
 
@@ -67,7 +128,7 @@ class ECommerceDetector
             $html = $response->getBody();
             $detected = [];
             
-            // Regras léxicas de detecção
+            // Regras de detecção
             if (stripos($html, 'cdn.shopify.com') !== false || stripos($html, 'Shopify.theme') !== false) {
                 $detected[] = 'shopify';
             }
@@ -83,12 +144,6 @@ class ECommerceDetector
             if (stripos($html, 'vtex.js') !== false || stripos($html, 'vteximg.com.br') !== false) {
                 $detected[] = 'vtex';
             }
-            if (stripos($html, 'frenet') !== false) {
-                $detected[] = 'frenet';
-            }
-            if (stripos($html, 'melhorenvio') !== false) {
-                $detected[] = 'melhorenvio';
-            }
             
             return $detected;
             
@@ -98,70 +153,3 @@ class ECommerceDetector
     }
 }
 ```
-
----
-
-## 3. Algoritmo de Cálculo de Score por CNAEs
-
-Criaremos um arquivo de configuração estático `app/Config/LogisticsPropensity.php` contendo a tabela de pontuação dos códigos CNAE:
-
-```php
-namespace Config;
-
-class LogisticsPropensity extends \CodeIgniter\Config\BaseConfig
-{
-    public array $scores = [
-        // CNAEs de Comércio Varejista (Score 10)
-        '4781400' => 10, // Comércio varejista de artigos do vestuário
-        '4782201' => 10, // Comércio varejista de calçados
-        '4772500' => 10, // Cosméticos e perfumaria
-        '4751201' => 10, // Computadores e periféricos
-        '4771701' => 10, // Comércio varejista de produtos farmacêuticos
-        
-        // CNAEs de Comércio Atacadista e Distribuição (Score 7)
-        '4649408' => 7,  // Comércio atacadista de produtos de higiene
-        '4686902' => 7,  // Comércio atacadista de embalagens
-        
-        // CNAEs Industriais leves (Score 5)
-        '1412601' => 5,  // Confecção de vestuário
-        
-        // CNAEs de Serviços locais (Score 1)
-        '6911701' => 1,  // Advocacia
-        '6202300' => 1,  // Consultoria em TI
-    ];
-}
-```
-
-### Lógica de Pontuação do Cliente
-1. Consultar CNAE principal e secundários do cliente no banco.
-2. Atribuir o score mapeado a cada CNAE. Se o CNAE não constar na lista de regras, o score padrão será 3 para comércio geral e 1 para serviços gerais.
-3. O score final do cliente será o **maior valor individual** encontrado.
-4. Se o cliente tiver detecção positiva de e-commerce (ex: usa Shopify), o Score é forçado para **10** de forma prioritária.
-
----
-
-## 4. Integração OSINT para Job Recruiting (Serper API)
-
-Para encontrar vagas logísticas:
-- **Consulta:**
-  - `q`: `"{NOME_NORMALIZADO}" (vaga OR contratar) (logistica OR expedicao OR estoque OR e-commerce)`
-- **Filtro:**
-  - A API do Serper retorna resultados com título e descrição (snippet).
-  - O sistema filtra se no título ou snippet aparecem palavras qualificadoras.
-  - Caso apareçam, os detalhes da vaga (Título e Link do portal) são estruturados em um array JSON e gravados em `client_enrichment.job_signals`.
-
----
-
-## 5. UI/UX no Aplicativo do Vendedor
-
-### Painel de Prospecção
-A listagem de clientes do vendedor será acrescida de ordenação e filtros rápidos:
-*   Filtros: `Somente E-commerce`, `Somente com Vagas Abertas`, `Score > 7`.
-*   Ordenação Padrão: `Score de Propensão (Decrescente)`.
-
-### Card do Cliente (Detalhe)
-Inserção dos Badges dinâmicos na interface:
-*   `🛍️ E-commerce Shopify`
-*   `📦 Vaga: Auxiliar de Expedição (LinkedIn)`
-*   `⭐ Relevância Comercial: 10 / 10`
-*   *Justificativa do Score:* *"Score 10 devido ao CNAE de Comércio Varejista e Plataforma Shopify ativa."*

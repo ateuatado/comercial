@@ -24,3 +24,7 @@ Esta constituição define as diretrizes e os princípios de produto e engenhari
 
 6. **Auditoria de Ações de Inteligência:**
    - Toda validação ou recusa de leads baseada em dados sugeridos pelo sistema deve ser gravada na tabela de auditoria com matrícula do vendedor (`validated_by`) e carimbo de tempo.
+
+7. **Recalque Assíncrono do Score Preditivo (Performance do Banco):**
+   - O recálculo de scores preditivos em massa (após alteração de parâmetros pelo admin) nunca deve ser rodado de forma síncrona na thread HTTP do servidor Apache/Nginx para evitar timeouts e travamentos da base de dados PostgreSQL.
+   - A atualização deve ser feita de forma assíncrona usando processos em segundo plano (background tasks) com polling de progresso AJAX no frontend.

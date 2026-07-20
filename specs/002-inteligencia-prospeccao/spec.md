@@ -24,18 +24,41 @@ Identificar se o cliente corporativo é um e-commerce ativo e qual plataforma el
 
 ---
 
-## 2. Score de Propensão Logística por CNAEs
+## 2. Painel Administrativo de Configuração de Pesos e Score Preditivo
 
 ### Objetivo de negócio
-Classificar e ordenar a lista de clientes do vendedor com base na real probabilidade de a empresa gerar volume de remessas e precisar de contratos com os Correios.
+Permitir que a gestão e os coordenadores comerciais parametrizem os critérios de qualificação e gerem um Score Preditivo Unificado (de 0 a 100) para cada CNPJ, priorizando automaticamente os leads mais quentes para a força de vendas do campo.
 
-### Regras de Negócio
-- **Mapeamento de Relevância por CNAEs:**
-  - **Score 10 (Alta Propensão):** CNAEs do comércio varejista de roupas, calçados, cosméticos, eletrônicos, medicamentos, suplementos, e CNAEs declarados de comércio eletrônico direto.
-  - **Score 5 (Média Propensão):** Distribuidoras B2B, indústrias leves de confecção, manufatura de bens de consumo físicos de pequeno porte.
-  - **Score 1 (Baixa Propensão):** Empresas de serviços puros (consultorias, advocacia, contabilidade, empresas de engenharia, imobiliárias, construção civil).
-- **Cálculo do Score Final:** O sistema analisa o CNAE Principal e os CNAEs Secundários obtidos do cadastro da empresa na Receita Federal. O Score de Propensão do cliente será definido pelo **maior score individual** entre o CNAE principal e os secundários (ou seja, se o principal for serviço, mas um dos secundários for varejo de roupas, a pontuação sobe para 10).
-- **Ordenação Padrão:** A lista de clientes "Ver meus clientes" e a busca de prospecção regional no celular do vendedor serão ordenadas por padrão em ordem decrescente de Score de Propensão.
+### O Modelo de Scoring Preditivo (Fatores e Pesos)
+
+O Score Preditivo de cada empresa é a soma das pontuações obtidas em 5 blocos de relevância lógica para os Correios:
+
+| Fator de Pontuação | Relevância Operacional (Porquê) | Peso Padrão | Regra de Negócio |
+| :--- | :--- | :--- | :--- |
+| **Ramo de Atividade (CNAE)** | Identifica se a empresa atua na comercialização física de bens de pequeno/médio porte transportáveis. | **40 pontos** | CNAEs de Comércio Varejista ganham peso máximo; Serviços locais ganham peso mínimo. |
+| **Porte (Capital Social)** | Indica o faturamento potencial da empresa e a probabilidade de grandes remessas frequentes. | **20 pontos** | Empresas com capital social > R$ 100 mil ganham pontos máximos; MEIs pequenos ganham mínimo. |
+| **Maturidade Digital (E-mail)** | Indica se a empresa tem e-mail corporativo próprio de seu site, que é a porta de entrada do e-commerce. | **15 pontos** | Domínios próprios (@empresa.com.br) ganham pontos; Provedores públicos (@gmail.com) ganham zero. |
+| **Presença Comercial (Marca)** | Filtra empresas burocráticas abertas e sem atividade comercial física de fato. | **10 pontos** | Nome Fantasia preenchido e ativo no banco da Receita Federal soma pontos adicionais. |
+| **Localização Estratégica** | Reduz o custo logístico de coleta ao priorizar empresas situadas próximas a centros de distribuição. | **15 pontos** | Leads localizados na mesma cidade de um CDD ou GEVEN dos Correios ganham bônus. |
+
+---
+
+### A Regra de Amortização do CNAE Secundário
+
+Uma empresa pode ter um CNAE Principal de baixo interesse logístico (ex: Fabricação B2B pura) mas possuir CNAEs Secundários de alto interesse (ex: Comércio varejista online).
+*   **Regra de Negócio:** Se a correspondência com a regra de peso do CNAE for no **CNAE Principal**, a empresa recebe **100%** dos pontos definidos para aquela regra.
+*   **Regra de Amortização:** Se a correspondência for encontrada apenas na lista de **CNAEs Secundários**, a pontuação sofrerá um redutor parametrizável pelo administrador (fator de amortização, ex: **70% do peso original**).
+*   **Cálculo Final do Bloco:** O sistema calcula a pontuação do CNAE Principal e de todos os CNAEs Secundários (amortizados), selecionando o **maior valor individual** como a pontuação do bloco de CNAE da empresa.
+
+---
+
+### Funcionalidades do Painel de Gestão (Admin)
+
+1.  **Sliders de Peso por Bloco:** A soma total das 5 categorias (CNAE, Capital Social, E-mail, Nome Fantasia, Localização) deve ser obrigatoriamente **100**. O frontend bloqueia o salvamento caso a soma divirja.
+2.  **Slider do Fator de Amortização:** O administrador ajusta o redutor para CNAEs secundários (de 0% a 100% de peso).
+3.  **Tabela de Parametrização de CNAEs:** Campo para cadastrar regras de peso para códigos específicos ou faixas de CNAE (ex: CNAE `4781-4/00` = 40 pontos).
+4.  **Botão "Salvar e Recalcular Score da Base":** Inicia o processo em lote.
+5.  **Barra de Progresso (UX):** Exibe o percentual de conclusão do recálculo no banco de dados.
 
 ---
 

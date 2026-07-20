@@ -1,36 +1,43 @@
-# Tasks 002 - Tarefas da Fase 3
+# Tasks 002 - Checklist de Implementação de Inteligência Comercial (Fase 3)
 
-Este documento lista todas as tarefas necessárias para a implementação da Fase 3 de Inteligência de Prospecção do SPIV.
+Esta checklist organiza granularmente o desenvolvimento do módulo de **Scoring Preditivo e Inteligência** da Fase 3 do SPIV. As tarefas estão ordenadas de forma lógica e devem ser marcadas e seguidas rigorosamente.
 
-## Fase 3 - Inteligência de Prospecção e Enriquecimento Preditivo
+## 1. Estrutura do Banco de Dados e Migrations
 
-### 1. Banco de Dados e Modelagem (DB)
-- [ ] Criar arquivo de migração para a tabela `client_enrichment`.
-- [ ] Criar arquivo de migração para adicionar `serper_api_key` na tabela `vendor_users`.
-- [ ] Rodar as migrations e validar a criação das tabelas no PostgreSQL.
-- [ ] Criar índices para a coluna `logistics_score` na tabela `client_enrichment`.
+- [ ] Criar migration para a tabela `scoring_config` para gerenciar chaves-valores globais de peso.
+- [ ] Criar migration para a tabela `cnae_scoring_rules` para mapear o peso de cada código de CNAE (chave primária de 7 dígitos).
+- [ ] Criar migration para a tabela `client_enrichment` com chaves estrangeiras, índices de busca rápida baseados em score e campos JSONB.
+- [ ] Criar Seeder inicial (`CnaeRulesSeeder`) populando regras padrão para pelo menos 50 CNAEs de comércio varejista (PAC/SEDEX preferencial) com pesos elevados (ex: 40 pontos).
+- [ ] Criar Seeder inicial (`ScoringConfigSeeder`) para gravar os pesos iniciais das categorias:
+  - `weight_cnae` = 40
+  - `weight_capital` = 20
+  - `weight_email` = 15
+  - `weight_nome_fantasia` = 10
+  - `weight_localizacao` = 15
+  - `amortization_factor` = 70 (Fator de Amortização dos CNAEs secundários)
 
-### 2. Implementações do Backend (Services)
-- [ ] Desenvolver classe `App\Services\ECommerceDetector.php` com suporte a timeouts e regras regexp.
-- [ ] Criar arquivo de configuração `App\Config\LogisticsPropensity.php` com o mapeamento inicial de CNAEs.
-- [ ] Implementar classe de utilidade de cálculo de Score preditivo baseado em CNAEs e E-commerce ativo.
-- [ ] Desenvolver comando Spark CLI `php spark enrich:leads` para rodar o enriquecimento assíncrono em lote na carteira de clientes.
+## 2. Interface Administrativa de Parametrizador de Scores (Frontend)
 
-### 3. Integrações Externas (OSINT)
-- [ ] Ajustar o método de cURL da Serper.dev para extrair dados estruturados de vagas (Job Recruiting).
-- [ ] Desenvolver regex de correspondência e tokenização para validar se as vagas encontradas pertencem ao segmento operacional logístico.
-- [ ] Implementar fallback transparente caso as chaves Serper do vendedor estejam esgotadas.
+- [ ] Desenvolver a rota `/admin/scoring` associada ao controlador de gerenciamento do admin.
+- [ ] Criar a view `app/Views/admin/scoring_config.php` contendo:
+  - Formulário com sliders ou campos de número para os 5 blocos do algoritmo.
+  - Script JS de validação em tempo real que garante que a soma das 5 categorias resulte obrigatoriamente em **100** antes de habilitar o botão de envio.
+  - Controle deslizante (slider) ou input numérico de **Fator de Amortização de CNAEs Secundários** (0% a 100%).
+  - Tabela CRUD responsiva conectada à API local para gerenciar a lista de CNAEs específicos mapeados com seus respectivos pesos individuais.
+  - Seção de gatilho contendo o botão "Salvar e Recalcular Score da Base".
+  - Componente de Barra de Progresso do Bootstrap (invisível por padrão) que aparece e atualiza com animação de preenchimento quando o recalque é disparado.
 
-### 4. Interface do Usuário (Views & JS)
-- [ ] Adicionar campo "Chave de API do Serper Pessoal" na página de perfil/configurações do Vendedor.
-- [ ] Ajustar a view de listagem de clientes para exibir as colunas de Score de Propensão e Badges.
-- [ ] Implementar os filtros rápidos ("Somente E-commerce", "Somente com Vagas", "Score > 7") via AJAX na listagem de clientes.
-- [ ] Adicionar seção visual de Inteligência Comercial na tela de detalhes do cliente (`cliente_detalhe.php`), exibindo:
-  - Barra de score de 1 a 10 de relevância logística.
-  - Justificativa do Score em formato legível.
-  - Badges com ícones correspondentes às plataformas e vagas detectadas.
+## 3. Backend e Lógicas de API AJAX (Controllers & CLI Jobs)
 
-### 5. Área Administrativa (Lookalike)
-- [ ] Criar módulo de visualização gerencial para o coordenador/administrador visualizar a média de faturamento por CNAE de contratos ativos.
-- [ ] Desenvolver consulta Lookalike no banco para sugerir CNPJs livres com perfil semelhante ao dos campeões atuais.
-- [ ] Implementar tela de atribuição em massa de leads sugeridos pelo lookalike para a carteira dos vendedores.
+- [ ] Desenvolver a rota POST `/admin/scoring/salvar` para persistir as alterações de peso na tabela `scoring_config`.
+- [ ] Criar o comando CLI Spark em PHP (`app/Commands/RecalculateScores.php`) que execute a query PostgreSQL CTE com a lógica `unnest()` e `string_to_array()` para processar com performance de alto nível as regras de CNAEs principal e secundário amortizado.
+- [ ] O comando Spark deve escrever a porcentagem de conclusão a cada chunk de 5.000 registros no cache de dados da aplicação (`Cache::save('scoring_recalculation_progress', $percent)`).
+- [ ] Criar a rota POST `/admin/scoring/recalcular` que aciona de forma segura o comando CLI Spark em background (execução em background que não trava o Apache/Nginx).
+- [ ] Criar a rota GET `/admin/scoring/progresso` que lê o percentual salvo em cache e o retorna no formato JSON (`{ "progresso": 72 }`).
+- [ ] Implementar a função JavaScript de Polling AJAX na view que faz GETs na rota `/admin/scoring/progresso` a cada 2 segundos até atingir 100%, ocultando a barra e recarregando a página com o aviso de sucesso.
+
+## 4. Testes e Validação de Dados
+
+- [ ] Criar testes unitários simulando CNPJ com CNAE varejista como principal (deve ganhar peso máximo de CNAE).
+- [ ] Criar testes unitários simulando CNPJ com CNAE varejista como secundário (deve ganhar peso amortizado, ex: `40 * 0.70 = 28` no bloco).
+- [ ] Validar a query PostgreSQL contra cenários em que o campo de e-mail de `receita.estabelecimentos` possui e-mail institucional e público, certificando que o score e a extração funcionem conforme planejado.
