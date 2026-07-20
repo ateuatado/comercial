@@ -884,7 +884,7 @@ class VendedorController extends BaseController
         $apiKey = env('serper.apiKey') ?: env('SERPER_API_KEY') ?: getenv('serper.apiKey') ?: getenv('SERPER_API_KEY');
 
         if (!empty($apiKey)) {
-            $apiResult = $this->querySerperApi($searchQuery, $cleanCnpj, $apiKey);
+            $apiResult = $this->querySerperApi($searchQuery, $cleanCnpj, $apiKey, $nomeLimpo);
             if ($apiResult['success']) {
                 $sugestoes = $apiResult['results'];
                 if (empty($sugestoes)) {
@@ -953,7 +953,7 @@ class VendedorController extends BaseController
     /**
      * Consulta a API do Serper.dev para obter resultados orgânicos do Google Search.
      */
-    private function querySerperApi(string $query, string $cnpj, string $apiKey): array
+    private function querySerperApi(string $query, string $cnpj, string $apiKey, string $nomeOriginal): array
     {
         $client = \Config\Services::curlrequest();
         $sugestoes = [];
@@ -980,6 +980,16 @@ class VendedorController extends BaseController
                 $data = json_decode($response->getBody(), true);
                 
                 if (!empty($data['organic'])) {
+                    // Tokeniza o nome original em palavras significativas (comprimento >= 3)
+                    $termos = [];
+                    $parts = explode(' ', $nomeOriginal);
+                    foreach ($parts as $part) {
+                        $cleanPart = trim($part);
+                        if (strlen($cleanPart) >= 3) {
+                            $termos[] = strtolower($cleanPart);
+                        }
+                    }
+
                     $uniqueUrls = [];
                     foreach ($data['organic'] as $item) {
                         $url = $item['link'] ?? '';
@@ -1006,6 +1016,25 @@ class VendedorController extends BaseController
                         // Normalizar: remover query strings irrelevantes (utm_, fbclid, etc.)
                         $cleanUrl = preg_replace('/\?(utm_|fbclid|ref|hl|locale|_rdr).*$/', '', $url);
                         $cleanUrl = rtrim($cleanUrl, '/');
+
+                        // ── Validação Léxica de URL e Título (Assertividade) ──
+                        if (!empty($termos)) {
+                            $urlLower = strtolower($cleanUrl);
+                            $titleLower = strtolower($item['title'] ?? '');
+                            $matched = false;
+                            
+                            foreach ($termos as $termo) {
+                                if (strpos($urlLower, $termo) !== false || strpos($titleLower, $termo) !== false) {
+                                    $matched = true;
+                                    break;
+                                }
+                            }
+                            
+                            // Se nenhuma das palavras-chave do nome da empresa bater com o link/título, descarta
+                            if (!$matched) {
+                                continue;
+                            }
+                        }
 
                         if (isset($uniqueUrls[$cleanUrl])) {
                             continue;
