@@ -272,7 +272,30 @@ async function performSearch() {
     }
 }
 
+// ── Badge de Score Preditivo ──────────────────────────────────
+const SCORE_STYLE = document.createElement('style');
+SCORE_STYLE.textContent = `
+.score-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 7px; border-radius: 99px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+}
+.score-badge.high   { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+.score-badge.medium { background: #fef9c3; color: #a16207; border: 1px solid #fde047; }
+.score-badge.low    { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+`;
+document.head.appendChild(SCORE_STYLE);
+
+function renderScoreBadge(score) {
+    const s = parseInt(score) || 0;
+    if (s === 0) return '';
+    const cls = s >= 60 ? 'high' : (s >= 30 ? 'medium' : 'low');
+    const icon = s >= 60 ? '🔥' : (s >= 30 ? '⚡' : '·');
+    return `<span class="score-badge ${cls}" title="Score Preditivo de Potencial Logístico">${icon} Score ${s}</span>`;
+}
+
 function renderResults(list) {
+
     if (!list || list.length === 0) {
         resultsSection.innerHTML = `
             <div class="text-center text-muted py-5">
@@ -311,7 +334,10 @@ function renderResults(list) {
 
         card.innerHTML = `
             <h3>${item.nome_fantasia || item.razao_social}</h3>
-            <div class="result-cnpj">${formattedCnpj}</div>
+            <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+                <div class="result-cnpj">${formattedCnpj}</div>
+                ${renderScoreBadge(item.logistics_score)}
+            </div>
             <div class="result-address">
                 <i class="bi bi-geo-alt text-muted"></i> ${item.endereco_completo}
                 <span class="geo-status-indicator">${addressMarkerHtml}</span>

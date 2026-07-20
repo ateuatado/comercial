@@ -341,14 +341,18 @@ class VendedorController extends BaseController
                        e.tipo_logradouro, e.logradouro, e.numero, e.complemento, e.bairro, e.cep, e.uf,
                        m.descricao AS municipio_nome,
                        loc.latitude AS loc_lat, loc.longitude AS loc_lng,
-                       cw.rfb_situacao_cadastral, cw.rfb_verificado_em
+                       cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
+                       COALESCE(ce.logistics_score, 0) AS logistics_score,
+                       ce.score_breakdown
                 FROM receita.estabelecimentos e
                 LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
                 LEFT JOIN receita.municipios m ON e.municipio = m.codigo
                 LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN client_enrichment ce ON ce.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) LIKE ?
                 {$emailFilterSql}
+                ORDER BY COALESCE(ce.logistics_score, 0) DESC
                 LIMIT 30
             ";
             $resultados = $db->query($query, ['%' . $cleanCnpj . '%'])->getResultArray();
@@ -359,17 +363,21 @@ class VendedorController extends BaseController
                        e.tipo_logradouro, e.logradouro, e.numero, e.complemento, e.bairro, e.cep, e.uf,
                        m.descricao AS municipio_nome,
                        loc.latitude AS loc_lat, loc.longitude AS loc_lng,
-                       cw.rfb_situacao_cadastral, cw.rfb_verificado_em
+                       cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
+                       COALESCE(ce.logistics_score, 0) AS logistics_score,
+                       ce.score_breakdown
                 FROM receita.estabelecimentos e
                 LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
                 LEFT JOIN receita.municipios m ON e.municipio = m.codigo
                 LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN client_enrichment ce ON ce.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 WHERE (LOWER(emp.razao_social) LIKE ?
                    OR LOWER(e.nome_fantasia) LIKE ?
                    OR LOWER(e.logradouro) LIKE ?
                    OR LOWER(e.bairro) LIKE ?)
                    {$emailFilterSql}
+                ORDER BY COALESCE(ce.logistics_score, 0) DESC
                 LIMIT 30
             ";
             $param = '%' . $searchTerm . '%';

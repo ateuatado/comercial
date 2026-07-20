@@ -4,9 +4,66 @@
 <div class="container-fluid py-4" style="max-width: 1100px;">
 
     <!-- Header -->
-    <div class="mb-4">
-        <h4 class="fw-bold mb-1"><i class="bi bi-speedometer2 me-2"></i>Painel Administrativo</h4>
-        <p class="text-muted small mb-0">Visão consolidada da base de carteiras do SPIV.</p>
+    <div class="d-flex align-items-start justify-content-between mb-4">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="bi bi-speedometer2 me-2"></i>Painel Administrativo</h4>
+            <p class="text-muted small mb-0">Visão consolidada da base de carteiras do SPIV.</p>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Configurações do sistema">
+                <i class="bi bi-gear-fill"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: 220px;">
+                <li><h6 class="dropdown-header text-uppercase" style="font-size:10px;">Configurações</h6></li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="<?= site_url('admin/scoring') ?>">
+                        <i class="bi bi-graph-up-arrow text-primary"></i>
+                        <div>
+                            <div class="fw-semibold" style="font-size:13px;">Painel Preditivo</div>
+                            <small class="text-muted">Pesos de CNAE e score de leads</small>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="<?= site_url('admin/mensagens') ?>">
+                        <i class="bi bi-chat-square-text text-info"></i>
+                        <div>
+                            <div class="fw-semibold" style="font-size:13px;">Mensagens do Sistema</div>
+                            <small class="text-muted">Avisos para vendedores</small>
+                        </div>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header text-uppercase" style="font-size:10px;">Dados</h6></li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="<?= site_url('admin/importar') ?>">
+                        <i class="bi bi-cloud-upload text-success"></i>
+                        <div>
+                            <div class="fw-semibold" style="font-size:13px;">Importar Carteira</div>
+                            <small class="text-muted">Upload CSV do relatório</small>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="<?= site_url('admin/localizacao') ?>">
+                        <i class="bi bi-geo-alt text-warning"></i>
+                        <div>
+                            <div class="fw-semibold" style="font-size:13px;">Localizações</div>
+                            <small class="text-muted">Geocodificação manual</small>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="<?= site_url('admin/ropa') ?>">
+                        <i class="bi bi-shield-check text-danger"></i>
+                        <div>
+                            <div class="fw-semibold" style="font-size:13px;">LGPD / ROPA</div>
+                            <small class="text-muted">Inventário de tratamento</small>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 
     <!-- KPI Cards -->
@@ -159,6 +216,58 @@
                                     <span class="text-warning">Nenhuma importação via web</span>
                                 <?php endif; ?>
                             </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configurações do Sistema -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-left: 4px solid #3b82f6 !important;">
+                <div class="card-header bg-light border-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-gear-fill text-secondary"></i>
+                    <h6 class="mb-0 fw-bold">Configurações do Sistema</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-6 col-md-3">
+                            <a href="<?= site_url('admin/scoring') ?>" class="btn btn-light border w-100 text-start d-flex align-items-center gap-2 py-3">
+                                <i class="bi bi-graph-up-arrow fs-5 text-primary"></i>
+                                <div>
+                                    <div class="fw-bold small">Painel Preditivo</div>
+                                    <div class="text-muted" style="font-size:10px;">Scoring de leads logísticos</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="<?= site_url('admin/mensagens') ?>" class="btn btn-light border w-100 text-start d-flex align-items-center gap-2 py-3">
+                                <i class="bi bi-chat-square-text fs-5 text-info"></i>
+                                <div>
+                                    <div class="fw-bold small">Mensagens</div>
+                                    <div class="text-muted" style="font-size:10px;">Avisos do sistema</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="<?= site_url('admin/importar') ?>" class="btn btn-light border w-100 text-start d-flex align-items-center gap-2 py-3">
+                                <i class="bi bi-cloud-upload fs-5 text-success"></i>
+                                <div>
+                                    <div class="fw-bold small">Importar CSV</div>
+                                    <div class="text-muted" style="font-size:10px;">Relatório geral</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="<?= site_url('admin/ropa') ?>" class="btn btn-light border w-100 text-start d-flex align-items-center gap-2 py-3">
+                                <i class="bi bi-shield-check fs-5 text-danger"></i>
+                                <div>
+                                    <div class="fw-bold small">LGPD / ROPA</div>
+                                    <div class="text-muted" style="font-size:10px;">Inventário de dados</div>
+                                </div>
+                            </a>
                         </div>
                     </div>
                 </div>
