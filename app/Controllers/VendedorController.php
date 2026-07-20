@@ -76,6 +76,13 @@ class VendedorController extends BaseController
         return view('vendedor/clientes', compact('vendorUser', 'categorias', 'segmentos', 'ciclos'));
     }
 
+    public function clientesMapaView()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return redirect()->to('/sem-carteira');
+        return view('vendedor/clientes_mapa', compact('vendorUser'));
+    }
+
     public function clientesApi()
     {
         $vendorUser = $this->getVendorUser();
@@ -104,6 +111,46 @@ class VendedorController extends BaseController
         $clientes = $db->query($sql, $params)->getResultArray();
 
         return $this->response->setJSON(['total' => count($clientes), 'clientes' => $clientes]);
+    }
+
+    /**
+     * Retorna os clientes da carteira do vendedor que possuem coordenadas mapeadas.
+     * Usado pela tela de mapa de carteira.
+     */
+    public function clientesMapaApi()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return $this->response->setJSON(['error' => 'Sem carteira'])->setStatusCode(403);
+
+        $db = db_connect();
+
+        $rows = $db->query("
+            SELECT
+                c.cnpj,
+                c.razao_social,
+                c.categoria,
+                c.segmento_mercado,
+                c.ciclo_de_vida,
+                c.cnae,
+                cl.latitude,
+                cl.longitude,
+                COALESCE(cw.status_operacional, 'ativo') AS status_operacional,
+                COALESCE(ce.logistics_score, 0) AS score
+            FROM carteira_raw c
+            JOIN client_locations cl ON cl.cnpj = c.cnpj
+            LEFT JOIN client_wallets cw ON cw.cnpj = c.cnpj
+            LEFT JOIN client_enrichment ce ON ce.cnpj = c.cnpj
+            WHERE c.matricula_mcmcu = ?
+              AND cl.latitude IS NOT NULL
+              AND cl.longitude IS NOT NULL
+            ORDER BY c.razao_social ASC
+        ", [$vendorUser['matricula']])->getResultArray();
+
+        return $this->response->setJSON([
+            'success'  => true,
+            'total'    => count($rows),
+            'clientes' => $rows,
+        ]);
     }
 
     // ─── Detalhe do Cliente ──────────────────────────────────────
