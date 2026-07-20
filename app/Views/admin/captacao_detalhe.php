@@ -62,7 +62,7 @@ $canaisArr = json_decode($pedido['canais_contato'] ?? '[]', true) ?: [];
             <div class="card-body">
                 <div class="row g-2 small">
                     <div class="col-6"><strong>Situação:</strong><br><?= esc($receita['situacao_desc'] ?? '—') ?></div>
-                    <div class="col-6"><strong>Capital Social:</strong><br>R$ <?= number_format(($receita['capital_social'] ?? 0)/100, 2, ',', '.') ?></div>
+                    <div class="col-6"><strong>Capital Social:</strong><br>R$ <?= number_format((float) preg_replace('/[^0-9.]/', '', $receita['capital_social'] ?? '0') / 100, 2, ',', '.') ?></div>
                     <div class="col-6"><strong>Município:</strong><br><?= esc($receita['municipio_nome'] ?? '—') ?> / <?= esc($receita['uf'] ?? '') ?></div>
                     <div class="col-6"><strong>CNAE:</strong><br><?= esc($receita['cnae_fiscal_principal'] ?? '—') ?></div>
                     <div class="col-12"><strong>Endereço:</strong><br>
