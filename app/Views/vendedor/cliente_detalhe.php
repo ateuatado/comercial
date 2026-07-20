@@ -340,7 +340,7 @@
             </h6>
 
             <!-- Alertas e Erros de Busca de Redes -->
-            <div id="socialErrorAlert" style="display: none; font-size: 11px; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border: 1px solid #fee2e2; background-color: #fee2e2; color: #991b1b;" class="d-flex align-items-center gap-1"></div>
+            <div id="socialErrorAlert" style="display: none; font-size: 11px; padding: 8px 12px; border-radius: 8px; margin-top: 8px; align-items: center; gap: 6px;"></div>
             
             <div id="socialNetworksList" class="mt-2">
                 <?php if (empty($redesSociais)): ?>
@@ -736,6 +736,7 @@
             btnBuscarRedes.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:10px;height:10px;display:inline-block;border:.1em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite;"></span>...';
             if (socialError) {
                 socialError.style.display = 'none';
+                socialError.className = '';
                 socialError.innerHTML = '';
             }
 

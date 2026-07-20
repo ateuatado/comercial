@@ -865,18 +865,25 @@ class VendedorController extends BaseController
 
         $sugestoes = [];
         $errorMsg = null;
+        $isError = false;
 
         // Tenta obter a API key
         $apiKey = env('serper.apiKey') ?: env('SERPER_API_KEY') ?: getenv('serper.apiKey') ?: getenv('SERPER_API_KEY');
 
         if (!empty($apiKey)) {
-            $sugestoes = $this->querySerperApi($searchQuery, $cleanCnpj, $apiKey);
-            if (empty($sugestoes)) {
-                // Caso a API da Serper falhe ou não ache nada, tenta o scraping como último fallback
-                $sugestoes = $this->scrapeBing($searchQuery, $cleanCnpj);
+            $apiResult = $this->querySerperApi($searchQuery, $cleanCnpj, $apiKey);
+            if ($apiResult['success']) {
+                $sugestoes = $apiResult['results'];
                 if (empty($sugestoes)) {
-                    $sugestoes = $this->scrapeDuckDuckGo($searchQuery, $cleanCnpj);
+                    // Se a API funcionou mas não achou nada, tenta o scraping como último fallback
+                    $sugestoes = $this->scrapeBing($searchQuery, $cleanCnpj);
+                    if (empty($sugestoes)) {
+                        $sugestoes = $this->scrapeDuckDuckGo($searchQuery, $cleanCnpj);
+                    }
                 }
+            } else {
+                $errorMsg = $apiResult['error'];
+                $isError = true;
             }
         } else {
             // Se não houver chave API cadastrada, tenta os scrapers legados diretamente
@@ -907,12 +914,16 @@ class VendedorController extends BaseController
                     ->getResultArray();
 
         $response = [
-            'success' => true,
+            'success' => !$isError,
             'redes'   => $redes,
         ];
 
         if ($errorMsg) {
-            $response['warning'] = $errorMsg;
+            if ($isError) {
+                $response['error'] = $errorMsg;
+            } else {
+                $response['warning'] = $errorMsg;
+            }
         }
 
         if ($novasSugestoes > 0) {
@@ -924,6 +935,105 @@ class VendedorController extends BaseController
         }
 
         return $this->response->setJSON($response);
+    }
+
+    /**
+     * Consulta a API do Serper.dev para obter resultados orgânicos do Google Search.
+     */
+    private function querySerperApi(string $query, string $cnpj, string $apiKey): array
+    {
+        $client = \Config\Services::curlrequest();
+        $sugestoes = [];
+        $now = date('Y-m-d H:i:s');
+        $errorMsg = null;
+
+        try {
+            $response = $client->post('https://google.serper.dev/search', [
+                'headers' => [
+                    'X-API-KEY'    => $apiKey,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'q'  => $query,
+                    'gl' => 'br',
+                    'hl' => 'pt-br'
+                ],
+                'timeout' => 10,
+                'http_errors' => false
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode === 200) {
+                $data = json_decode($response->getBody(), true);
+                
+                if (!empty($data['organic'])) {
+                    $uniqueUrls = [];
+                    foreach ($data['organic'] as $item) {
+                        $url = $item['link'] ?? '';
+                        if (empty($url)) {
+                            continue;
+                        }
+
+                        // Só nos interessam URLs absolutas de redes sociais
+                        if (!preg_match('#^https?://(www\.)?(instagram\.com|linkedin\.com|facebook\.com)#i', $url)) {
+                            continue;
+                        }
+
+                        // Validar URL
+                        $url = filter_var($url, FILTER_VALIDATE_URL);
+                        if (!$url) {
+                            continue;
+                        }
+
+                        // Ignorar links genéricos
+                        if (preg_match('/(login|signup|download|apps|settings|business|developers|policies|legal|privacy|share\b)/i', $url)) {
+                            continue;
+                        }
+
+                        // Normalizar: remover query strings irrelevantes (utm_, fbclid, etc.)
+                        $cleanUrl = preg_replace('/\?(utm_|fbclid|ref|hl|locale|_rdr).*$/', '', $url);
+                        $cleanUrl = rtrim($cleanUrl, '/');
+
+                        if (isset($uniqueUrls[$cleanUrl])) {
+                            continue;
+                        }
+                        $uniqueUrls[$cleanUrl] = true;
+
+                        // Identificar rede social
+                        $network = 'website';
+                        if (stripos($cleanUrl, 'instagram.com') !== false) {
+                            $network = 'instagram';
+                        } elseif (stripos($cleanUrl, 'linkedin.com') !== false) {
+                            $network = 'linkedin';
+                        } elseif (stripos($cleanUrl, 'facebook.com') !== false) {
+                            $network = 'facebook';
+                        }
+
+                        $sugestoes[] = [
+                            'cnpj'       => $cnpj,
+                            'network'    => $network,
+                            'url'        => $cleanUrl,
+                            'status'     => 'sugestao',
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+                }
+            } else {
+                $body = json_decode($response->getBody(), true);
+                $errorMsg = $body['message'] ?? 'Erro retornado pela API do Serper (HTTP ' . $statusCode . ')';
+                log_message('error', "[OSINT-Serper] Erro HTTP " . $statusCode . ": " . $errorMsg);
+            }
+        } catch (\Exception $e) {
+            $errorMsg = 'Falha de conexão com a API do Serper: ' . $e->getMessage();
+            log_message('error', "[OSINT-Serper] Erro de rede: " . $e->getMessage());
+        }
+
+        return [
+            'success' => $errorMsg === null,
+            'results' => $sugestoes,
+            'error'   => $errorMsg
+        ];
     }
 
     /**
