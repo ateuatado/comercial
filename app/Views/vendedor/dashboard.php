@@ -119,6 +119,9 @@
                 </a>
             </div>
         </div>
+        <a href="<?= site_url('vendedor/minhas-captacoes') ?>" class="btn btn-outline-secondary w-100" style="border-radius: 12px;">
+            <i class="bi bi-inbox me-1"></i> Minhas Solicitações de Captação
+        </a>
         <?php if ($isCoordenador): ?>
             <a href="<?= site_url('coordenador') ?>" class="btn btn-outline-primary btn-lg" style="border-radius: 12px;">
                 <i class="bi bi-diagram-3 me-2"></i> Visão do Time

@@ -61,6 +61,11 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     $routes->get('scoring/progresso',          '\App\Controllers\AdminController::scoringProgresso');
     $routes->post('scoring/cnae/adicionar',    '\App\Controllers\AdminController::cnaeAdicionar');
     $routes->post('scoring/cnae/remover',      '\App\Controllers\AdminController::cnaeRemover');
+
+    // Pedidos de Captação (PR-CAP — Fase 3.5)
+    $routes->get('captacoes',              '\App\Controllers\AdminController::captacoesIndex');
+    $routes->get('captacoes/(:num)',       '\App\Controllers\AdminController::captacaoDetalhe/$1');
+    $routes->post('captacoes/decisao',     '\App\Controllers\AdminController::captacaoDecisao');
 });
 
 // Portal operacional — acom e gerente_conta (legado Fase 1)
@@ -96,6 +101,11 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('cnpj/redes-sociais/buscar/(:segment)', 'VendedorController::buscarRedesSociais/$1');
     $routes->post('cnpj/redes-sociais/validar/(:num)', 'VendedorController::validarRedeSocial/$1');
     $routes->post('cnpj/redes-sociais/rejeitar/(:num)', 'VendedorController::rejeitarRedeSocial/$1');
+
+    // Captação de Clientes (PR-CAP — Fase 3.5)
+    $routes->get('captacao/solicitar/(:segment)', 'VendedorController::captacaoSolicitar/$1');
+    $routes->post('captacao/salvar', 'VendedorController::captacaoSalvar');
+    $routes->get('minhas-captacoes', 'VendedorController::minhasCaptacoes');
 });
 
 // Coordenador — visão do time (Fase 2.9)
@@ -103,6 +113,11 @@ $routes->group('coordenador', ['filter' => 'session'], static function ($routes)
     $routes->get('/', 'CoordenadorController::index');
     $routes->get('vendedor/(:segment)', 'CoordenadorController::vendedorDetalhe/$1');
     $routes->get('vendedor/(:segment)/clientes', 'CoordenadorController::vendedorClientes/$1');
+
+    // Coordenador também pode decidir sobre PR-CAPs
+    $routes->get('captacoes', 'AdminController::captacoesIndex');
+    $routes->get('captacoes/(:num)', 'AdminController::captacaoDetalhe/$1');
+    $routes->post('captacoes/decisao', 'AdminController::captacaoDecisao');
 });
 
 // Sem carteira — tela informativa

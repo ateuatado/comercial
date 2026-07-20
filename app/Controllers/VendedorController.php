@@ -215,54 +215,15 @@ class VendedorController extends BaseController
 
         $db = db_connect();
 
-        // Verificar e auto-prospectar (vincular na carteira) se o cliente não estiver vinculado a este vendedor
+        // Verifica se o CNPJ já é da carteira do vendedor logado
         $existsRaw = $db->table('carteira_raw')
                         ->where('cnpj', $cnpj)
                         ->where('matricula_mcmcu', $vendorUser['matricula'])
                         ->get()
                         ->getRow();
 
-        if (!$existsRaw) {
-            $est = $db->query("
-                SELECT e.*, emp.razao_social
-                FROM receita.estabelecimentos e
-                LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
-                WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
-                LIMIT 1
-            ", [$cnpj])->getRowArray();
-
-            if ($est) {
-                // Insere na carteira_raw do vendedor
-                $db->table('carteira_raw')->insert([
-                    'se'                 => $est['uf'] === 'SP' ? 'SPM' : 'SPI',
-                    'categoria'          => 'BRONZE',
-                    'cnpj'               => $cnpj,
-                    'razao_social'       => $est['razao_social'] ?? 'PROSPECTO',
-                    'matricula_mcmcu'    => $vendorUser['matricula'],
-                    'forca_vendas_nome'  => $vendorUser['nome'] ?? $vendorUser['username'],
-                    'ciclo_de_vida'      => 'Ativo',
-                    'cnae'               => $est['cnae_fiscal_principal'] ?? null,
-                    'created_at'         => date('Y-m-d H:i:s'),
-                ]);
-
-                // Garante que existe ou atualiza na client_wallets
-                $existsWallet = $db->table('client_wallets')->where('cnpj', $cnpj)->get()->getRow();
-                if (!$existsWallet) {
-                    $db->table('client_wallets')->insert([
-                        'cnpj'               => $cnpj,
-                        'vendor_id'          => $vendorUser['id'],
-                        'status_operacional' => 'novo',
-                        'created_at'         => date('Y-m-d H:i:s'),
-                        'updated_at'         => date('Y-m-d H:i:s'),
-                    ]);
-                } else {
-                    $db->table('client_wallets')->where('cnpj', $cnpj)->update([
-                        'vendor_id'          => $vendorUser['id'],
-                        'updated_at'         => date('Y-m-d H:i:s'),
-                    ]);
-                }
-            }
-        }
+        // NÃO auto-adiciona mais. Se não pertence ao vendedor, abre em modo prospecto.
+        $modoProspecto = !$existsRaw;
 
         $cliente = $db->query("
             SELECT c.*, 
@@ -296,10 +257,172 @@ class VendedorController extends BaseController
                            ->get()
                            ->getResultArray();
 
-        return view('vendedor/cliente_detalhe', compact('vendorUser', 'cliente', 'notas', 'estrategias', 'redesSociais'));
+        // Verifica se já existe PR-CAP pendente/mais_info para este CNPJ + vendedor
+        $pedidoExistente = null;
+        if ($modoProspecto) {
+            $pedidoExistente = $db->table('captacao_requests')
+                ->where('cnpj', $cnpj)
+                ->where('matricula', $vendorUser['matricula'])
+                ->whereIn('status', ['pendente', 'mais_info'])
+                ->get()->getRow();
+        }
+
+        return view('vendedor/cliente_detalhe', compact('vendorUser', 'cliente', 'notas', 'estrategias', 'redesSociais', 'modoProspecto', 'pedidoExistente'));
+
+    }
+
+    // ─── Captação de Clientes (PR-CAP) ───────────────────────────
+
+    /**
+     * Exibe o formulário de Pedido de Captação (PR-CAP) para um CNPJ.
+     * Pré-carrega os logs do sistema como evidências.
+     */
+    public function captacaoSolicitar(string $cnpj)
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return redirect()->to('/sem-carteira');
+
+        $cleanCnpj = preg_replace('/[^0-9]/', '', $cnpj);
+        $db = db_connect();
+        $mat = $vendorUser['matricula'];
+
+        // Impede se o CNPJ já está na carteira do próprio vendedor
+        $naCarteira = $db->table('carteira_raw')
+            ->where('cnpj', $cleanCnpj)
+            ->where('matricula_mcmcu', $mat)
+            ->countAllResults();
+        if ($naCarteira > 0) {
+            return redirect()->to(site_url("vendedor/cliente/{$cleanCnpj}"))->with('info', 'Este cliente já está na sua carteira.');
+        }
+
+        // Dados da Receita
+        $receita = $db->query("
+            SELECT e.*, emp.razao_social, m.descricao AS municipio_nome,
+                   sit.descricao AS situacao_desc
+            FROM receita.estabelecimentos e
+            LEFT JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
+            LEFT JOIN receita.municipios m ON m.codigo = e.municipio
+            LEFT JOIN receita.situacoes_cadastrais sit ON sit.codigo = e.situacao_cadastral
+            WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
+            LIMIT 1
+        ", [$cleanCnpj])->getRowArray();
+
+        // Verificar se o CNPJ pertence a outro vendedor
+        $outraCarteira = $db->query("
+            SELECT matricula_mcmcu, forca_vendas_nome FROM carteira_raw
+            WHERE cnpj = ? AND matricula_mcmcu != ?
+            LIMIT 1
+        ", [$cleanCnpj, $mat])->getRowArray();
+
+        // Score preditivo
+        $enrichment = $db->table('client_enrichment')
+            ->where('cnpj', $cleanCnpj)->get()->getRowArray();
+
+        // Logs do sistema
+        $locLog   = $db->table('client_locations')->where('cnpj', $cleanCnpj)->get()->getRowArray();
+        $walletLog= $db->table('client_wallets')->where('cnpj', $cleanCnpj)->get()->getRowArray();
+        $socialLog= $db->query("SELECT MAX(updated_at) AS dt FROM client_social_media WHERE cnpj = ?", [$cleanCnpj])->getRowArray();
+        $notasLog = $db->query("SELECT COUNT(*) AS total, MAX(created_at) AS dt FROM vendor_notes WHERE cnpj = ? AND vendor_id = ?", [$cleanCnpj, $vendorUser['id']])->getRowArray();
+
+        // PR-CAP existente (pendente ou mais_info) — para modo de complementação
+        $pedidoExistente = $db->table('captacao_requests')
+            ->where('cnpj', $cleanCnpj)
+            ->where('matricula', $mat)
+            ->orderBy('created_at', 'DESC')
+            ->get()->getRowArray();
+
+        return view('vendedor/captacao_form', compact(
+            'vendorUser', 'cleanCnpj', 'receita', 'outraCarteira',
+            'enrichment', 'locLog', 'walletLog', 'socialLog', 'notasLog',
+            'pedidoExistente'
+        ));
+    }
+
+    /**
+     * Grava o Pedido de Captação (PR-CAP) enviado pelo vendedor.
+     */
+    public function captacaoSalvar()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+
+        $cnpj          = preg_replace('/[^0-9]/', '', $this->request->getPost('cnpj'));
+        $justificativa = trim($this->request->getPost('justificativa') ?? '');
+        $tempoContato  = trim($this->request->getPost('tempo_contato') ?? '');
+        $canais        = $this->request->getPost('canais_contato') ?? [];
+        $referenciaDoc = trim($this->request->getPost('referencia_doc') ?? '');
+        $mat           = $vendorUser['matricula'];
+
+        if (strlen($cnpj) !== 14 || empty($justificativa)) {
+            return redirect()->back()->with('error', 'Justificativa é obrigatória.');
+        }
+
+        $db = db_connect();
+
+        // Bloqueia se já está na própria carteira
+        $naCarteira = $db->table('carteira_raw')
+            ->where('cnpj', $cnpj)->where('matricula_mcmcu', $mat)->countAllResults();
+        if ($naCarteira > 0) {
+            return redirect()->to(site_url("vendedor/cliente/{$cnpj}"))->with('info', 'Este cliente já está na sua carteira.');
+        }
+
+        // Verifica se CNPJ está em outra carteira (para registrar o contexto)
+        $outra = $db->query("SELECT matricula_mcmcu FROM carteira_raw WHERE cnpj = ? AND matricula_mcmcu != ? LIMIT 1", [$cnpj, $mat])->getRowArray();
+
+        // Se já existe PR-CAP pendente/mais_info do mesmo vendedor para o mesmo CNPJ → atualiza (complementação)
+        $existente = $db->table('captacao_requests')
+            ->where('cnpj', $cnpj)->where('matricula', $mat)
+            ->whereIn('status', ['pendente', 'mais_info'])->get()->getRow();
+
+        $data = [
+            'cnpj'                   => $cnpj,
+            'matricula'              => $mat,
+            'justificativa'          => $justificativa,
+            'tempo_contato'          => $tempoContato ?: null,
+            'canais_contato'         => !empty($canais) ? json_encode($canais) : null,
+            'referencia_doc'         => $referenciaDoc ?: null,
+            'status'                 => 'pendente',
+            'admin_obs'              => null,
+            'cnpj_em_outra_carteira' => !empty($outra),
+            'carteira_anterior'      => $outra['matricula_mcmcu'] ?? null,
+            'updated_at'             => date('Y-m-d H:i:s'),
+        ];
+
+        if ($existente) {
+            $db->table('captacao_requests')->where('id', $existente->id)->update($data);
+        } else {
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $db->table('captacao_requests')->insert($data);
+        }
+
+        return redirect()->to(site_url('vendedor/minhas-captacoes'))->with('success', 'Pedido enviado! Aguarde a análise administrativa.');
+    }
+
+    /**
+     * Lista os PR-CAPs do vendedor logado.
+     */
+    public function minhasCaptacoes()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return redirect()->to('/sem-carteira');
+
+        $db = db_connect();
+        $pedidos = $db->query("
+            SELECT cr.*,
+                   COALESCE(emp.razao_social, cr.cnpj) AS razao_social,
+                   COALESCE(ce.logistics_score, 0) AS score
+            FROM captacao_requests cr
+            LEFT JOIN receita.empresas emp ON emp.cnpj_basico = SUBSTRING(cr.cnpj, 1, 8)
+            LEFT JOIN client_enrichment ce ON ce.cnpj = cr.cnpj
+            WHERE cr.matricula = ?
+            ORDER BY cr.created_at DESC
+        ", [$vendorUser['matricula']])->getResultArray();
+
+        return view('vendedor/minhas_captacoes', compact('vendorUser', 'pedidos'));
     }
 
     // ─── Formulário de Nota ──────────────────────────────────────
+
 
     public function notaForm(string $cnpj)
     {

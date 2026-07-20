@@ -201,15 +201,51 @@
     <!-- Top bar -->
     <div class="detalhe-topbar">
         <a href="<?= site_url('vendedor/clientes') ?>" id="btnBackToWallet" class="back-btn"><i class="bi bi-arrow-left"></i></a>
-        <h6>Detalhe do Cliente</h6>
+        <h6><?= ($modoProspecto ?? false) ? 'Visualizando Prospecto' : 'Detalhe do Cliente' ?></h6>
     </div>
 
     <!-- Banner -->
     <div class="detalhe-banner" style="background: linear-gradient(135deg, <?= $catColor ?>, <?= $catColor ?>cc);">
-        <div class="cat-label"><?= esc($cliente['categoria'] ?? 'Sem categoria') ?></div>
+        <div class="cat-label"><?= esc($cliente['categoria'] ?? 'Prospecto') ?></div>
         <div class="nome"><?= esc($cliente['razao_social'] ?? '—') ?></div>
         <div class="cnpj-fmt"><?= $cnpjFmt ?></div>
     </div>
+
+    <?php if ($modoProspecto ?? false): ?>
+    <!-- Banner de modo prospecto — CTA de captação -->
+    <?php if (!empty($pedidoExistente)): ?>
+        <?php
+        $pStatus = $pedidoExistente->status ?? 'pendente';
+        $pCfg = [
+            'pendente'  => ['bg' => '#f59e0b', 'icon' => '⏳', 'msg' => 'Pedido de captação enviado. Aguardando análise administrativa.'],
+            'mais_info' => ['bg' => '#3b82f6', 'icon' => '🔵', 'msg' => 'Admin solicitou mais informações. Clique para complementar.'],
+        ];
+        $cfg = $pCfg[$pStatus] ?? ['bg' => '#64748b', 'icon' => '📋', 'msg' => 'Pedido registrado.'];
+        ?>
+        <div style="background:<?= $cfg['bg'] ?>;color:#fff;padding:12px 16px;font-size:13px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;"><?= $cfg['icon'] ?></span>
+            <div style="flex:1;"><?= $cfg['msg'] ?></div>
+            <?php if ($pStatus === 'mais_info'): ?>
+            <a href="<?= site_url('vendedor/captacao/solicitar/' . $cliente['cnpj']) ?>"
+               style="background:#fff;color:<?= $cfg['bg'] ?>;padding:5px 10px;border-radius:8px;font-weight:700;text-decoration:none;font-size:12px;white-space:nowrap;">
+                Complementar →
+            </a>
+            <?php endif; ?>
+        </div>
+    <?php else: ?>
+        <div style="background:#1e3a8a;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+            <i class="bi bi-info-circle-fill" style="font-size:20px;"></i>
+            <div style="flex:1;">
+                <div style="font-size:13px;font-weight:700;">Este cliente não está na sua carteira.</div>
+                <div style="font-size:11px;opacity:.8;">Você pode visualizar os dados e solicitar a adição.</div>
+            </div>
+            <a href="<?= site_url('vendedor/captacao/solicitar/' . ($cliente['cnpj'] ?? '')) ?>"
+               style="background:#3b82f6;color:#fff;padding:8px 14px;border-radius:10px;font-weight:700;text-decoration:none;font-size:12px;white-space:nowrap;">
+                Solicitar Adição →
+            </a>
+        </div>
+    <?php endif; ?>
+    <?php endif; ?>
 
     <!-- Tabs -->
     <div class="tab-nav">
