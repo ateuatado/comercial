@@ -26,6 +26,17 @@
         <h6>Vendedor</h6>
     </div>
 
+    <?php if (session()->getFlashdata('success')): ?>
+        <div style="margin: 16px 16px 0; background: #d1fae5; color: #065f46; padding: 12px 16px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-check-circle-fill"></i> <?= session()->getFlashdata('success') ?>
+        </div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div style="margin: 16px 16px 0; background: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-exclamation-triangle-fill"></i> <?= session()->getFlashdata('error') ?>
+        </div>
+    <?php endif; ?>
+
     <div class="profile-card">
         <div class="name"><?= esc($vendedor['nome'] ?? 'Matrícula ' . $vendedor['matricula']) ?></div>
         <div class="meta">
@@ -33,6 +44,20 @@
             <span><i class="bi bi-tag"></i> <?= esc($vendedor['perfil_vendedor'] ?? '—') ?></span>
             <span><i class="bi bi-geo-alt"></i> <?= esc($vendedor['se'] ?? '—') ?></span>
         </div>
+    </div>
+
+    <div class="action-row" style="padding: 0 16px 12px;">
+        <a href="<?= site_url('coordenador/vendedor/' . $vendedor['matricula'] . '/editar') ?>" style="color:#1e40af;">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+        <a href="<?= site_url('coordenador/vendedor/' . $vendedor['matricula'] . '/transferir') ?>" style="color:#f59e0b;">
+            <i class="bi bi-shuffle"></i> Transferir
+        </a>
+        <form action="<?= site_url('coordenador/vendedor/' . $vendedor['matricula'] . '/desativar') ?>" method="post" onsubmit="return confirm('Tem certeza que deseja desativar este vendedor?');" style="display:flex; flex:1;">
+            <button type="submit" style="flex:1; padding:12px; border-radius:12px; border:1.5px solid #e5e7eb; background:#fff; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; color:#dc2626; transition:all .2s;">
+                <i class="bi bi-person-x"></i> Desativar
+            </button>
+        </form>
     </div>
 
     <div style="display:flex;gap:10px;padding:0 16px 12px;">

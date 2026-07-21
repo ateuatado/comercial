@@ -110,11 +110,30 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('minhas-captacoes', 'VendedorController::minhasCaptacoes');
 });
 
-// Coordenador — visão do time (Fase 2.9)
+// Coordenador — visão do time (Fase 2.9) + gestão avançada (Fase 3)
 $routes->group('coordenador', ['filter' => 'session'], static function ($routes): void {
+    // Fase 2.9 — Visão do time
     $routes->get('/', 'CoordenadorController::index');
     $routes->get('vendedor/(:segment)', 'CoordenadorController::vendedorDetalhe/$1');
     $routes->get('vendedor/(:segment)/clientes', 'CoordenadorController::vendedorClientes/$1');
+
+    // Fase 3.1 — CRUD de vendedores pelo coordenador
+    $routes->get('vendedores/novo', 'CoordenadorController::novoVendedor');
+    $routes->post('vendedores/salvar', 'CoordenadorController::salvarVendedor');
+    $routes->get('vendedor/(:segment)/editar', 'CoordenadorController::editarVendedor/$1');
+    $routes->post('vendedor/(:segment)/atualizar', 'CoordenadorController::atualizarVendedor/$1');
+    $routes->post('vendedor/(:segment)/desativar', 'CoordenadorController::desativarVendedor/$1');
+
+    // Fase 3.2 — Clientes livres e atribuição
+    $routes->get('clientes-livres', 'CoordenadorController::clientesLivres');
+    $routes->post('clientes-livres/atribuir', 'CoordenadorController::atribuirClientes');
+
+    // Fase 3.3 — Transferência de clientes entre vendedores
+    $routes->post('vendedor/(:segment)/transferir-clientes', 'CoordenadorController::processarTransferenciaClientes/$1');
+
+    // Fase 3.4 — Transferência de vendedor entre coordenadores
+    $routes->get('vendedor/(:segment)/transferir', 'CoordenadorController::formTransferirVendedor/$1');
+    $routes->post('vendedor/(:segment)/transferir', 'CoordenadorController::processarTransferenciaVendedor/$1');
 
     // Coordenador também pode decidir sobre PR-CAPs
     $routes->get('captacoes', 'AdminController::captacoesIndex');

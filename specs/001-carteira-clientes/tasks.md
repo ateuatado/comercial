@@ -264,39 +264,39 @@
 ### 3.0 Preparação de dados e infraestrutura
 
 - [ ] **3.0.1** — Diagnóstico de consistência do campo `gerencia` em `vendor_users` na base real (executar `scratch/diag_gerencia.php` após importação real).
-- [ ] **3.0.2** — Migration: adicionar coluna `realizado_por_perfil VARCHAR(20)` em `wallet_movements` (valores: `'admin'`, `'coordenador'`, `'sistema'`).
-- [ ] **3.0.3** — Migration: criar tabela `vendor_movements` (id, matricula, coord_origem, coord_destino, gerencia, motivo, feito_por, created_at).
-- [ ] **3.0.4** — Adicionar índice em `vendor_users(gerencia)` para otimizar as guards de escopo.
+- [x] **3.0.2** — Migration: adicionar coluna `realizado_por_perfil VARCHAR(20)` em `wallet_movements` (valores: `'admin'`, `'coordenador'`, `'sistema'`).
+- [x] **3.0.3** — Migration: criar tabela `vendor_movements` (id, matricula, coord_origem, coord_destino, gerencia, motivo, feito_por, created_at).
+- [x] **3.0.4** — Adicionar índice em `vendor_users(gerencia)` para otimizar as guards de escopo.
 
 ### 3.1 CRUD de vendedores pelo coordenador
 
-- [ ] **3.1.1** — `CoordenadorController::novoVendedor()` — view com formulário de cadastro; `se`, `gerencia`, `mtr_coordenador` fixados no coordenador logado.
-- [ ] **3.1.2** — `CoordenadorController::salvarVendedor()` — validação: matrícula única, campos obrigatórios, isolamento de escopo.
-- [ ] **3.1.3** — `CoordenadorController::editarVendedor(string $matricula)` — view de edição com guard de gerência.
-- [ ] **3.1.4** — `CoordenadorController::atualizarVendedor(string $matricula)` — salva edição com guard de gerência.
-- [ ] **3.1.5** — `CoordenadorController::desativarVendedor(string $matricula)` — desativa com confirmação modal; clientes ficam órfãos (não redistribuídos automaticamente).
-- [ ] **3.1.6** — Registrar rotas: `GET/POST /coordenador/vendedores/novo`, `GET/POST /coordenador/vendedor/:m/editar`, `POST /coordenador/vendedor/:m/desativar`.
-- [ ] **3.1.7** — Adaptar view `coordenador/index.php`: botão "Novo Vendedor" + ações por linha (Editar, Desativar).
-- [ ] **3.1.8** — Adaptar view `coordenador/vendedor_detalhe.php`: botões de ação (Editar, Desativar, Transferir vendedor).
+- [x] **3.1.1** — `CoordenadorController::novoVendedor()` — view com formulário de cadastro; `se`, `gerencia`, `mtr_coordenador` fixados no coordenador logado.
+- [x] **3.1.2** — `CoordenadorController::salvarVendedor()` — validação: matrícula única, campos obrigatórios, isolamento de escopo.
+- [x] **3.1.3** — `CoordenadorController::editarVendedor(string $matricula)` — view de edição com guard de gerência.
+- [x] **3.1.4** — `CoordenadorController::atualizarVendedor(string $matricula)` — salva edição com guard de gerência.
+- [x] **3.1.5** — `CoordenadorController::desativarVendedor(string $matricula)` — desativa com confirmação modal; clientes ficam órfãos (não redistribuídos automaticamente).
+- [x] **3.1.6** — Registrar rotas: `GET/POST /coordenador/vendedores/novo`, `GET/POST /coordenador/vendedor/:m/editar`, `POST /coordenador/vendedor/:m/desativar`.
+- [~] **3.1.7** — Adaptar view `coordenador/index.php`: botão "Novo Vendedor" + ações por linha (Editar, Desativar).
+- [~] **3.1.8** — Adaptar view `coordenador/vendedor_detalhe.php`: botões de ação (Editar, Desativar, Transferir vendedor).
 
 ### 3.2 Clientes livres — atribuição a vendedor
 
-- [ ] **3.2.1** — `CoordenadorController::clientesLivres()` — lista CNPJs sem dono filtrados por `gerencia` do coordenador (join `carteira_raw` onde `gerencia = gerencia do logado` e sem vínculo ativo em `client_wallets`).
-- [ ] **3.2.2** — View `coordenador/clientes_livres.php` — busca por CNPJ/razão social, checkboxes + "Selecionar tudo", dropdown de vendedor destino (time do coordenador), modal de confirmação.
-- [ ] **3.2.3** — `CoordenadorController::atribuirClientes()` — processa atribuição em lote: valida escopo, insere em `client_wallets` com `origem_atribuicao = 'coordenador'`, registra em `wallet_movements` com `realizado_por_perfil = 'coordenador'`.
-- [ ] **3.2.4** — Registrar rotas: `GET /coordenador/clientes-livres`, `POST /coordenador/clientes-livres/atribuir`.
+- [x] **3.2.1** — `CoordenadorController::clientesLivres()` — lista CNPJs sem dono filtrados por `gerencia` do coordenador (join `carteira_raw` onde `gerencia = gerencia do logado` e sem vínculo ativo em `client_wallets`).
+- [~] **3.2.2** — View `coordenador/clientes_livres.php` — busca por CNPJ/razão social, checkboxes + "Selecionar tudo", dropdown de vendedor destino (time do coordenador), modal de confirmação.
+- [x] **3.2.3** — `CoordenadorController::atribuirClientes()` — processa atribuição em lote: valida escopo, insere em `client_wallets` com `origem_atribuicao = 'coordenador'`, registra em `wallet_movements` com `realizado_por_perfil = 'coordenador'`.
+- [x] **3.2.4** — Registrar rotas: `GET /coordenador/clientes-livres`, `POST /coordenador/clientes-livres/atribuir`.
 
 ### 3.3 Transferência de clientes entre vendedores do time
 
-- [ ] **3.3.1** — Adaptar view `coordenador/vendedor_clientes.php`: adicionar checkboxes por linha + botão "Transferir selecionados" que abre modal com dropdown de vendedor destino e campo motivo (obrigatório).
-- [ ] **3.3.2** — `CoordenadorController::processarTransferenciaClientes(string $matriculaOrigem)` — valida que origem e destino pertencem ao time + gerência do logado, motivo presente, atualiza `client_wallets`, insere em `wallet_movements`.
-- [ ] **3.3.3** — Registrar rota: `POST /coordenador/vendedor/:m/transferir-clientes`.
+- [~] **3.3.1** — Adaptar view `coordenador/vendedor_clientes.php`: adicionar checkboxes por linha + botão "Transferir selecionados" que abre modal com dropdown de vendedor destino e campo motivo (obrigatório).
+- [x] **3.3.2** — `CoordenadorController::processarTransferenciaClientes(string $matriculaOrigem)` — valida que origem e destino pertencem ao time + gerência do logado, motivo presente, atualiza `client_wallets`, insere em `wallet_movements`.
+- [x] **3.3.3** — Registrar rota: `POST /coordenador/vendedor/:m/transferir-clientes`.
 
 ### 3.4 Transferência de vendedor entre coordenadores (mesma gerência)
 
-- [ ] **3.4.1** — `CoordenadorController::formTransferirVendedor(string $matricula)` — view com lista de coordenadores ativos da **mesma gerência** (excluindo o logado) e campo motivo.
-- [ ] **3.4.2** — `CoordenadorController::processarTransferenciaVendedor(string $matricula)` — valida que vendedor é do time, coordenador destino é da mesma gerência, atualiza `mtr_coordenador` + `nome_coordenador` em `vendor_users`, insere em `vendor_movements`.
-- [ ] **3.4.3** — Registrar rotas: `GET /coordenador/vendedor/:m/transferir`, `POST /coordenador/vendedor/:m/transferir`.
+- [~] **3.4.1** — `CoordenadorController::formTransferirVendedor(string $matricula)` — view com lista de coordenadores ativos da **mesma gerência** (excluindo o logado) e campo motivo.
+- [x] **3.4.2** — `CoordenadorController::processarTransferenciaVendedor(string $matricula)` — valida que vendedor é do time, coordenador destino é da mesma gerência, atualiza `mtr_coordenador` + `nome_coordenador` em `vendor_users`, insere em `vendor_movements`.
+- [x] **3.4.3** — Registrar rotas: `GET /coordenador/vendedor/:m/transferir`, `POST /coordenador/vendedor/:m/transferir`.
 
 ### 3.5 Guard de escopo (método reutilizável)
 
