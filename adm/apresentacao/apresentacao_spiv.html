@@ -417,7 +417,7 @@
           <div class="feature-icon yellow">🔭</div>
           <div class="feature-content">
             <strong>Ampliar o campo de visão</strong>
-            <span>Com dados públicos da Receita Federal e enriquecimento inteligente, cada vendedor passa a enxergar oportunidades que antes estavam invisíveis.</span>
+            <span>O que antes exigia horas de pesquisa manual — consultar CNPJ, buscar redes sociais, localizar o endereço no mapa — hoje acontece em segundos. Com dados públicos da Receita Federal, enriquecimento automático e <strong>Inteligência Artificial</strong> auxiliando na priorização e análise, o vendedor chega ao cliente certo, com a informação certa, no momento certo.</span>
           </div>
         </div>
         <div class="feature-row">
@@ -436,7 +436,7 @@
   </div>
   <div class="slide-footer">
     <div class="logo-text">S<span>P</span>IV</div>
-    <div class="page-num">01 / 08</div>
+    <div class="page-num">01 / 09</div>
   </div>
 </div>
 
@@ -508,7 +508,7 @@
   </div>
   <div class="slide-footer">
     <div class="logo-text">S<span>P</span>IV</div>
-    <div class="page-num">02 / 08</div>
+    <div class="page-num">02 / 09</div>
   </div>
 </div>
 
@@ -583,7 +583,7 @@
   </div>
   <div class="slide-footer">
     <div class="logo-text">S<span>P</span>IV</div>
-    <div class="page-num">03 / 08</div>
+    <div class="page-num">03 / 09</div>
   </div>
 </div>
 
@@ -669,7 +669,7 @@
   </div>
   <div class="slide-footer">
     <div class="logo-text">S<span>P</span>IV</div>
-    <div class="page-num">04 / 08</div>
+    <div class="page-num">04 / 09</div>
   </div>
 </div>
 
@@ -742,7 +742,7 @@
   </div>
   <div class="slide-footer">
     <div class="logo-text">S<span>P</span>IV</div>
-    <div class="page-num">05 / 08</div>
+    <div class="page-num">05 / 09</div>
   </div>
 </div>
 
@@ -831,7 +831,7 @@
   </div>
   <div class="slide-footer">
     <div class="logo-text">S<span>P</span>IV</div>
-    <div class="page-num">06 / 08</div>
+    <div class="page-num">06 / 09</div>
   </div>
 </div>
 
@@ -906,7 +906,89 @@
   </div>
   <div class="slide-footer">
     <div class="logo-text">S<span>P</span>IV</div>
-    <div class="page-num">07 / 08</div>
+    <div class="page-num">07 / 09</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 08 — INFRAESTRUTURA NECESSÁRIA (NOVO)
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">08</div>
+    <div>
+      <div class="section-title">O que é necessário para ir a campo</div>
+      <div class="section-sub">Infraestrutura técnica, segurança e caminho para o piloto controlado</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap:28px;">
+      <div>
+        <h2><span class="icon">🖥️</span> Requisito único: um espaço no servidor web</h2>
+        <p>O SPIV não exige infraestrutura nova, cara ou complexa. A plataforma roda em qualquer servidor Linux com Apache ou Nginx, PHP 8.1+ e PostgreSQL — tecnologias que os Correios <strong>já utilizam em ambientes homologados de produção e testes</strong>.</p>
+
+        <div class="tech-item" style="margin-bottom:8px;">
+          <div class="tech-icon">🐘</div>
+          <div><div class="tech-name">PostgreSQL</div><div class="tech-desc">Banco de dados já presente na infraestrutura dos Correios. Basta uma nova base de dados (<em>database</em>) isolada no servidor existente.</div></div>
+          <div class="tech-badge"><span class="badge green">Já existe</span></div>
+        </div>
+        <div class="tech-item" style="margin-bottom:8px;">
+          <div class="tech-icon">🌐</div>
+          <div><div class="tech-name">Servidor Web (Apache/Nginx)</div><div class="tech-desc">Um virtual host ou subdomínio interno — ex: <code>spiv.intranet.correios.com.br</code>. Sem necessidade de IP público.</div></div>
+          <div class="tech-badge"><span class="badge green">Já existe</span></div>
+        </div>
+        <div class="tech-item" style="margin-bottom:8px;">
+          <div class="tech-icon">🔐</div>
+          <div><div class="tech-name">LDAP / Active Directory</div><div class="tech-desc">Login via credenciais corporativas. Nenhuma senha nova para nenhum usuário — integração direta com o diretório existente.</div></div>
+          <div class="tech-badge"><span class="badge green">Já existe</span></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">💾</div>
+          <div><div class="tech-name">Armazenamento em disco</div><div class="tech-desc">~50 GB para a base Receita Federal + arquivos enviados pelos vendedores (prints, PDFs). Expansível conforme necessidade.</div></div>
+          <div class="tech-badge"><span class="badge">Mínimo</span></div>
+        </div>
+
+        <div class="highlight" style="margin-top:14px;">
+          <p>✅ <strong>Nenhuma estação de trabalho precisa ser alterada.</strong> O sistema é 100% web — o vendedor acessa pelo navegador do celular ou do computador, sem instalação de qualquer software.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2><span class="icon">🛡️</span> Segurança: por que isso não é um risco</h2>
+
+        <div class="card dark" style="margin-bottom:12px;">
+          <div class="card-icon">🔒</div>
+          <div class="card-title">Isolado na rede interna</div>
+          <div class="card-text">O servidor de testes não precisa ter acesso à internet. Toda a comunicação ocorre dentro da rede corporativa dos Correios — os dados jamais transitam para fora.</div>
+        </div>
+
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-icon">👤</div>
+          <div class="card-title">Sem acesso administrativo nas estações</div>
+          <div class="card-text">Nenhum vendedor, coordenador ou testador recebe privilégio de administrador em qualquer máquina. Os acessos são controlados pelo servidor — não pelo dispositivo do usuário.</div>
+        </div>
+
+        <div class="card green" style="margin-bottom:12px;">
+          <div class="card-icon">🗂️</div>
+          <div class="card-title">Dados controlados, equipe controlada</div>
+          <div class="card-text">No ambiente de testes, o administrador define quais usuários têm acesso, a quais carteiras e com que permissões. Um piloto pode rodar com 5 vendedores e 2 coordenadores — sem impactar o restante da operação.</div>
+        </div>
+
+        <div class="card" style="border-left-color:var(--yellow);">
+          <div class="card-icon">⚖️</div>
+          <div class="card-title">Conformidade e auditabilidade</div>
+          <div class="card-text">Toda ação no sistema gera log com data, hora e usuário. Nenhuma operação crítica ocorre sem rastreabilidade. O sistema não fere nenhuma diretriz de segurança da informação — pelo contrário, adiciona uma camada de controle onde antes havia processos manuais sem registro.</div>
+        </div>
+
+        <div class="highlight" style="margin-top:12px;">
+          <p>🚀 <strong>O que basta para começar:</strong> a anuência do departamento responsável pela infraestrutura e do gestor da área comercial. Não é necessário processo licitatório, não há custo de licença e o ambiente pode estar operacional em dias — não meses.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">08 / 09</div>
   </div>
 </div>
 
