@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SPIV — Sistema de Prospecção Inteligente de Vendas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --yellow: #FFCC00;
+    --blue:   #003F8A;
+    --blue2:  #005EB8;
+    --light:  #F4F6FB;
+    --dark:   #0A1628;
+    --text:   #1e293b;
+    --muted:  #64748b;
+    --white:  #ffffff;
+    --accent: #00A651;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #e8ecf2;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* ── Cada slide é uma página A4 ─────────────────────────────── */
+  .slide {
+    width: 297mm;
+    min-height: 210mm;
+    background: white;
+    margin: 20px auto;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,.18);
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── CAPA ───────────────────────────────────────────────────── */
+  .slide-cover {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--blue) 60%, var(--blue2) 100%);
+    color: white;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 50px 60px;
+    gap: 0;
+  }
+  .cover-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--yellow);
+    margin-bottom: 20px;
+  }
+  .cover-title {
+    font-size: 52px;
+    font-weight: 900;
+    line-height: 1.05;
+    color: white;
+    margin-bottom: 12px;
+  }
+  .cover-title span { color: var(--yellow); }
+  .cover-subtitle {
+    font-size: 18px;
+    font-weight: 300;
+    color: rgba(255,255,255,.75);
+    max-width: 480px;
+    margin-bottom: 40px;
+  }
+  .cover-divider {
+    width: 60px;
+    height: 4px;
+    background: var(--yellow);
+    border-radius: 2px;
+    margin-bottom: 40px;
+  }
+  .cover-meta {
+    font-size: 12px;
+    color: rgba(255,255,255,.5);
+  }
+  .cover-decoration {
+    position: absolute;
+    right: -40px;
+    top: -40px;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.04);
+    border: 40px solid rgba(255,255,255,.05);
+  }
+  .cover-decoration2 {
+    position: absolute;
+    right: 80px;
+    bottom: -60px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(255,204,0,.06);
+    border: 30px solid rgba(255,204,0,.08);
+  }
+
+  /* ── HEADER PADRÃO ─────────────────────────────────────────── */
+  .slide-header {
+    padding: 28px 40px 18px;
+    border-bottom: 3px solid var(--yellow);
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    background: var(--dark);
+  }
+  .slide-header .section-num {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--yellow);
+    line-height: 1;
+    opacity: .3;
+  }
+  .slide-header .section-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    line-height: 1.2;
+  }
+  .slide-header .section-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,.5);
+    font-weight: 400;
+  }
+  .slide-body {
+    flex: 1;
+    padding: 32px 40px;
+    background: white;
+  }
+
+  /* ── TIPOGRAFIA ─────────────────────────────────────────────── */
+  h2 {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--blue);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h2 .icon { font-size: 20px; }
+  p { color: var(--text); font-size: 13px; line-height: 1.65; margin-bottom: 10px; }
+  .muted { color: var(--muted); font-size: 12px; }
+
+  /* ── CARDS GRID ─────────────────────────────────────────────── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+
+  .card {
+    background: var(--light);
+    border-radius: 12px;
+    padding: 18px;
+    border-left: 4px solid var(--blue2);
+  }
+  .card.yellow { border-left-color: var(--yellow); }
+  .card.green  { border-left-color: var(--accent); }
+  .card.dark   { background: var(--dark); color: white; border-left-color: var(--yellow); }
+  .card-icon { font-size: 26px; margin-bottom: 8px; }
+  .card-title { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+  .card.dark .card-title { color: var(--yellow); }
+  .card-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .card.dark .card-text { color: rgba(255,255,255,.65); }
+
+  /* ── FEATURE ROW ────────────────────────────────────────────── */
+  .feature-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .feature-row:last-child { border-bottom: none; }
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--blue), var(--blue2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    color: white;
+  }
+  .feature-icon.yellow { background: linear-gradient(135deg, #b8860b, var(--yellow)); }
+  .feature-icon.green  { background: linear-gradient(135deg, #047857, var(--accent)); }
+  .feature-content { flex: 1; }
+  .feature-content strong { font-size: 14px; color: var(--dark); display: block; margin-bottom: 3px; }
+  .feature-content span { font-size: 12px; color: var(--muted); }
+
+  /* ── BADGE ──────────────────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--yellow);
+    color: var(--dark);
+    margin-right: 4px;
+  }
+  .badge.blue  { background: var(--blue2);  color: white; }
+  .badge.green { background: var(--accent); color: white; }
+
+  /* ── QUOTE ──────────────────────────────────────────────────── */
+  .quote-block {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--blue) 100%);
+    border-radius: 14px;
+    padding: 28px 32px;
+    color: white;
+    position: relative;
+    margin: 16px 0;
+  }
+  .quote-block::before {
+    content: '"';
+    font-size: 80px;
+    color: var(--yellow);
+    opacity: .3;
+    position: absolute;
+    top: 0;
+    left: 20px;
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+  .quote-block p {
+    font-size: 15px;
+    font-weight: 500;
+    color: white;
+    line-height: 1.7;
+    padding-left: 20px;
+  }
+  .quote-block .author {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--yellow);
+    font-weight: 600;
+    padding-left: 20px;
+  }
+
+  /* ── STAT PILL ──────────────────────────────────────────────── */
+  .stat-row { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+  .stat-pill {
+    flex: 1;
+    background: var(--dark);
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 100px;
+  }
+  .stat-pill .num { font-size: 28px; font-weight: 900; color: var(--yellow); }
+  .stat-pill .lbl { font-size: 11px; color: rgba(255,255,255,.55); font-weight: 500; margin-top: 2px; }
+
+  /* ── TIMELINE ───────────────────────────────────────────────── */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .tl-item { display: flex; gap: 16px; }
+  .tl-left { display: flex; flex-direction: column; align-items: center; width: 28px; flex-shrink: 0; }
+  .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--blue2); border: 3px solid white; box-shadow: 0 0 0 2px var(--blue2); flex-shrink: 0; }
+  .tl-dot.yellow { background: var(--yellow); box-shadow: 0 0 0 2px var(--yellow); }
+  .tl-line { flex: 1; width: 2px; background: #e2e8f0; }
+  .tl-content { padding-bottom: 20px; flex: 1; }
+  .tl-content strong { font-size: 13px; color: var(--dark); font-weight: 700; }
+  .tl-content p { font-size: 12px; color: var(--muted); margin-top: 3px; margin-bottom: 0; }
+
+  /* ── TECH STACK ─────────────────────────────────────────────── */
+  .tech-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--light);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .tech-icon { font-size: 22px; width: 36px; text-align: center; }
+  .tech-name { font-size: 13px; font-weight: 700; color: var(--dark); }
+  .tech-desc { font-size: 11px; color: var(--muted); }
+  .tech-badge { margin-left: auto; }
+
+  /* ── FOOTER SLIDE ───────────────────────────────────────────── */
+  .slide-footer {
+    padding: 10px 40px;
+    background: var(--light);
+    border-top: 2px solid var(--yellow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .slide-footer .logo-text {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--blue);
+  }
+  .slide-footer .logo-text span { color: var(--yellow); }
+  .slide-footer .page-num {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── PRINT ──────────────────────────────────────────────────── */
+  @media print {
+    body { background: white; }
+    .slide {
+      margin: 0;
+      box-shadow: none;
+      page-break-after: always;
+      width: 297mm;
+      min-height: 210mm;
+    }
+    @page { size: A4 landscape; margin: 0; }
+  }
+
+  /* ── HIGHLIGHT BOX ──────────────────────────────────────────── */
+  .highlight {
+    background: linear-gradient(90deg, #fefce8, #fff);
+    border-left: 4px solid var(--yellow);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 12px 0;
+  }
+  .highlight p { margin-bottom: 0; font-size: 13px; }
+
+  /* ── DIVIDER ────────────────────────────────────────────────── */
+  .divider { height: 2px; background: var(--light); margin: 16px 0; border-radius: 1px; }
+
+  /* ── FINAL SLIDE ────────────────────────────────────────────── */
+  .slide-final {
+    background: linear-gradient(135deg, var(--dark) 0%, #0d2a52 50%, var(--blue) 100%);
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px;
+  }
+  .final-symbol { font-size: 60px; margin-bottom: 20px; }
+  .final-title { font-size: 36px; font-weight: 900; color: white; margin-bottom: 10px; }
+  .final-title span { color: var(--yellow); }
+  .final-sub { font-size: 15px; color: rgba(255,255,255,.6); max-width: 500px; margin: 0 auto 30px; }
+  .final-contact {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .final-contact-item {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-size: 13px;
+    color: rgba(255,255,255,.8);
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 1 — CAPA
+══════════════════════════════════════════════════════════════ -->
+<div class="slide slide-cover">
+  <div class="cover-decoration"></div>
+  <div class="cover-decoration2"></div>
+
+  <div class="cover-tag">Apresentação Executiva · Julio / 2026</div>
+  <div class="cover-title">SPIV<br><span>Sistema de Prospecção</span><br>Inteligente de Vendas</div>
+  <div class="cover-subtitle">Uma nova forma de enxergar a carteira de clientes — com inteligência, dados e foco em resultado.</div>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    Desenvolvido para a Diretoria Comercial &nbsp;·&nbsp; Plataforma de código aberto &nbsp;·&nbsp; Dados públicos da Receita Federal
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 2 — CONTEXTO: REESTRUTURAÇÃO E O OLHAR DIFERENTE
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">01</div>
+    <div>
+      <div class="section-title">O Momento Exige um Olhar Diferente</div>
+      <div class="section-sub">Contexto estratégico &amp; propósito do sistema</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap:28px;">
+      <div>
+        <div class="quote-block">
+          <p>Para atingir resultados diferentes, precisamos fazer diferente. Não é sobre abandonar o que foi construído — é sobre potencializar o que já funciona com ferramentas que o mundo moderno coloca à nossa disposição.</p>
+        </div>
+        <p style="margin-top:16px;">A reestruturação comercial em curso é uma oportunidade singular. As equipes de venda têm experiência acumulada, relacionamentos consolidados e conhecimento do território que nenhum sistema substitui.</p>
+        <p>O <strong>SPIV</strong> não veio para substituir o vendedor — veio para ser o melhor colega de trabalho que ele já teve.</p>
+        <div class="highlight">
+          <p>💡 <strong>Incorporar o legado, ampliar o alcance.</strong> Cada visita feita, cada cliente atendido, cada negociação conduzida nos anos anteriores é o alicerce sobre o qual o SPIV opera.</p>
+        </div>
+      </div>
+      <div>
+        <h2><span class="icon">🎯</span> Três pilares desta iniciativa</h2>
+
+        <div class="feature-row">
+          <div class="feature-icon">🏆</div>
+          <div class="feature-content">
+            <strong>Valorizar o que já foi feito</strong>
+            <span>A carteira de clientes atual é o maior ativo da área comercial. O sistema organiza, enriquece e potencializa esse ativo.</span>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon yellow">🔭</div>
+          <div class="feature-content">
+            <strong>Ampliar o campo de visão</strong>
+            <span>Com dados públicos da Receita Federal e enriquecimento inteligente, cada vendedor passa a enxergar oportunidades que antes estavam invisíveis.</span>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon green">⚡</div>
+          <div class="feature-content">
+            <strong>Acelerar a tomada de decisão</strong>
+            <span>Do ranking de leads à aprovação de novos clientes, cada decisão tem base em dado — não em intuição.</span>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;padding:14px;background:var(--light);border-radius:12px;">
+          <p style="font-size:12px;color:var(--muted);margin-bottom:0;"><strong style="color:var(--dark);">🔒 Privacidade em primeiro lugar:</strong> Este sistema foi desenvolvido e demonstrado exclusivamente com dados públicos da Receita Federal. Nenhuma informação proprietária dos Correios foi utilizada fora da rede interna.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">01 / 08</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 3 — VISÃO GERAL DO SISTEMA
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">02</div>
+    <div>
+      <div class="section-title">O que é o SPIV</div>
+      <div class="section-sub">Visão geral da plataforma e seus módulos</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <p style="max-width:680px;margin-bottom:20px;">O SPIV é uma plataforma web mobile-first que centraliza a gestão da carteira de clientes, a prospecção inteligente e a comunicação entre vendedor e administração — tudo em um único ambiente seguro e auditável.</p>
+
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="card yellow">
+        <div class="card-icon">👤</div>
+        <div class="card-title">Portal do Vendedor</div>
+        <div class="card-text">Carteira completa, notas de visita, prospecção de novos clientes e solicitação de captação.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗺️</div>
+        <div class="card-title">Mapa Inteligente</div>
+        <div class="card-text">Visualização geográfica da carteira, leads disponíveis e clientes de outros vendedores.</div>
+      </div>
+      <div class="card green">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Score Preditivo</div>
+        <div class="card-text">Algoritmo de rankeamento baseado em CNAE, capital social, localização e presença digital.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <div class="card-title">Painel Administrativo</div>
+        <div class="card-text">Gestão de carteiras, aprovação de pedidos de captação, métricas e configuração de parâmetros.</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;">
+      <div>
+        <h2><span class="icon">👥</span> Perfis de acesso</h2>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot yellow"></div><div class="tl-line"></div></div>
+            <div class="tl-content"><strong>Vendedor (ACOM)</strong><p>Acessa sua carteira, realiza prospecção, registra notas e solicita novos clientes.</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+            <div class="tl-content"><strong>Coordenador</strong><p>Visão do time, acompanhamento dos vendedores subordinados e análise de pedidos.</p></div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+            <div class="tl-content"><strong>Administrador</strong><p>Gestão completa: carteiras, aprovações, parâmetros de score e métricas gerais.</p></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h2><span class="icon">🔗</span> Integrações ativas</h2>
+        <div class="stat-row">
+          <div class="stat-pill"><div class="num">48M+</div><div class="lbl">Empresas na base da Receita Federal</div></div>
+          <div class="stat-pill"><div class="num">100%</div><div class="lbl">Dados públicos — sem expor informações internas</div></div>
+          <div class="stat-pill"><div class="num">0</div><div class="lbl">Licenças proprietárias necessárias</div></div>
+        </div>
+        <p class="muted">Toda a base de dados da Receita Federal (CNPJ, CNAE, capital social, endereço, sócios) é carregada localmente e consultada em milissegundos, sem depender de APIs pagas externas.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">02 / 08</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 4 — ENRIQUECIMENTO DE INFORMAÇÃO
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">03</div>
+    <div>
+      <div class="section-title">Enriquecimento de Informação</div>
+      <div class="section-sub">Transformando um CNPJ em uma visão 360° do cliente</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap:28px;">
+      <div>
+        <p>A grande mudança de paradigma do SPIV está no <strong>enriquecimento progressivo</strong> de cada cliente da carteira. Um CNPJ na Receita Federal traz dados cadastrais — o SPIV transforma esses dados em inteligência comercial.</p>
+
+        <div class="feature-row">
+          <div class="feature-icon">🌐</div>
+          <div class="feature-content">
+            <strong>Site e presença digital</strong>
+            <span>Identificação e validação do site institucional do cliente. Permite avaliar maturidade digital e canais de compra online.</span>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon yellow">📱</div>
+          <div class="feature-content">
+            <strong>Redes Sociais</strong>
+            <span>Mapeamento de Instagram, Facebook, LinkedIn e outros perfis. Indica atividade, porte real e interação com consumidores.</span>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon green">🛒</div>
+          <div class="feature-content">
+            <strong>E-commerce e plataformas de venda</strong>
+            <span>Identificação de lojas em Mercado Livre, Shopee, Amazon e marketplaces. Clientes com e-commerce ativo têm alta demanda por logística.</span>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon">📍</div>
+          <div class="feature-content">
+            <strong>Geolocalização precisa</strong>
+            <span>Cada cliente recebe coordenadas geográficas (lat/lng) que alimentam o mapa interativo e permitem planejamento de rotas de visita.</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2><span class="icon">💡</span> Por que isso aumenta a conversão?</h2>
+
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-icon">🎯</div>
+          <div class="card-title">Visita com propósito</div>
+          <div class="card-text">Com informações completas antes da reunião — volume de postagens, canais ativos, plataformas utilizadas —, o vendedor chega com uma proposta personalizada. Não é visita de cortesia; é consultoria.</div>
+        </div>
+
+        <div class="card yellow" style="margin-bottom:12px;">
+          <div class="card-icon">📈</div>
+          <div class="card-title">Priorização inteligente</div>
+          <div class="card-text">O vendedor sabe quais clientes têm maior potencial de expansão antes mesmo de ligar. Isso reduz o ciclo de venda e aumenta a taxa de conversão por visita.</div>
+        </div>
+
+        <div class="card green">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">Dados que se renovam</div>
+          <div class="card-text">A cada interação — nota de visita, verificação de CNPJ, busca de redes sociais —, o perfil do cliente fica mais rico. O sistema cresce com o time.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">03 / 08</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 5 — SCORE PREDITIVO E RANKEAMENTO
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">04</div>
+    <div>
+      <div class="section-title">Score Preditivo &amp; Ranking de Leads</div>
+      <div class="section-sub">Deixar de mirar no escuro e passar a mirar no alvo certo</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap:28px;">
+      <div>
+        <h2><span class="icon">🧮</span> Como o score é calculado?</h2>
+        <p>O algoritmo analisa múltiplos fatores e gera uma pontuação de <strong>0 a 100</strong> para cada empresa prospectada. Os pesos são <strong>configuráveis pelo administrador</strong> a qualquer momento.</p>
+
+        <div style="margin:16px 0;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--blue2);"></div>
+            <span style="font-size:13px;font-weight:600;">CNAE Principal</span>
+            <div style="flex:1;height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="width:40%;height:100%;background:var(--blue2);border-radius:4px;"></div></div>
+            <span style="font-size:12px;color:var(--muted);">40 pts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--yellow);"></div>
+            <span style="font-size:13px;font-weight:600;">Capital Social</span>
+            <div style="flex:1;height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="width:20%;height:100%;background:var(--yellow);border-radius:4px;"></div></div>
+            <span style="font-size:12px;color:var(--muted);">20 pts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);"></div>
+            <span style="font-size:13px;font-weight:600;">Localização (UF/município)</span>
+            <div style="flex:1;height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="width:15%;height:100%;background:var(--accent);border-radius:4px;"></div></div>
+            <span style="font-size:12px;color:var(--muted);">15 pts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#8b5cf6;"></div>
+            <span style="font-size:13px;font-weight:600;">E-mail institucional</span>
+            <div style="flex:1;height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="width:15%;height:100%;background:#8b5cf6;border-radius:4px;"></div></div>
+            <span style="font-size:12px;color:var(--muted);">15 pts</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#f97316;"></div>
+            <span style="font-size:13px;font-weight:600;">Nome fantasia</span>
+            <div style="flex:1;height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="width:10%;height:100%;background:#f97316;border-radius:4px;"></div></div>
+            <span style="font-size:12px;color:var(--muted);">10 pts</span>
+          </div>
+        </div>
+
+        <div class="highlight">
+          <p>⚙️ <strong>CNAEs com alto potencial postal</strong> (varejo, e-commerce, marketplace) recebem pontuação máxima. CNAEs secundários são amortizados por um fator configurável.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2><span class="icon">🏅</span> O que o ranking entrega na prática?</h2>
+
+        <div class="card dark" style="margin-bottom:14px;">
+          <div class="card-icon">🔥</div>
+          <div class="card-title">Score 60–100: Alto Potencial</div>
+          <div class="card-text">Empresas com CNAE varejista, capital social expressivo e e-mail válido. Prioridade máxima de abordagem.</div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">Score 30–59: Potencial Médio</div>
+          <div class="card-text">Empresas com algum indicador positivo mas ainda em desenvolvimento. Boa oportunidade de relacionamento de longo prazo.</div>
+        </div>
+
+        <div class="card" style="border-left-color:#94a3b8;margin-bottom:14px;">
+          <div class="card-icon">·</div>
+          <div class="card-title">Score 0–29: Baixo Potencial</div>
+          <div class="card-text">Perfil cadastral básico, sem indicadores logísticos. Prospecção de baixa prioridade.</div>
+        </div>
+
+        <p class="muted">O ranking é recalculado sobre toda a base sempre que os parâmetros são ajustados, em processo em background — sem interromper o trabalho do time.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">04 / 08</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 6 — GEOLOCALIZAÇÃO E NOTAS DE VISITA
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">05</div>
+    <div>
+      <div class="section-title">Geolocalização &amp; Notas de Visita</div>
+      <div class="section-sub">O vendedor em campo com os dados certos na mão certa</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap:28px;">
+      <div>
+        <h2><span class="icon">🗺️</span> Mapa interativo da carteira</h2>
+        <p>O mapa do SPIV exibe três camadas de informação em tempo real, com toggles independentes por camada:</p>
+
+        <div class="feature-row">
+          <div class="feature-icon" style="background:linear-gradient(135deg,#1e40af,#3b82f6);">🔵</div>
+          <div class="feature-content">
+            <strong>Minha carteira (azul)</strong>
+            <span>Todos os clientes do vendedor georreferenciados, coloridos pelo score preditivo. Um olhar sobre o território de atuação.</span>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon" style="background:linear-gradient(135deg,#991b1b,#ef4444);">🔴</div>
+          <div class="feature-content">
+            <strong>Leads disponíveis (vermelho)</strong>
+            <span>CNPJs fora de qualquer carteira, com localização confirmada. Oportunidades ao alcance imediato, visíveis no mapa.</span>
+          </div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon" style="background:linear-gradient(135deg,#92400e,#f59e0b);">🟠</div>
+          <div class="feature-content">
+            <strong>Em outra carteira (laranja)</strong>
+            <span>Clientes geocodificados que pertencem a outro vendedor. Visibilidade estratégica para pedidos de captação fundamentados.</span>
+          </div>
+        </div>
+
+        <div class="highlight" style="margin-top:16px;">
+          <p>📌 Ao tocar em qualquer ponto do mapa, o vendedor vê nome, CNPJ, score e um botão de ação contextual — podendo prospectar ou solicitar a captação diretamente.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2><span class="icon">📝</span> Notas de visita: memória que vira ativo</h2>
+        <p>As notas são o diário de campo digital do vendedor. Mas ao contrário de um caderno físico, cada nota <strong>enriquece permanentemente o perfil do cliente</strong>.</p>
+
+        <div class="grid-2" style="gap:10px;margin-bottom:16px;">
+          <div class="card" style="padding:14px;">
+            <div class="card-icon" style="font-size:20px;">💬</div>
+            <div class="card-title">Tipos de nota</div>
+            <div class="card-text">Visita presencial, contato telefônico, reunião, observação, estratégia.</div>
+          </div>
+          <div class="card yellow" style="padding:14px;">
+            <div class="card-icon" style="font-size:20px;">😊</div>
+            <div class="card-title">Sentimento</div>
+            <div class="card-text">Positivo, neutro ou negativo — sinaliza o momento da relação comercial.</div>
+          </div>
+        </div>
+
+        <p><strong>Para o vendedor:</strong> histórico sempre disponível antes de cada visita. Nenhum detalhe de negociação se perde.</p>
+        <p><strong>Para a gestão:</strong> as notas constam no pedido de captação, servindo como evidência de relacionamento pré-existente — base concreta para decisões administrativas.</p>
+        <p><strong>Para o sistema:</strong> data e hora de cada interação constroem uma linha do tempo auditável que aumenta a confiança e transparência nos processos.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">05 / 08</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 7 — GESTÃO DE CARTEIRA E APROVAÇÃO DE CLIENTES
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">06</div>
+    <div>
+      <div class="section-title">Gestão de Carteira &amp; PR-CAP</div>
+      <div class="section-sub">Processo de aprovação de novos clientes — transparente, auditável e justo</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap:28px;">
+      <div>
+        <h2><span class="icon">📋</span> O fluxo PR-CAP (Pedido de Captação)</h2>
+        <p>Quando um vendedor identifica um cliente de alto potencial que ainda não está em sua carteira, ele inicia um <strong>Pedido de Captação</strong> formal, documentado e revisado pela gestão.</p>
+
+        <div class="timeline" style="margin-top:16px;">
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot yellow"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <strong>1. Vendedor identifica o cliente</strong>
+              <p>Via busca na Receita Federal, ranking de leads ou mapa da carteira.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <strong>2. Enriquece e documenta</strong>
+              <p>Aplica geolocalização, verifica CNPJ, pesquisa redes sociais, registra notas. Cada ação gera timestamp auditável.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <strong>3. Formaliza o pedido</strong>
+              <p>Preenche justificativa, tempo de contato, canais utilizados, documentos de referência e <strong>anexa prints e PDFs</strong> como evidência.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <strong>4. Admin ou Coordenador decide</strong>
+              <p>Aprova, rejeita ou solicita mais informações — com observação registrada e visível para o vendedor.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-left"><div class="tl-dot yellow"></div></div>
+            <div class="tl-content">
+              <strong>5. Transferência automática</strong>
+              <p>Se aprovado, o cliente entra imediatamente na carteira do solicitante. Todo o histórico é preservado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2><span class="icon">⚖️</span> Por que um processo formal importa?</h2>
+
+        <div class="card dark" style="margin-bottom:12px;">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">Conflitos resolvidos com dados</div>
+          <div class="card-text">Em caso de disputa por um cliente, o sistema indica automaticamente que o CNPJ está em outra carteira e sinaliza para o admin — que decide com base em evidências objetivas, não em percepções.</div>
+        </div>
+
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-icon">📌</div>
+          <div class="card-title">Relacionamento anterior reconhecido</div>
+          <div class="card-text">O vendedor pode documentar meses de negociação pré-sistema com justificativa textual, anexos e referências externas. O histórico humano conta tanto quanto os dados automáticos.</div>
+        </div>
+
+        <div class="card green">
+          <div class="card-icon">✅</div>
+          <div class="card-title">Rastreabilidade total</div>
+          <div class="card-text">Cada pedido tem data/hora de criação, de decisão e nome de quem decidiu. O sistema é um histórico vivo da evolução da carteira.</div>
+        </div>
+
+        <div class="highlight" style="margin-top:14px;">
+          <p>📎 <strong>Anexos como evidência:</strong> prints de WhatsApp, propostas em PDF, prints de e-mail — tudo pode ser enviado junto ao pedido para embasar a decisão administrativa.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">06 / 08</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 8 — TECNOLOGIA E PRÓXIMOS PASSOS
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">07</div>
+    <div>
+      <div class="section-title">Tecnologia Aberta &amp; Próximos Passos</div>
+      <div class="section-sub">Livre de licenças proprietárias, pronto para dados reais</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div class="grid-2" style="gap:28px;">
+      <div>
+        <h2><span class="icon">🔓</span> Stack 100% open-source</h2>
+        <p>Nenhuma linha de código do SPIV depende de licença paga. Cada componente foi escolhido por maturidade, documentação e adoção no mercado.</p>
+
+        <div class="tech-item">
+          <div class="tech-icon">🐘</div>
+          <div><div class="tech-name">PostgreSQL 16</div><div class="tech-desc">Banco de dados relacional — base da Receita Federal integrada via schema nativo.</div></div>
+          <div class="tech-badge"><span class="badge green">Gratuito</span></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">🔥</div>
+          <div><div class="tech-name">CodeIgniter 4</div><div class="tech-desc">Framework PHP MVC — rápido, seguro, low overhead, documentação completa.</div></div>
+          <div class="tech-badge"><span class="badge green">Gratuito</span></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">🗺️</div>
+          <div><div class="tech-name">Leaflet.js + OpenStreetMap</div><div class="tech-desc">Mapa interativo sem chave de API paga. Dados cartográficos abertos e atualizados.</div></div>
+          <div class="tech-badge"><span class="badge green">Gratuito</span></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">🔐</div>
+          <div><div class="tech-name">CodeIgniter Shield + LDAP</div><div class="tech-desc">Autenticação compatível com o diretório interno dos Correios via LDAP/Active Directory.</div></div>
+          <div class="tech-badge"><span class="badge green">Gratuito</span></div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">📡</div>
+          <div><div class="tech-name">APIs documentadas (REST/JSON)</div><div class="tech-desc">Cada endpoint do sistema é documentado e acessível — pronto para integração com ERPs e sistemas internos.</div></div>
+          <div class="tech-badge"><span class="badge blue">Aberto</span></div>
+        </div>
+      </div>
+
+      <div>
+        <h2><span class="icon">🚀</span> O que vem a seguir</h2>
+
+        <div class="card dark" style="margin-bottom:14px;padding:20px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+            <span style="font-size:28px;">🖥️</span>
+            <div>
+              <div class="card-title" style="font-size:15px;">Servidor de Desenvolvimento Interno</div>
+            </div>
+          </div>
+          <div class="card-text">Para dar o próximo passo com <strong>dados reais</strong>, é necessário um servidor dentro da rede interna dos Correios. Este ambiente permitirá:<br><br>
+          ✦ Integração com o CRM e ERP corporativos<br>
+          ✦ Carga real da carteira de clientes ativa<br>
+          ✦ Piloto controlado com uma equipe de vendas<br>
+          ✦ Validação do score com dados históricos de conversão<br>
+          ✦ Autenticação via LDAP/AD corporativo<br><br>
+          <em style="color:rgba(255,255,255,.5);font-size:12px;">Sem esse ambiente, o desenvolvimento continua com dados públicos — seguro para demonstração, mas limitado para calibração real do algoritmo.</em></div>
+        </div>
+
+        <div class="highlight">
+          <p>🔒 <strong>Segurança por design:</strong> O SPIV foi arquitetado desde o início para operar isolado da internet pública quando em ambiente de produção. Os dados reais dos clientes dos Correios jamais precisam sair da rede interna.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">07 / 08</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 9 — ENCERRAMENTO
+══════════════════════════════════════════════════════════════ -->
+<div class="slide slide-final">
+  <div class="final-symbol">📬</div>
+  <div class="final-title">O futuro da carteira<br><span>começa com o próximo passo.</span></div>
+  <div class="final-sub">O SPIV não é uma promessa de tecnologia. É um sistema funcional, testado e pronto para receber dados reais — com o time, a experiência e o histórico que os Correios já têm.</div>
+  <div style="margin:20px 0;width:60px;height:3px;background:var(--yellow);border-radius:2px;margin:20px auto;"></div>
+  <p style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:30px;">
+    Fazer diferente não é negar o passado. É honrar o que foi construído e ter a coragem de levá-lo mais longe.
+  </p>
+  <div class="final-contact">
+    <div class="final-contact-item">🔓 100% Open-source</div>
+    <div class="final-contact-item">📊 Dados Receita Federal</div>
+    <div class="final-contact-item">🔐 Pronto para LDAP</div>
+    <div class="final-contact-item">📡 APIs documentadas</div>
+  </div>
+  <div style="margin-top:40px;font-size:11px;color:rgba(255,255,255,.25);">SPIV · Sistema de Prospecção Inteligente de Vendas · Julho 2026</div>
+</div>
+
+</body>
+</html>
