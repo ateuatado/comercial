@@ -1956,7 +1956,52 @@ class VendedorController extends BaseController
         return $this->response->setJSON(['success' => true, 'message' => 'Sugestão removida.']);
     }
 
-    // ─── Scanner Reclame Aqui OSINT (Fase 3.5) ───────────────────
+    // ─── Scanner Reclame Aqui OSINT (Fase 3.5)
+
+    /**
+     * Resolve a chave Serper do usuário logado.
+     * Prioridade: chave pessoal (vendor_users.serper_api_key) > chave global (.env)
+     */
+    private function getSerperKey(): string
+    {
+        $vendorUser = $this->getVendorUser();
+        if ($vendorUser && !empty($vendorUser['serper_api_key'])) {
+            return $vendorUser['serper_api_key'];
+        }
+        return env('serper.apiKey') ?: env('SERPER_API_KEY') ?: getenv('serper.apiKey') ?: getenv('SERPER_API_KEY') ?: '';
+    }
+
+    /**
+     * POST /vendedor/serper-key — Salva a chave Serper pessoal do usuário via AJAX.
+     */
+    public function serperKeySalvar()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+        }
+
+        $apiKey = trim($this->request->getPost('serper_api_key') ?? '');
+
+        if (empty($apiKey)) {
+            // Permite apagar a chave
+            db_connect()->table('vendor_users')
+                ->where('matricula', $vendorUser['matricula'])
+                ->update(['serper_api_key' => null, 'updated_at' => date('Y-m-d H:i:s')]);
+            return $this->response->setJSON(['success' => true, 'message' => 'Chave removida.']);
+        }
+
+        // Validação mínima: chaves Serper têm 40+ caracteres
+        if (strlen($apiKey) < 20) {
+            return $this->response->setJSON(['error' => 'Chave inválida. Verifique se copiou corretamente.']);
+        }
+
+        db_connect()->table('vendor_users')
+            ->where('matricula', $vendorUser['matricula'])
+            ->update(['serper_api_key' => $apiKey, 'updated_at' => date('Y-m-d H:i:s')]);
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Chave Serper salva com sucesso!']);
+    }
 
     public function reclameAquiScan(string $cnpj)
     {
@@ -1968,11 +2013,7 @@ class VendedorController extends BaseController
         $cnpjClean = preg_replace('/[^0-9]/', '', $cnpj);
 
         $db = db_connect();
-        
-        // Verifica se o CNPJ é um prospecto ou cliente
-        // Pode ser executado para clientes livres também (modo prospecto)
-        
-        // Busca Nome Fantasia ou Razão Social
+
         $empresa = $db->query("
             SELECT COALESCE(e.nome_fantasia, emp.razao_social) AS nome_busca
             FROM receita.estabelecimentos e
@@ -1985,17 +2026,32 @@ class VendedorController extends BaseController
             return $this->response->setJSON(['error' => 'CNPJ não encontrado na base de dados local.'])->setStatusCode(404);
         }
 
-        $scanner = new \App\Services\ReclameAquiScanner();
+        // Resolve chave: pessoal do usuário > global do .env
+        $userKey = !empty($vendorUser['serper_api_key']) ? $vendorUser['serper_api_key'] : null;
+        $scanner  = new \App\Services\ReclameAquiScanner($userKey);
+
+        // Se não há nenhuma chave, retorna erro estruturado para o frontend exibir o formulário
+        if (!$scanner->hasKey()) {
+            return $this->response->setJSON([
+                'error'      => 'NO_API_KEY',
+                'error_type' => 'NO_API_KEY',
+            ])->setStatusCode(402);
+        }
+
         $resultados = $scanner->scan($empresa['nome_busca']);
 
         if (isset($resultados['error'])) {
-            return $this->response->setJSON(['error' => $resultados['error']])->setStatusCode(500);
+            $isNoKey = in_array($resultados['error_type'] ?? '', ['NO_API_KEY', 'INVALID_KEY']);
+            return $this->response->setJSON([
+                'error'      => $resultados['error'],
+                'error_type' => $resultados['error_type'] ?? 'SCAN_ERROR',
+            ])->setStatusCode($isNoKey ? 402 : 500);
         }
 
         return $this->response->setJSON([
-            'success' => true,
-            'empresa' => $empresa['nome_busca'],
-            'resultados' => $resultados
+            'success'    => true,
+            'empresa'    => $empresa['nome_busca'],
+            'resultados' => $resultados,
         ]);
     }
 }

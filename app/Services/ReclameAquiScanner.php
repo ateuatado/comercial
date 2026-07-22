@@ -2,49 +2,81 @@
 
 namespace App\Services;
 
+/**
+ * ReclameAquiScanner — busca reclamações de frete/logística no Reclame Aqui via Serper API.
+ *
+ * Resolução da chave (por ordem de prioridade):
+ *   1. Chave pessoal do usuário ($userApiKey, passada via construtor)
+ *   2. Chave global do servidor (SERPER_API_KEY no .env)
+ *   3. Nenhuma chave → retorna erro estruturado com orientação ao usuário
+ */
 class ReclameAquiScanner
 {
-    protected $apiKey;
+    protected string $apiKey = '';
 
-    public function __construct()
+    /** Código de erro para ausência de chave (usado pelo controller para personalizar a resposta) */
+    const ERR_NO_KEY = 'NO_API_KEY';
+
+    public function __construct(?string $userApiKey = null)
     {
-        // Puxa a chave configurada no .env
-        $this->apiKey = getenv('SERPER_API_KEY');
+        // Prioridade: chave pessoal > chave global do .env
+        $this->apiKey = $userApiKey
+            ?: (getenv('SERPER_API_KEY') ?: '');
+    }
+
+    /** Retorna true se há uma chave configurada (pessoal ou global). */
+    public function hasKey(): bool
+    {
+        return $this->apiKey !== '';
     }
 
     public function scan(string $empresaNome): array
     {
-        if (empty($this->apiKey)) {
-            return ['error' => 'SERPER_API_KEY não configurada no .env'];
+        if (!$this->hasKey()) {
+            return [
+                'error'      => self::ERR_NO_KEY,
+                'error_type' => self::ERR_NO_KEY,
+            ];
         }
 
         $client = \Config\Services::curlrequest();
-        $query = 'site:reclameaqui.com.br "' . $empresaNome . '" (frete OR postal OR sedex OR pac OR encomenda OR "logística reversa")';
+        $query  = 'site:reclameaqui.com.br "' . $empresaNome . '" (frete OR postal OR sedex OR pac OR encomenda OR "logística reversa")';
 
         try {
             $response = $client->post('https://google.serper.dev/search', [
                 'headers' => [
-                    'X-API-KEY' => $this->apiKey,
-                    'Content-Type' => 'application/json'
+                    'X-API-KEY'    => $this->apiKey,
+                    'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'q' => $query,
-                    'gl' => 'br',
-                    'hl' => 'pt-br',
-                    'num' => 5
+                    'q'   => $query,
+                    'gl'  => 'br',
+                    'hl'  => 'pt-br',
+                    'num' => 5,
                 ],
-                'http_errors' => false
+                'http_errors' => false,
+                'timeout'     => 8,
             ]);
 
-            if ($response->getStatusCode() !== 200) {
-                return ['error' => 'Falha na requisição para a API Serper. Status: ' . $response->getStatusCode()];
+            $status = $response->getStatusCode();
+
+            // Chave inválida ou sem créditos
+            if ($status === 401 || $status === 403) {
+                return [
+                    'error'      => self::ERR_NO_KEY,
+                    'error_type' => 'INVALID_KEY',
+                ];
+            }
+
+            if ($status !== 200) {
+                return ['error' => 'Falha na requisição Serper (HTTP ' . $status . ').'];
             }
 
             $data = json_decode($response->getBody(), true);
             return $data['organic'] ?? [];
 
         } catch (\Exception $e) {
-            return ['error' => 'Erro ao processar a busca: ' . $e->getMessage()];
+            return ['error' => 'Erro de conexão: ' . $e->getMessage()];
         }
     }
 }

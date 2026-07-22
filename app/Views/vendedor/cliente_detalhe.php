@@ -1152,77 +1152,123 @@
 })();
 // ─── Scanner Reclame Aqui OSINT ─────────────────────────────────
 (function() {
-    const btnScan = document.getElementById('btnScanReclameAqui');
+    const btnScan    = document.getElementById('btnScanReclameAqui');
     const resultsList = document.getElementById('raResultsList');
-    const errorAlert = document.getElementById('raErrorAlert');
-    const CNPJ = '<?= esc($cliente['cnpj']) ?>';
+    const CNPJ       = '<?= esc($cliente['cnpj']) ?>';
+    const SAVE_KEY_URL = '<?= site_url('vendedor/serper-key') ?>';
 
     if (!btnScan || !resultsList) return;
 
-    btnScan.addEventListener('click', async () => {
+    // ── Formulário inline de chave Serper ──────────────────────────
+    function showApiKeyForm(errorType) {
+        const isInvalid = errorType === 'INVALID_KEY';
+        resultsList.innerHTML = `
+            <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:14px 16px;margin-top:4px;">
+                <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:6px;">
+                    🔑 ${isInvalid ? 'Chave Serper inválida ou sem créditos' : 'Chave Serper não configurada'}
+                </div>
+                <p style="font-size:12px;color:#78350f;margin-bottom:10px;line-height:1.4;">
+                    Este scanner utiliza a <strong>API Serper.dev</strong> para pesquisar reclamações no Reclame Aqui.
+                    O plano gratuito inclui <strong>2.500 buscas/mês</strong> sem necessidade de cartão de crédito.<br><br>
+                    <a href="https://serper.dev" target="_blank" style="color:#1d4ed8;font-weight:600;">
+                        👉 Criar conta gratuita em serper.dev
+                    </a>
+                </p>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" id="serperKeyInput"
+                        placeholder="Cole aqui sua API Key do Serper.dev"
+                        style="flex:1;padding:8px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:12px;outline:none;"
+                    />
+                    <button id="btnSalvarSerperKey"
+                        style="padding:8px 14px;background:#1e40af;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                        Salvar e Tentar
+                    </button>
+                </div>
+                <div id="serperKeyMsg" style="font-size:11px;margin-top:6px;display:none;"></div>
+            </div>`;
+
+        document.getElementById('btnSalvarSerperKey').addEventListener('click', async () => {
+            const key = document.getElementById('serperKeyInput').value.trim();
+            const msg = document.getElementById('serperKeyMsg');
+            if (!key) { msg.style.display = 'block'; msg.style.color = '#dc2626'; msg.textContent = 'Cole sua chave antes de salvar.'; return; }
+
+            const btn = document.getElementById('btnSalvarSerperKey');
+            btn.disabled = true; btn.textContent = 'Salvando...';
+
+            try {
+                const body = new URLSearchParams({ serper_api_key: key });
+                const res  = await fetch(SAVE_KEY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                    body, credentials: 'same-origin'
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    msg.style.color = '#16a34a'; msg.style.display = 'block';
+                    msg.textContent = '✅ Chave salva! Iniciando busca...';
+                    setTimeout(() => runScan(), 800);
+                } else {
+                    msg.style.color = '#dc2626'; msg.style.display = 'block';
+                    msg.textContent = '❌ ' + (data.error || 'Erro ao salvar.');
+                    btn.disabled = false; btn.textContent = 'Salvar e Tentar';
+                }
+            } catch(e) {
+                msg.style.color = '#dc2626'; msg.style.display = 'block';
+                msg.textContent = '❌ Erro de rede.';
+                btn.disabled = false; btn.textContent = 'Salvar e Tentar';
+            }
+        });
+    }
+
+    // ── Execução do scan ──────────────────────────────────────────
+    async function runScan() {
         btnScan.disabled = true;
-        btnScan.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:10px;height:10px;display:inline-block;border:.1em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite;"></span>...';
-        
-        if (errorAlert) {
-            errorAlert.style.display = 'none';
-            errorAlert.innerHTML = '';
-        }
-        
-        resultsList.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm text-danger" style="width:20px;height:20px;"></span><div class="small text-muted mt-2">Buscando reclamações...</div></div>';
+        btnScan.innerHTML = '<span style="display:inline-block;width:10px;height:10px;border:.15em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite;"></span>...';
+        resultsList.innerHTML = '<div class="text-center py-3"><span style="display:inline-block;width:20px;height:20px;border:.2em solid #ef4444;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite;"></span><div class="small text-muted mt-2">Buscando reclamações...</div></div>';
 
         try {
-            const res = await fetch('<?= site_url('vendedor/cliente/') ?>' + CNPJ + '/reclame-aqui', {
+            const res  = await fetch('<?= site_url('vendedor/cliente/') ?>' + CNPJ + '/reclame-aqui', {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin'
             });
-            
             const data = await res.json();
-            
-            if (data.success && data.resultados && data.resultados.data) {
-                const organic = data.resultados.data.organic || [];
-                
-                if (organic.length === 0) {
-                    resultsList.innerHTML = '<div class="alert alert-success border-0 shadow-sm py-2 px-3 m-0" style="background:#dcfce7;color:#166534;font-size:12px;border-radius:8px;"><i class="bi bi-emoji-smile"></i> Nenhuma reclamação encontrada sobre frete/logística.</div>';
+
+            // Sem chave ou chave inválida → exibe formulário
+            if (res.status === 402 || data.error_type === 'NO_API_KEY' || data.error_type === 'INVALID_KEY') {
+                showApiKeyForm(data.error_type);
+                return;
+            }
+
+            if (data.success && Array.isArray(data.resultados)) {
+                if (data.resultados.length === 0) {
+                    resultsList.innerHTML = '<div style="background:#dcfce7;color:#166534;font-size:12px;border-radius:8px;padding:10px 14px;"><i class="bi bi-emoji-smile"></i> Nenhuma reclamação encontrada sobre frete/logística.</div>';
                     return;
                 }
-
-                let html = `<div style="font-size:11px; font-weight:700; color:#475569; margin-bottom:8px;">${organic.length} ocorrências mapeadas para "${data.empresa}":</div>`;
-                
-                organic.forEach(item => {
+                let html = `<div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px;">${data.resultados.length} ocorrências mapeadas para "${data.empresa}":</div>`;
+                data.resultados.forEach(item => {
                     html += `
-                        <div class="card border border-light shadow-sm mb-2" style="border-radius: 10px;">
-                            <div class="card-body p-2 px-3">
-                                <a href="${item.link}" target="_blank" class="fw-bold text-danger d-block mb-1 text-decoration-none" style="font-size: 13px; line-height: 1.2;">
-                                    ${item.title.replace(' - Reclame Aqui', '')}
-                                </a>
-                                <p class="text-muted mb-0" style="font-size: 11px; line-height: 1.3;">
-                                    ${item.snippet}
-                                </p>
-                            </div>
-                        </div>
-                    `;
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+                            <a href="${item.link}" target="_blank" style="font-size:13px;font-weight:700;color:#dc2626;text-decoration:none;display:block;margin-bottom:4px;line-height:1.2;">
+                                ${item.title.replace(' - Reclame Aqui', '')}
+                            </a>
+                            <p style="font-size:11px;color:#64748b;margin:0;line-height:1.3;">${item.snippet}</p>
+                        </div>`;
                 });
-                
                 resultsList.innerHTML = html;
             } else {
-                if (errorAlert) {
-                    errorAlert.innerHTML = '❌ ' + (data.error || 'Erro ao buscar dados.');
-                    errorAlert.style.display = 'flex';
-                }
-                resultsList.innerHTML = '';
+                resultsList.innerHTML = `<div style="background:#fee2e2;color:#991b1b;font-size:12px;border-radius:8px;padding:10px 14px;">❌ ${data.error || 'Erro ao buscar dados.'}</div>`;
             }
-        } catch (err) {
-            if (errorAlert) {
-                errorAlert.innerHTML = '❌ Erro de rede: ' + err.message;
-                errorAlert.style.display = 'flex';
-            }
-            resultsList.innerHTML = '';
+        } catch(err) {
+            resultsList.innerHTML = `<div style="background:#fee2e2;color:#991b1b;font-size:12px;border-radius:8px;padding:10px 14px;">❌ Erro de rede: ${err.message}</div>`;
         } finally {
             btnScan.disabled = false;
             btnScan.innerHTML = '<i class="bi bi-radar"></i> Escanear';
         }
-    });
+    }
+
+    btnScan.addEventListener('click', runScan);
 })();
 </script>
 <?= $this->endSection() ?>

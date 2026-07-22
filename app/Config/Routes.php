@@ -107,6 +107,7 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->post('cnpj/redes-sociais/validar/(:num)', 'VendedorController::validarRedeSocial/$1');
     $routes->post('cnpj/redes-sociais/rejeitar/(:num)', 'VendedorController::rejeitarRedeSocial/$1');
     $routes->post('cliente/(:segment)/reclame-aqui', 'VendedorController::reclameAquiScan/$1');
+    $routes->post('serper-key', 'VendedorController::serperKeySalvar');   // Chave Serper pessoal (AJAX)
 
     // Captação de Clientes (PR-CAP — Fase 3.5)
     $routes->get('captacao/solicitar/(:segment)', 'VendedorController::captacaoSolicitar/$1');
