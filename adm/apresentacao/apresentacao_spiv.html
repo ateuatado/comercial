@@ -28,16 +28,19 @@
     line-height: 1.6;
   }
 
-  /* ── Cada slide é uma página A4 ─────────────────────────────── */
+  /* ── Cada slide é uma página A4 landscape ──────────────── */
   .slide {
     width: 297mm;
-    min-height: 210mm;
+    height: 210mm;
     background: white;
-    margin: 20px auto;
+    margin: 16px auto;
     position: relative;
     overflow: hidden;
     box-shadow: 0 8px 40px rgba(0,0,0,.18);
     page-break-after: always;
+    page-break-inside: avoid;
+    break-after: page;
+    break-inside: avoid;
     display: flex;
     flex-direction: column;
   }
@@ -48,7 +51,7 @@
     color: white;
     justify-content: center;
     align-items: flex-start;
-    padding: 50px 60px;
+    padding: 36px 56px;
     gap: 0;
   }
   .cover-tag {
@@ -60,26 +63,26 @@
     margin-bottom: 20px;
   }
   .cover-title {
-    font-size: 52px;
+    font-size: 44px;
     font-weight: 900;
     line-height: 1.05;
     color: white;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   .cover-title span { color: var(--yellow); }
   .cover-subtitle {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 300;
     color: rgba(255,255,255,.75);
     max-width: 480px;
-    margin-bottom: 40px;
+    margin-bottom: 28px;
   }
   .cover-divider {
     width: 60px;
     height: 4px;
     background: var(--yellow);
     border-radius: 2px;
-    margin-bottom: 40px;
+    margin-bottom: 28px;
   }
   .cover-meta {
     font-size: 12px;
@@ -108,22 +111,23 @@
 
   /* ── HEADER PADRÃO ─────────────────────────────────────────── */
   .slide-header {
-    padding: 28px 40px 18px;
+    padding: 18px 36px 14px;
     border-bottom: 3px solid var(--yellow);
     display: flex;
     align-items: flex-end;
     gap: 16px;
     background: var(--dark);
+    flex-shrink: 0;
   }
   .slide-header .section-num {
-    font-size: 42px;
+    font-size: 36px;
     font-weight: 900;
     color: var(--yellow);
     line-height: 1;
     opacity: .3;
   }
   .slide-header .section-title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
     color: white;
     line-height: 1.2;
@@ -135,8 +139,10 @@
   }
   .slide-body {
     flex: 1;
-    padding: 32px 40px;
+    padding: 20px 36px;
     background: white;
+    overflow: hidden;
+    min-height: 0;
   }
 
   /* ── TIPOGRAFIA ─────────────────────────────────────────────── */
@@ -160,45 +166,45 @@
 
   .card {
     background: var(--light);
-    border-radius: 12px;
-    padding: 18px;
+    border-radius: 10px;
+    padding: 14px;
     border-left: 4px solid var(--blue2);
   }
   .card.yellow { border-left-color: var(--yellow); }
   .card.green  { border-left-color: var(--accent); }
   .card.dark   { background: var(--dark); color: white; border-left-color: var(--yellow); }
-  .card-icon { font-size: 26px; margin-bottom: 8px; }
-  .card-title { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+  .card-icon { font-size: 22px; margin-bottom: 6px; }
+  .card-title { font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 3px; }
   .card.dark .card-title { color: var(--yellow); }
-  .card-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .card-text { font-size: 11px; color: var(--muted); line-height: 1.45; }
   .card.dark .card-text { color: rgba(255,255,255,.65); }
 
   /* ── FEATURE ROW ────────────────────────────────────────────── */
   .feature-row {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
-    padding: 14px 0;
+    gap: 14px;
+    padding: 10px 0;
     border-bottom: 1px solid #f1f5f9;
   }
   .feature-row:last-child { border-bottom: none; }
   .feature-icon {
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--blue), var(--blue2));
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 17px;
     flex-shrink: 0;
     color: white;
   }
   .feature-icon.yellow { background: linear-gradient(135deg, #b8860b, var(--yellow)); }
   .feature-icon.green  { background: linear-gradient(135deg, #047857, var(--accent)); }
   .feature-content { flex: 1; }
-  .feature-content strong { font-size: 14px; color: var(--dark); display: block; margin-bottom: 3px; }
-  .feature-content span { font-size: 12px; color: var(--muted); }
+  .feature-content strong { font-size: 13px; color: var(--dark); display: block; margin-bottom: 2px; }
+  .feature-content span { font-size: 11px; color: var(--muted); }
 
   /* ── BADGE ──────────────────────────────────────────────────── */
   .badge {
@@ -250,52 +256,53 @@
   }
 
   /* ── STAT PILL ──────────────────────────────────────────────── */
-  .stat-row { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+  .stat-row { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
   .stat-pill {
     flex: 1;
     background: var(--dark);
-    border-radius: 12px;
-    padding: 16px 20px;
+    border-radius: 10px;
+    padding: 12px 16px;
     text-align: center;
-    min-width: 100px;
+    min-width: 90px;
   }
-  .stat-pill .num { font-size: 28px; font-weight: 900; color: var(--yellow); }
-  .stat-pill .lbl { font-size: 11px; color: rgba(255,255,255,.55); font-weight: 500; margin-top: 2px; }
+  .stat-pill .num { font-size: 24px; font-weight: 900; color: var(--yellow); }
+  .stat-pill .lbl { font-size: 10px; color: rgba(255,255,255,.55); font-weight: 500; margin-top: 2px; }
 
   /* ── TIMELINE ───────────────────────────────────────────────── */
   .timeline { display: flex; flex-direction: column; gap: 0; }
-  .tl-item { display: flex; gap: 16px; }
-  .tl-left { display: flex; flex-direction: column; align-items: center; width: 28px; flex-shrink: 0; }
-  .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--blue2); border: 3px solid white; box-shadow: 0 0 0 2px var(--blue2); flex-shrink: 0; }
+  .tl-item { display: flex; gap: 14px; }
+  .tl-left { display: flex; flex-direction: column; align-items: center; width: 26px; flex-shrink: 0; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--blue2); border: 2px solid white; box-shadow: 0 0 0 2px var(--blue2); flex-shrink: 0; }
   .tl-dot.yellow { background: var(--yellow); box-shadow: 0 0 0 2px var(--yellow); }
   .tl-line { flex: 1; width: 2px; background: #e2e8f0; }
-  .tl-content { padding-bottom: 20px; flex: 1; }
-  .tl-content strong { font-size: 13px; color: var(--dark); font-weight: 700; }
-  .tl-content p { font-size: 12px; color: var(--muted); margin-top: 3px; margin-bottom: 0; }
+  .tl-content { padding-bottom: 14px; flex: 1; }
+  .tl-content strong { font-size: 12px; color: var(--dark); font-weight: 700; }
+  .tl-content p { font-size: 11px; color: var(--muted); margin-top: 2px; margin-bottom: 0; }
 
   /* ── TECH STACK ─────────────────────────────────────────────── */
   .tech-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
+    gap: 10px;
+    padding: 8px 12px;
     background: var(--light);
-    border-radius: 10px;
-    margin-bottom: 8px;
+    border-radius: 8px;
+    margin-bottom: 6px;
   }
-  .tech-icon { font-size: 22px; width: 36px; text-align: center; }
-  .tech-name { font-size: 13px; font-weight: 700; color: var(--dark); }
-  .tech-desc { font-size: 11px; color: var(--muted); }
+  .tech-icon { font-size: 20px; width: 30px; text-align: center; }
+  .tech-name { font-size: 12px; font-weight: 700; color: var(--dark); }
+  .tech-desc { font-size: 10px; color: var(--muted); }
   .tech-badge { margin-left: auto; }
 
   /* ── FOOTER SLIDE ───────────────────────────────────────────── */
   .slide-footer {
-    padding: 10px 40px;
+    padding: 7px 36px;
     background: var(--light);
     border-top: 2px solid var(--yellow);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
   }
   .slide-footer .logo-text {
     font-size: 14px;
@@ -308,28 +315,48 @@
     color: var(--muted);
   }
 
-  /* ── PRINT ──────────────────────────────────────────────────── */
+  /* ── PRINT ──────────────────────────────────── */
   @media print {
-    body { background: white; }
-    .slide {
-      margin: 0;
-      box-shadow: none;
-      page-break-after: always;
-      width: 297mm;
-      min-height: 210mm;
+    * { -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important; }
+    html, body {
+      background: white !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 297mm !important;
     }
-    @page { size: A4 landscape; margin: 0; }
+    .slide {
+      margin: 0 !important;
+      box-shadow: none !important;
+      width: 297mm !important;
+      height: 209.5mm !important; /* Ligeiramente menor que 210mm para evitar página extra */
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+      page-break-after: always !important;
+      page-break-inside: avoid !important;
+      break-after: page !important;
+      break-inside: avoid !important;
+    }
+    /* Remove a quebra extra depois do último slide */
+    .slide:last-child {
+      page-break-after: auto !important;
+      break-after: auto !important;
+    }
+    @page {
+      size: A4 landscape;
+      margin: 0mm;
+    }
   }
 
   /* ── HIGHLIGHT BOX ──────────────────────────────────────────── */
   .highlight {
     background: linear-gradient(90deg, #fefce8, #fff);
     border-left: 4px solid var(--yellow);
-    border-radius: 0 10px 10px 0;
-    padding: 14px 18px;
-    margin: 12px 0;
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    margin: 10px 0;
   }
-  .highlight p { margin-bottom: 0; font-size: 13px; }
+  .highlight p { margin-bottom: 0; font-size: 12px; }
 
   /* ── DIVIDER ────────────────────────────────────────────────── */
   .divider { height: 2px; background: var(--light); margin: 16px 0; border-radius: 1px; }
@@ -340,12 +367,12 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 60px;
+    padding: 44px 60px;
   }
-  .final-symbol { font-size: 60px; margin-bottom: 20px; }
-  .final-title { font-size: 36px; font-weight: 900; color: white; margin-bottom: 10px; }
+  .final-symbol { font-size: 48px; margin-bottom: 14px; }
+  .final-title { font-size: 30px; font-weight: 900; color: white; margin-bottom: 8px; }
   .final-title span { color: var(--yellow); }
-  .final-sub { font-size: 15px; color: rgba(255,255,255,.6); max-width: 500px; margin: 0 auto 30px; }
+  .final-sub { font-size: 14px; color: rgba(255,255,255,.6); max-width: 500px; margin: 0 auto 20px; }
   .final-contact {
     display: flex;
     gap: 20px;
@@ -911,89 +938,160 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     SLIDE 08 — INFRAESTRUTURA NECESSÁRIA (NOVO)
+     SLIDE 08 — INFRAESTRUTURA NECESSÁRIA
 ══════════════════════════════════════════════════════════════ -->
 <div class="slide">
   <div class="slide-header">
     <div class="section-num">08</div>
     <div>
       <div class="section-title">O que é necessário para ir a campo</div>
-      <div class="section-sub">Infraestrutura técnica, segurança e caminho para o piloto controlado</div>
+      <div class="section-sub">Infraestrutura técnica: um espaço no servidor web e banco de dados</div>
     </div>
   </div>
   <div class="slide-body">
-    <div class="grid-2" style="gap:28px;">
-      <div>
-        <h2><span class="icon">🖥️</span> Requisito único: um espaço no servidor web</h2>
-        <p>O SPIV não exige infraestrutura nova, cara ou complexa. A plataforma roda em qualquer servidor Linux com Apache ou Nginx, PHP 8.1+ e PostgreSQL — tecnologias que os Correios <strong>já utilizam em ambientes homologados de produção e testes</strong>.</p>
+    <div style="max-width: 800px; margin: 0 auto;">
+      <h2 style="font-size: 20px; margin-bottom: 16px;"><span class="icon">🖥️</span> Requisito único: infraestrutura básica</h2>
+      <p style="font-size: 15px; margin-bottom: 20px;">O SPIV não exige infraestrutura nova, cara ou complexa. A plataforma roda em qualquer servidor Linux com Apache ou Nginx, PHP 8.1+ e PostgreSQL — tecnologias que os Correios <strong>já utilizam em ambientes homologados de produção e testes</strong>.</p>
 
-        <div class="tech-item" style="margin-bottom:8px;">
-          <div class="tech-icon">🐘</div>
-          <div><div class="tech-name">PostgreSQL</div><div class="tech-desc">Banco de dados já presente na infraestrutura dos Correios. Basta uma nova base de dados (<em>database</em>) isolada no servidor existente.</div></div>
-          <div class="tech-badge"><span class="badge green">Já existe</span></div>
-        </div>
-        <div class="tech-item" style="margin-bottom:8px;">
-          <div class="tech-icon">🌐</div>
-          <div><div class="tech-name">Servidor Web (Apache/Nginx)</div><div class="tech-desc">Um virtual host ou subdomínio interno — ex: <code>spiv.intranet.correios.com.br</code>. Sem necessidade de IP público.</div></div>
-          <div class="tech-badge"><span class="badge green">Já existe</span></div>
-        </div>
-        <div class="tech-item" style="margin-bottom:8px;">
-          <div class="tech-icon">🔐</div>
-          <div><div class="tech-name">LDAP / Active Directory</div><div class="tech-desc">Login via credenciais corporativas. Nenhuma senha nova para nenhum usuário — integração direta com o diretório existente.</div></div>
-          <div class="tech-badge"><span class="badge green">Já existe</span></div>
-        </div>
-        <div class="tech-item">
-          <div class="tech-icon">💾</div>
-          <div><div class="tech-name">Armazenamento em disco</div><div class="tech-desc">~50 GB para a base Receita Federal + arquivos enviados pelos vendedores (prints, PDFs). Expansível conforme necessidade.</div></div>
-          <div class="tech-badge"><span class="badge">Mínimo</span></div>
-        </div>
-
-        <div class="highlight" style="margin-top:14px;">
-          <p>✅ <strong>Nenhuma estação de trabalho precisa ser alterada.</strong> O sistema é 100% web — o vendedor acessa pelo navegador do celular ou do computador, sem instalação de qualquer software.</p>
-        </div>
+      <div class="tech-item" style="margin-bottom: 12px; padding: 12px 16px;">
+        <div class="tech-icon">🐘</div>
+        <div><div class="tech-name">PostgreSQL</div><div class="tech-desc">Banco de dados já presente na infraestrutura dos Correios. Basta uma nova base de dados (<em>database</em>) isolada no servidor existente.</div></div>
+        <div class="tech-badge"><span class="badge green">Já existe</span></div>
+      </div>
+      <div class="tech-item" style="margin-bottom: 12px; padding: 12px 16px;">
+        <div class="tech-icon">🌐</div>
+        <div><div class="tech-name">Servidor Web (Apache/Nginx)</div><div class="tech-desc">Um virtual host ou subdomínio interno — ex: <code>spiv.intranet.correios.com.br</code>. Sem necessidade de IP público.</div></div>
+        <div class="tech-badge"><span class="badge green">Já existe</span></div>
+      </div>
+      <div class="tech-item" style="margin-bottom: 12px; padding: 12px 16px;">
+        <div class="tech-icon">🔐</div>
+        <div><div class="tech-name">LDAP / Active Directory</div><div class="tech-desc">Login via credenciais corporativas. Nenhuma senha nova para nenhum usuário — integração direta com o diretório existente.</div></div>
+        <div class="tech-badge"><span class="badge green">Já existe</span></div>
+      </div>
+      <div class="tech-item" style="margin-bottom: 12px; padding: 12px 16px;">
+        <div class="tech-icon">💾</div>
+        <div><div class="tech-name">Armazenamento em disco</div><div class="tech-desc">~50 GB para a base Receita Federal + arquivos enviados pelos vendedores (prints, PDFs). Expansível conforme necessidade.</div></div>
+        <div class="tech-badge"><span class="badge">Mínimo</span></div>
       </div>
 
-      <div>
-        <h2><span class="icon">🛡️</span> Segurança: por que isso não é um risco</h2>
-
-        <div class="card dark" style="margin-bottom:12px;">
-          <div class="card-icon">🔒</div>
-          <div class="card-title">Isolado na rede interna</div>
-          <div class="card-text">O servidor de testes não precisa ter acesso à internet. Toda a comunicação ocorre dentro da rede corporativa dos Correios — os dados jamais transitam para fora.</div>
-        </div>
-
-        <div class="card" style="margin-bottom:12px;">
-          <div class="card-icon">👤</div>
-          <div class="card-title">Sem acesso administrativo nas estações</div>
-          <div class="card-text">Nenhum vendedor, coordenador ou testador recebe privilégio de administrador em qualquer máquina. Os acessos são controlados pelo servidor — não pelo dispositivo do usuário.</div>
-        </div>
-
-        <div class="card green" style="margin-bottom:12px;">
-          <div class="card-icon">🗂️</div>
-          <div class="card-title">Dados controlados, equipe controlada</div>
-          <div class="card-text">No ambiente de testes, o administrador define quais usuários têm acesso, a quais carteiras e com que permissões. Um piloto pode rodar com 5 vendedores e 2 coordenadores — sem impactar o restante da operação.</div>
-        </div>
-
-        <div class="card" style="border-left-color:var(--yellow);">
-          <div class="card-icon">⚖️</div>
-          <div class="card-title">Conformidade e auditabilidade</div>
-          <div class="card-text">Toda ação no sistema gera log com data, hora e usuário. Nenhuma operação crítica ocorre sem rastreabilidade. O sistema não fere nenhuma diretriz de segurança da informação — pelo contrário, adiciona uma camada de controle onde antes havia processos manuais sem registro.</div>
-        </div>
-
-        <div class="highlight" style="margin-top:12px;">
-          <p>🚀 <strong>O que basta para começar:</strong> a anuência do departamento responsável pela infraestrutura e do gestor da área comercial. Não é necessário processo licitatório, não há custo de licença e o ambiente pode estar operacional em dias — não meses.</p>
-        </div>
+      <div class="highlight" style="margin-top: 24px; padding: 16px 20px;">
+        <p style="font-size: 14px;">✅ <strong>Nenhuma estação de trabalho precisa ser alterada.</strong> O sistema é 100% web — o vendedor acessa pelo navegador do celular ou do computador, sem instalação de qualquer software.</p>
       </div>
     </div>
   </div>
   <div class="slide-footer">
     <div class="logo-text">S<span>P</span>IV</div>
-    <div class="page-num">08 / 09</div>
+    <div class="page-num">08 / 10</div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     SLIDE 9 — ENCERRAMENTO
+     SLIDE 09 — SEGURANÇA E CONFORMIDADE
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">09</div>
+    <div>
+      <div class="section-title">Segurança e Caminho para o Piloto</div>
+      <div class="section-sub">Por que o piloto controlado na rede interna não é um risco</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div style="max-width: 860px; margin: 0 auto;">
+      <h2 style="font-size: 20px; margin-bottom: 20px;"><span class="icon">🛡️</span> Segurança e rastreabilidade total</h2>
+
+      <div class="grid-2" style="gap: 20px;">
+        <div class="card dark" style="padding: 16px 20px; margin-bottom: 0;">
+          <div class="card-icon" style="font-size: 24px; margin-bottom: 8px;">🔒</div>
+          <div class="card-title" style="font-size: 14px;">Isolado na rede interna</div>
+          <div class="card-text" style="font-size: 12.5px;">O servidor de testes não precisa ter acesso à internet. Toda a comunicação ocorre dentro da rede corporativa dos Correios — os dados jamais transitam para fora.</div>
+        </div>
+
+        <div class="card" style="padding: 16px 20px; margin-bottom: 0;">
+          <div class="card-icon" style="font-size: 24px; margin-bottom: 8px;">👤</div>
+          <div class="card-title" style="font-size: 14px;">Sem acesso administrativo nas estações</div>
+          <div class="card-text" style="font-size: 12.5px;">Nenhum vendedor, coordenador ou testador recebe privilégio de administrador em qualquer máquina. Os acessos são controlados pelo servidor — não pelo dispositivo do usuário.</div>
+        </div>
+
+        <div class="card green" style="padding: 16px 20px; margin-bottom: 0;">
+          <div class="card-icon" style="font-size: 24px; margin-bottom: 8px;">🗂️</div>
+          <div class="card-title" style="font-size: 14px;">Dados controlados, equipe controlada</div>
+          <div class="card-text" style="font-size: 12.5px;">No ambiente de testes, o administrador define quais usuários têm acesso, a quais carteiras e com que permissões. Um piloto pode rodar com 5 vendedores e 2 coordenadores — sem impactar o restante da operação.</div>
+        </div>
+
+        <div class="card" style="border-left-color: var(--yellow); padding: 16px 20px; margin-bottom: 0;">
+          <div class="card-icon" style="font-size: 24px; margin-bottom: 8px;">⚖️</div>
+          <div class="card-title" style="font-size: 14px;">Conformidade e auditabilidade</div>
+          <div class="card-text" style="font-size: 12.5px;">Toda ação no sistema gera log com data, hora e usuário. Nenhuma operação crítica ocorre sem rastreabilidade. O sistema não fere nenhuma diretriz de segurança da informação — pelo contrário, adiciona uma camada de controle.</div>
+        </div>
+      </div>
+
+      <div class="highlight" style="margin-top: 24px; padding: 16px 20px;">
+        <p style="font-size: 14px;">🚀 <strong>O que basta para começar:</strong> a anuência do departamento responsável pela infraestrutura e do gestor da área comercial. Não é necessário processo licitatório, não há custo de licença e o ambiente pode estar operacional em dias.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">09 / 10</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 10 — ACESSO AO MVP E PROPRIEDADE
+══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-header">
+    <div class="section-num">10</div>
+    <div>
+      <div class="section-title">Acesso ao MVP & Transparência</div>
+      <div class="section-sub">Ambiente de demonstração, autoria e o objetivo desta apresentação</div>
+    </div>
+  </div>
+  <div class="slide-body">
+    <div style="max-width: 860px; margin: 0 auto;">
+      
+      <div class="quote-block" style="padding: 24px 32px; margin-bottom: 24px; margin-top: 8px;">
+        <p style="font-size: 16px;">"O objetivo desta apresentação é justamente conseguir a estrutura interna mínima para internalizar e dar seguimento a este projeto, que é fundamental para os Correios neste momento de reestruturação."</p>
+      </div>
+
+      <div class="grid-2" style="gap: 24px;">
+        <div>
+          <h2><span class="icon">🔗</span> Onde o MVP está agora?</h2>
+          <div class="card" style="padding: 16px; border-left-color: var(--blue2);">
+            <div class="card-icon" style="font-size: 24px; margin-bottom: 8px;">🌐</div>
+            <div class="card-title" style="font-size: 15px; color: var(--blue2);">https://comercial.2gotas.com.br</div>
+            <div class="card-text" style="font-size: 13px; margin-top: 8px; line-height: 1.6;">
+              <strong>Ambiente privado.</strong> O protótipo funcional está temporariamente hospedado neste VPS externo <strong>exclusivamente</strong> por falta de uma opção corporativa imediata para viabilizar a apresentação deste projeto.
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2><span class="icon">©️</span> Propriedade e Autoria</h2>
+          <div class="card dark" style="padding: 16px; height: 100%;">
+            <div class="card-icon" style="font-size: 24px; margin-bottom: 8px;">👨‍💻</div>
+            <div class="card-title" style="font-size: 15px;">Propriedade dos Correios</div>
+            <div class="card-text" style="font-size: 13px; margin-top: 8px; line-height: 1.6;">
+              O sistema foi inteiramente desenvolvido por um funcionário da casa (<strong>Marcos Vieira dos Santos</strong>). Todo o código e o conteúdo gerado neste MVP são de <strong>propriedade exclusiva dos Correios</strong>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="highlight" style="margin-top: 24px; padding: 16px 20px;">
+        <p style="font-size: 14px;">🎯 <strong>Próximo passo:</strong> Migrar este ambiente provisório para o servidor interno (apresentado no slide anterior) é o que falta para dar vida ao sistema com dados reais e total segurança institucional.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <div class="logo-text">S<span>P</span>IV</div>
+    <div class="page-num">10 / 11</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 11 — ENCERRAMENTO
 ══════════════════════════════════════════════════════════════ -->
 <div class="slide slide-final">
   <div class="final-symbol">📬</div>
