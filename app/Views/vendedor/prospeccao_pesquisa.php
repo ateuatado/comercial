@@ -802,12 +802,12 @@ function bindCardActions() {
             const cnpj = btn.dataset.cnpj;
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:10px;height:10px;"></span>...';
-            
+
             const card = btn.closest('.result-card');
             const raContainer = card.querySelector('.ra-box-container');
             raContainer.style.display = 'block';
             raContainer.innerHTML = '<div class="text-center py-2"><span class="spinner-border spinner-border-sm text-danger" style="width:14px;height:14px;"></span><div class="small text-danger mt-1" style="font-size:10px;">Buscando reclamações logísticas...</div></div>';
-            
+
             try {
                 const res = await fetch('<?= site_url('vendedor/cliente/') ?>' + cnpj + '/reclame-aqui', {
                     method: 'POST',
@@ -815,40 +815,98 @@ function bindCardActions() {
                     credentials: 'same-origin'
                 });
                 const data = await res.json();
-                
-                if (data.success && data.resultados && data.resultados.data) {
-                    const organic = data.resultados.data.organic || [];
-                    
-                    if (organic.length === 0) {
-                        raContainer.innerHTML = '<div class="alert alert-success border-0 py-1 px-2 m-0 text-center" style="background:#dcfce7;color:#166534;font-size:10px;border-radius:6px;"><i class="bi bi-emoji-smile"></i> Nenhuma ocorrência logística recente encontrada.</div>';
+
+                // ── Sem chave configurada → formulário inline ────────────────
+                if (res.status === 402 || data.error_type === 'NO_API_KEY' || data.error_type === 'INVALID_KEY') {
+                    const isInvalid = data.error_type === 'INVALID_KEY';
+                    raContainer.innerHTML = `
+                        <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;">
+                            <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:6px;">
+                                🔑 ${isInvalid ? 'Chave Serper inválida ou sem créditos' : 'Chave Serper não configurada'}
+                            </div>
+                            <p style="font-size:10px;color:#78350f;margin-bottom:8px;line-height:1.4;">
+                                Este scanner usa a <strong>API Serper.dev</strong> para pesquisar reclamações logísticas no Reclame Aqui.
+                                O plano gratuito tem <strong>2.500 buscas/mês</strong> sem cartão de crédito.<br>
+                                <a href="https://serper.dev" target="_blank" style="color:#1d4ed8;font-weight:600;">👉 Criar conta gratuita em serper.dev</a>
+                            </p>
+                            <div style="display:flex;gap:6px;align-items:center;">
+                                <input type="text" class="ra-key-input-${cnpj}" placeholder="Cole sua API Key do Serper.dev"
+                                    style="flex:1;padding:6px 10px;border:1.5px solid #d1d5db;border-radius:7px;font-size:10px;outline:none;" />
+                                <button class="ra-key-save-${cnpj}"
+                                    style="padding:6px 10px;background:#1e40af;color:#fff;border:none;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                                    Salvar e Tentar
+                                </button>
+                            </div>
+                            <div class="ra-key-msg-${cnpj}" style="font-size:10px;margin-top:4px;display:none;"></div>
+                        </div>`;
+
+                    raContainer.querySelector(`.ra-key-save-${cnpj}`).addEventListener('click', async () => {
+                        const key = raContainer.querySelector(`.ra-key-input-${cnpj}`).value.trim();
+                        const msg = raContainer.querySelector(`.ra-key-msg-${cnpj}`);
+                        if (!key) { msg.style.display='block'; msg.style.color='#dc2626'; msg.textContent='Cole sua chave antes de salvar.'; return; }
+
+                        const saveBtn = raContainer.querySelector(`.ra-key-save-${cnpj}`);
+                        saveBtn.disabled = true; saveBtn.textContent = 'Salvando...';
+
+                        try {
+                            const body = new URLSearchParams({ serper_api_key: key });
+                            const sr = await fetch('<?= site_url('vendedor/serper-key') ?>', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                                body, credentials: 'same-origin'
+                            });
+                            const sd = await sr.json();
+                            if (sd.success) {
+                                msg.style.color='#16a34a'; msg.style.display='block';
+                                msg.textContent = '✅ Chave salva! Iniciando busca...';
+                                // Re-trigger: simula clique no botão original
+                                setTimeout(() => { btn.disabled = false; btn.click(); }, 800);
+                            } else {
+                                msg.style.color='#dc2626'; msg.style.display='block';
+                                msg.textContent = '❌ ' + (sd.error || 'Erro ao salvar.');
+                                saveBtn.disabled = false; saveBtn.textContent = 'Salvar e Tentar';
+                            }
+                        } catch(e) {
+                            msg.style.color='#dc2626'; msg.style.display='block';
+                            msg.textContent = '❌ Erro de rede.';
+                            saveBtn.disabled = false; saveBtn.textContent = 'Salvar e Tentar';
+                        }
+                    });
+                    return;
+                }
+
+                // ── CNPJ sem nome na base local ──────────────────────────────
+                if (res.status === 404) {
+                    raContainer.innerHTML = `<div style="font-size:10px;background:#f1f5f9;border-radius:8px;padding:8px 12px;color:#475569;text-align:center;">
+                        ℹ️ <strong>CNPJ não encontrado na base local da Receita Federal.</strong><br>
+                        <span style="font-size:9px;">A busca usa o Nome Fantasia/Razão Social cadastrado na RFB. Sem esse dado, não é possível pesquisar.</span>
+                    </div>`;
+                    return;
+                }
+
+                // ── Sucesso ──────────────────────────────────────────────────
+                if (data.success && Array.isArray(data.resultados)) {
+                    if (data.resultados.length === 0) {
+                        raContainer.innerHTML = '<div style="background:#dcfce7;color:#166534;font-size:10px;border-radius:6px;padding:8px 12px;"><i class="bi bi-emoji-smile"></i> Nenhuma reclamação logística recente encontrada.</div>';
                     } else {
-                        let html = `<div style="font-size:10px; font-weight:700; color:#9f1239; margin-bottom:6px;"><i class="bi bi-radar"></i> ${organic.length} reclamações mapeadas:</div><div style="max-height: 150px; overflow-y: auto; padding-right: 4px;">`;
-                        
-                        organic.forEach(item => {
+                        let html = `<div style="font-size:10px;font-weight:700;color:#9f1239;margin-bottom:6px;"><i class="bi bi-radar"></i> ${data.resultados.length} reclamação(ões) mapeada(s):</div><div style="max-height:150px;overflow-y:auto;padding-right:4px;">`;
+                        data.resultados.forEach(item => {
                             html += `
-                                <div class="card border-0 shadow-sm mb-1" style="border-radius: 6px; background: #fff;">
-                                    <div class="card-body p-1 px-2 border-start border-3 border-danger">
-                                        <a href="${item.link}" target="_blank" class="fw-bold text-danger d-block text-decoration-none" style="font-size: 11px; line-height: 1.2;">
-                                            ${item.title.replace(' - Reclame Aqui', '')}
-                                        </a>
-                                        <p class="text-muted mb-0" style="font-size: 9px; line-height: 1.2; margin-top:2px;">
-                                            ${item.snippet}
-                                        </p>
-                                    </div>
-                                </div>
-                            `;
+                                <div style="background:#fff;border-radius:6px;margin-bottom:4px;border-left:3px solid #ef4444;padding:5px 8px;">
+                                    <a href="${item.link}" target="_blank" style="font-size:11px;font-weight:700;color:#dc2626;text-decoration:none;display:block;line-height:1.2;">${item.title.replace(' - Reclame Aqui', '')}</a>
+                                    <p style="font-size:9px;color:#64748b;margin:2px 0 0;line-height:1.3;">${item.snippet}</p>
+                                </div>`;
                         });
                         html += '</div>';
                         raContainer.innerHTML = html;
                     }
                     showToast('🔍 Pesquisa Reclame Aqui concluída!');
                 } else {
-                    raContainer.innerHTML = `<div class="social-suggestions text-danger border-danger-subtle bg-danger-subtle" style="font-size:10px; text-align:center;">❌ ${data.error || 'Erro ao buscar dados.'}</div>`;
-                    showToast('❌ ' + (data.error || 'Erro ao buscar.'));
+                    // Erro genérico com mensagem útil
+                    raContainer.innerHTML = `<div style="background:#fee2e2;color:#991b1b;font-size:10px;border-radius:8px;padding:8px 12px;text-align:center;">❌ ${data.error || 'Erro ao buscar dados.'}</div>`;
                 }
             } catch(e) {
-                raContainer.innerHTML = `<div class="social-suggestions text-danger border-danger-subtle bg-danger-subtle" style="font-size:10px; text-align:center;">❌ Erro na requisição.</div>`;
-                showToast('❌ Erro na requisição.');
+                raContainer.innerHTML = `<div style="background:#fee2e2;color:#991b1b;font-size:10px;border-radius:8px;padding:8px 12px;text-align:center;">❌ Erro de rede: ${e.message}</div>`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-radar"></i> Reclame Aqui';
