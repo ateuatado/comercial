@@ -523,14 +523,36 @@
                 </div>
             <?php else: ?>
                 <?php foreach ($notas as $nota): ?>
-                    <div class="note-item">
+                    <?php
+                        $eMinhaNote = ($nota['matricula_vendedor'] === $vendorUser['matricula']);
+                        $isPublica  = !empty($nota['publica']);
+                    ?>
+                    <div class="note-item" id="note-item-<?= $nota['id'] ?>">
                         <div class="note-dot <?= esc($nota['tipo']) ?>"></div>
-                        <div class="note-content">
-                            <div class="note-meta">
-                                <?= esc($tipoLabels[$nota['tipo']] ?? $nota['tipo']) ?>
-                                · <?= date('d/m/Y H:i', strtotime($nota['created_at'])) ?>
+                        <div class="note-content" style="flex:1;min-width:0;">
+                            <div class="note-meta d-flex align-items-center flex-wrap gap-1">
+                                <span><?= esc($tipoLabels[$nota['tipo']] ?? $nota['tipo']) ?></span>
+                                <span class="text-muted">· <?= date('d/m/Y H:i', strtotime($nota['created_at'])) ?></span>
                                 <?php if (!empty($nota['sentimento'])): ?>
                                     <span class="sentiment"><?= $sentimentIcons[$nota['sentimento']] ?? '' ?></span>
+                                <?php endif; ?>
+
+                                <?php if (!$eMinhaNote): ?>
+                                    <!-- Nota pública de outro vendedor — só exibe badge -->
+                                    <span style="font-size:9px;background:#e0f2fe;color:#0369a1;border-radius:4px;padding:1px 6px;font-weight:700;">🌐 Pública · <?= esc($nota['matricula_vendedor']) ?></span>
+                                <?php else: ?>
+                                    <!-- Nota própria — exibe badge + botão toggle -->
+                                    <button class="btn-nota-toggle"
+                                        data-id="<?= $nota['id'] ?>"
+                                        data-publica="<?= $isPublica ? '1' : '0' ?>"
+                                        style="border:none;background:none;padding:0;cursor:pointer;line-height:1;"
+                                        title="<?= $isPublica ? 'Tornar privada' : 'Tornar pública' ?>">
+                                        <?php if ($isPublica): ?>
+                                            <span class="nota-vis-badge publica" style="font-size:9px;background:#dcfce7;color:#166534;border-radius:4px;padding:1px 6px;font-weight:700;">🌐 Pública</span>
+                                        <?php else: ?>
+                                            <span class="nota-vis-badge privada" style="font-size:9px;background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 6px;font-weight:700;">🔒 Privada</span>
+                                        <?php endif; ?>
+                                    </button>
                                 <?php endif; ?>
                             </div>
                             <div class="note-text"><?= esc($nota['conteudo']) ?></div>
@@ -1299,7 +1321,55 @@
         }
     }
 
-    btnScan.addEventListener('click', runScan);
+    btnScan.addEventListener('click', () => runScan(false));
+    if (btnAtualizar) btnAtualizar.addEventListener('click', () => {
+        if (confirm('Isso irá usar 1 crédito Serper para nova busca. Continuar?')) runScan(true);
+    });
+})();
+
+// ─── Toggle privada/pública nas notas existentes ──────────────
+(function() {
+    const TOGGLE_BASE = '<?= site_url('vendedor/nota/') ?>';
+
+    document.querySelectorAll('.btn-nota-toggle').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            btn.disabled = true;
+
+            try {
+                const res  = await fetch(TOGGLE_BASE + id + '/visibilidade', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    const badge = btn.querySelector('.nota-vis-badge');
+                    if (data.publica) {
+                        badge.className = 'nota-vis-badge publica';
+                        badge.style.background = '#dcfce7';
+                        badge.style.color = '#166534';
+                        badge.textContent = '🌐 Pública';
+                        btn.title = 'Tornar privada';
+                        btn.dataset.publica = '1';
+                    } else {
+                        badge.className = 'nota-vis-badge privada';
+                        badge.style.background = '#f1f5f9';
+                        badge.style.color = '#64748b';
+                        badge.textContent = '🔒 Privada';
+                        btn.title = 'Tornar pública';
+                        btn.dataset.publica = '0';
+                    }
+                }
+            } catch(e) {
+                console.warn('Erro ao alterar visibilidade da nota:', e);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    });
 })();
 </script>
 <?= $this->endSection() ?>

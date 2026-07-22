@@ -88,6 +88,7 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('cliente/(:segment)', 'VendedorController::clienteDetalhe/$1');
     $routes->get('cliente/(:segment)/nota', 'VendedorController::notaForm/$1');
     $routes->post('nota', 'VendedorController::notaSalvar');
+    $routes->post('nota/(:num)/visibilidade', 'VendedorController::notaTogglePublica/$1');
     $routes->get('servicos/(:segment)', 'VendedorController::servicosSegmento/$1');
     $routes->post('estrategia', 'VendedorController::estrategiaSalvar');
     

@@ -572,6 +572,7 @@ class VendedorController extends BaseController
         $tipo       = $this->request->getPost('tipo');
         $conteudo   = $this->request->getPost('conteudo');
         $sentimento = $this->request->getPost('sentimento');
+        $publica    = (bool) $this->request->getPost('publica'); // false por padrão
 
         if (empty($cnpj) || empty($tipo) || empty($conteudo)) {
             return $this->response->setJSON(['error' => 'Campos obrigatórios não preenchidos.'])->setStatusCode(422);
@@ -585,16 +586,48 @@ class VendedorController extends BaseController
         }
 
         $noteModel = new VendorNoteModel();
-        $noteModel->insert([
+        $newId = $noteModel->insert([
             'matricula_vendedor' => $vendorUser['matricula'],
             'cnpj'               => $cnpj,
             'tipo'               => $tipo,
             'conteudo'           => $conteudo,
             'sentimento'         => $sentimento ?: null,
+            'publica'            => $publica,
             'created_at'         => date('Y-m-d H:i:s'),
         ]);
 
-        return $this->response->setJSON(['success' => true, 'message' => 'Nota registrada com sucesso.']);
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Nota registrada com sucesso.',
+            'nota_id' => $newId,
+            'publica'  => $publica,
+        ]);
+    }
+
+    /**
+     * POST /vendedor/nota/:id/visibilidade
+     * Alterna publica/privada de uma nota. Apenas o autor pode alterar.
+     */
+    public function notaTogglePublica(int $id)
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+        }
+
+        $noteModel = new VendorNoteModel();
+        $ok = $noteModel->togglePublica($id, $vendorUser['matricula']);
+
+        if (!$ok) {
+            return $this->response->setJSON(['error' => 'Nota não encontrada ou sem permissão.'])->setStatusCode(404);
+        }
+
+        // Retorna o novo estado
+        $nota = $noteModel->find($id);
+        return $this->response->setJSON([
+            'success' => true,
+            'publica' => (bool) $nota['publica'],
+        ]);
     }
 
     // ─── Estratégias ─────────────────────────────────────────────

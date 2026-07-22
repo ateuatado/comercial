@@ -18,6 +18,7 @@ class VendorNoteModel extends Model
         'tipo',
         'conteudo',
         'sentimento',
+        'publica',
         'created_at',
     ];
 
@@ -31,17 +32,22 @@ class VendorNoteModel extends Model
 
     /**
      * Retorna notas de um cliente para um vendedor (mais recentes primeiro).
+     * Inclui TODAS as notas do vendedor + notas públicas de outros vendedores.
      */
     public function getByClientAndVendor(string $cnpj, string $matricula): array
     {
         return $this->where('cnpj', $cnpj)
-                    ->where('matricula_vendedor', $matricula)
+                    ->groupStart()
+                        ->where('matricula_vendedor', $matricula)
+                        ->orWhere('publica', true)
+                    ->groupEnd()
                     ->orderBy('created_at', 'DESC')
                     ->findAll();
     }
 
     /**
-     * Retorna as últimas N notas de um vendedor.
+     * Retorna as últimas N notas privadas + públicas de um vendedor.
+     * Usado no dashboard do próprio vendedor.
      */
     public function getRecentByVendor(string $matricula, int $limit = 10): array
     {
@@ -49,6 +55,32 @@ class VendorNoteModel extends Model
                     ->orderBy('created_at', 'DESC')
                     ->limit($limit)
                     ->findAll();
+    }
+
+    /**
+     * Retorna todas as notas públicas de um cliente (de qualquer vendedor).
+     * Visível para todos os usuários do sistema.
+     */
+    public function getPublicByClient(string $cnpj): array
+    {
+        return $this->where('cnpj', $cnpj)
+                    ->where('publica', true)
+                    ->orderBy('created_at', 'DESC')
+                    ->findAll();
+    }
+
+    /**
+     * Alterna visibilidade de uma nota. Retorna false se a nota não pertencer
+     * ao vendedor informado (proteção contra alteração alheia).
+     */
+    public function togglePublica(int $id, string $matricula): bool
+    {
+        $nota = $this->where('id', $id)->where('matricula_vendedor', $matricula)->first();
+        if (!$nota) {
+            return false;
+        }
+        $this->update($id, ['publica' => !$nota['publica']]);
+        return true;
     }
 
     /**

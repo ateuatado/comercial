@@ -138,14 +138,28 @@
                 $tipoIcons = ['visita' => '🟢', 'observacao' => '🔵', 'contato_telefonico' => '🟠', 'reuniao' => '🟣', 'estrategia' => '⚡'];
             ?>
             <?php foreach ($ultimasNotas as $nota): ?>
-                <div class="d-flex gap-2 mb-2 pb-2 border-bottom">
-                    <span><?= $tipoIcons[$nota['tipo']] ?? '📝' ?></span>
-                    <div class="flex-grow-1">
-                        <small class="text-muted"><?= esc($nota['cnpj']) ?> · <?= date('d/m H:i', strtotime($nota['created_at'])) ?></small>
-                        <div class="small"><?= esc(mb_strimwidth($nota['conteudo'], 0, 80, '...')) ?></div>
+                <div class="d-flex gap-2 mb-2 pb-2 border-bottom align-items-start">
+                    <span style="margin-top:2px;"><?= $tipoIcons[$nota['tipo']] ?? '📝' ?></span>
+                    <div class="flex-grow-1 min-width-0">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <a href="<?= site_url('vendedor/cliente/' . $nota['cnpj']) ?>"
+                               class="text-decoration-none fw-semibold" style="font-size:11px;color:#1e40af;">
+                                <i class="bi bi-person-vcard-fill me-1"></i><?= esc($nota['cnpj']) ?>
+                            </a>
+                            <small class="text-muted"><?= date('d/m H:i', strtotime($nota['created_at'])) ?></small>
+                            <?php if (!empty($nota['publica'])): ?>
+                                <span style="font-size:9px;background:#dcfce7;color:#166534;border-radius:4px;padding:1px 6px;font-weight:700;">🌐 Pública</span>
+                            <?php else: ?>
+                                <span style="font-size:9px;background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 6px;font-weight:700;">🔒 Privada</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="small text-muted mt-1" style="line-height:1.3;"><?= esc(mb_strimwidth($nota['conteudo'], 0, 90, '...')) ?></div>
                     </div>
                 </div>
             <?php endforeach; ?>
+            <div class="text-end mt-1">
+                <a href="<?= site_url('vendedor/clientes') ?>" class="small text-primary text-decoration-none">Ver carteira →</a>
+            </div>
         </div>
     </div>
     <?php endif; ?>
