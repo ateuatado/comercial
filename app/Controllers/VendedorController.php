@@ -2010,10 +2010,37 @@ class VendedorController extends BaseController
             return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
         }
 
-        $cnpjClean = preg_replace('/[^0-9]/', '', $cnpj);
+        $cnpjClean   = preg_replace('/[^0-9]/', '', $cnpj);
+        $forceRefresh = (bool) $this->request->getPost('force_refresh');
+        $db          = db_connect();
+        $agora       = date('Y-m-d H:i:s');
+        $userId      = auth()->user()->id ?? null;
 
-        $db = db_connect();
+        // ── 1. Verifica cache (válido por 30 dias, a não ser que force_refresh) ──
+        if (!$forceRefresh) {
+            $cache = $db->table('client_ra_scans')
+                        ->where('cnpj', $cnpjClean)
+                        ->get()->getRowArray();
 
+            if ($cache && !empty($cache['pesquisado_em'])) {
+                $diasDesde = (time() - strtotime($cache['pesquisado_em'])) / 86400;
+                if ($diasDesde < 30) {
+                    $resultados = json_decode($cache['resultado_json'] ?? '[]', true) ?: [];
+                    return $this->response->setJSON([
+                        'success'       => true,
+                        'empresa'       => $cache['empresa_nome'],
+                        'resultados'    => $resultados,
+                        'is_cache'      => true,
+                        'cache_status'  => $cache['status'],
+                        'cache_total'   => (int) $cache['total'],
+                        'pesquisado_em' => $cache['pesquisado_em'],
+                        'pesquisado_por_id' => $cache['pesquisado_por'],
+                    ]);
+                }
+            }
+        }
+
+        // ── 2. Busca nome na base da Receita ──────────────────────────────────
         $empresa = $db->query("
             SELECT COALESCE(e.nome_fantasia, emp.razao_social) AS nome_busca
             FROM receita.estabelecimentos e
@@ -2026,11 +2053,10 @@ class VendedorController extends BaseController
             return $this->response->setJSON(['error' => 'CNPJ não encontrado na base de dados local.'])->setStatusCode(404);
         }
 
-        // Resolve chave: pessoal do usuário > global do .env
+        // ── 3. Verifica chave Serper ──────────────────────────────────────────
         $userKey = !empty($vendorUser['serper_api_key']) ? $vendorUser['serper_api_key'] : null;
-        $scanner  = new \App\Services\ReclameAquiScanner($userKey);
+        $scanner = new \App\Services\ReclameAquiScanner($userKey);
 
-        // Se não há nenhuma chave, retorna erro estruturado para o frontend exibir o formulário
         if (!$scanner->hasKey()) {
             return $this->response->setJSON([
                 'error'      => 'NO_API_KEY',
@@ -2038,6 +2064,7 @@ class VendedorController extends BaseController
             ])->setStatusCode(402);
         }
 
+        // ── 4. Executa o scan ─────────────────────────────────────────────────
         $resultados = $scanner->scan($empresa['nome_busca']);
 
         if (isset($resultados['error'])) {
@@ -2048,10 +2075,36 @@ class VendedorController extends BaseController
             ])->setStatusCode($isNoKey ? 402 : 500);
         }
 
+        // ── 5. Persiste resultado no cache ────────────────────────────────────
+        $total  = count($resultados);
+        $status = $total > 0 ? 'encontrado' : 'nao_encontrado';
+
+        $cacheRow = [
+            'empresa_nome'   => $empresa['nome_busca'],
+            'status'         => $status,
+            'total'          => $total,
+            'resultado_json' => json_encode($resultados, JSON_UNESCAPED_UNICODE),
+            'pesquisado_por' => $userId,
+            'pesquisado_em'  => $agora,
+        ];
+
+        $exists = $db->table('client_ra_scans')->where('cnpj', $cnpjClean)->countAllResults();
+        if ($exists) {
+            $db->table('client_ra_scans')->where('cnpj', $cnpjClean)->update($cacheRow);
+        } else {
+            $cacheRow['cnpj'] = $cnpjClean;
+            $db->table('client_ra_scans')->insert($cacheRow);
+        }
+
         return $this->response->setJSON([
-            'success'    => true,
-            'empresa'    => $empresa['nome_busca'],
-            'resultados' => $resultados,
+            'success'       => true,
+            'empresa'       => $empresa['nome_busca'],
+            'resultados'    => $resultados,
+            'is_cache'      => false,
+            'cache_status'  => $status,
+            'cache_total'   => $total,
+            'pesquisado_em' => $agora,
+            'pesquisado_por_id' => $userId,
         ]);
     }
 }
