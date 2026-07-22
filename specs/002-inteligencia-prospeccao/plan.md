@@ -153,3 +153,50 @@ class ECommerceDetector
     }
 }
 ```
+
+---
+
+## 5. Serviço OSINT do Reclame Aqui (`ReclameAquiScanner`)
+
+Criaremos um serviço integrado à API do Serper para pesquisar ativamente queixas relacionadas a frete no Reclame Aqui.
+
+```php
+namespace App\Services;
+
+class ReclameAquiScanner
+{
+    protected $apiKey;
+
+    public function __construct()
+    {
+        // Puxa a chave configurada no .env ou banco de dados
+        $this->apiKey = getenv('SERPER_API_KEY') ?: config('Api')->serperKey;
+    }
+
+    public function scan(string $empresaNome): array
+    {
+        $client = \Config\Services::curlrequest();
+        $query = 'site:reclameaqui.com.br "' . $empresaNome . '" (frete OR postal OR sedex OR pac OR encomenda OR "logística reversa")';
+
+        $response = $client->post('https://google.serper.dev/search', [
+            'headers' => [
+                'X-API-KEY' => $this->apiKey,
+                'Content-Type' => 'application/json'
+            ],
+            'json' => [
+                'q' => $query,
+                'gl' => 'br',
+                'hl' => 'pt-br',
+                'num' => 5
+            ]
+        ]);
+
+        $data = json_decode($response->getBody(), true);
+        return $data['organic'] ?? [];
+    }
+}
+```
+
+**Fluxo do Painel Admin:**
+- Rota GET `/admin/reclame-aqui` exibe a tela de scanner.
+- Rota POST `/admin/reclame-aqui/scan` recebe o CNPJ, busca o nome fantasia na base, aciona o `ReclameAquiScanner` e retorna os resultados JSON via AJAX para popular a tela com os links e snippets das reclamações.

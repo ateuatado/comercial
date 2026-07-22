@@ -524,5 +524,51 @@ class AdminController extends BaseController
             ->setHeader('Content-Disposition', 'inline; filename="' . $anexo['original_name'] . '"')
             ->setBody(file_get_contents($path));
     }
-}
 
+    // ─── Scanner Reclame Aqui (Fase 3.5) ─────────────────────────
+
+    public function reclameAqui()
+    {
+        return view('admin/reclame_aqui', [
+            'page_title' => 'Scanner Reclame Aqui'
+        ]);
+    }
+
+    public function reclameAquiScan()
+    {
+        $cnpj = $this->request->getPost('cnpj');
+        
+        if (empty($cnpj)) {
+            return $this->response->setJSON(['error' => 'CNPJ não informado.'])->setStatusCode(422);
+        }
+
+        $cnpjClean = preg_replace('/[^0-9]/', '', $cnpj);
+
+        $db = db_connect();
+        // Busca Nome Fantasia ou Razão Social
+        $empresa = $db->query("
+            SELECT COALESCE(e.nome_fantasia, emp.razao_social) AS nome_busca
+            FROM receita.estabelecimentos e
+            LEFT JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
+            WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
+            LIMIT 1
+        ", [$cnpjClean])->getRowArray();
+
+        if (!$empresa || empty($empresa['nome_busca'])) {
+            return $this->response->setJSON(['error' => 'CNPJ não encontrado na base de dados local.'])->setStatusCode(404);
+        }
+
+        $scanner = new \App\Services\ReclameAquiScanner();
+        $resultados = $scanner->scan($empresa['nome_busca']);
+
+        if (isset($resultados['error'])) {
+            return $this->response->setJSON(['error' => $resultados['error']])->setStatusCode(500);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'empresa' => $empresa['nome_busca'],
+            'resultados' => $resultados
+        ]);
+    }
+}

@@ -62,6 +62,10 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     $routes->post('scoring/cnae/adicionar',    '\App\Controllers\AdminController::cnaeAdicionar');
     $routes->post('scoring/cnae/remover',      '\App\Controllers\AdminController::cnaeRemover');
 
+    // Scanner Reclame Aqui (Fase 3.5)
+    $routes->get('reclame-aqui',               '\App\Controllers\AdminController::reclameAqui');
+    $routes->post('reclame-aqui/scan',         '\App\Controllers\AdminController::reclameAquiScan');
+
     // Pedidos de Captação (PR-CAP — Fase 3.5)
     $routes->get('captacoes',              '\App\Controllers\AdminController::captacoesIndex');
     $routes->get('captacoes/(:num)',       '\App\Controllers\AdminController::captacaoDetalhe/$1');
@@ -98,10 +102,11 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('cnpj/verificar/(:segment)', 'VendedorController::verificarCnpj/$1');
     $routes->post('cnpj/geolocalizar/(:segment)', 'VendedorController::geolocalizarCnpj/$1');
     
-    // Redes Sociais OSINT
+    // Redes Sociais e OSINT
     $routes->get('cnpj/redes-sociais/buscar/(:segment)', 'VendedorController::buscarRedesSociais/$1');
     $routes->post('cnpj/redes-sociais/validar/(:num)', 'VendedorController::validarRedeSocial/$1');
     $routes->post('cnpj/redes-sociais/rejeitar/(:num)', 'VendedorController::rejeitarRedeSocial/$1');
+    $routes->post('cliente/(:segment)/reclame-aqui', 'VendedorController::reclameAquiScan/$1');
 
     // Captação de Clientes (PR-CAP — Fase 3.5)
     $routes->get('captacao/solicitar/(:segment)', 'VendedorController::captacaoSolicitar/$1');
