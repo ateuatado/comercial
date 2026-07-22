@@ -73,3 +73,16 @@ Esta checklist organiza granularmente o desenvolvimento do módulo de **Scoring 
 - [x] POST `/admin/captacoes/decisao`: aprovação insere/transfere em carteira_raw; rejeição e mais_info notificam vendedor. — captacaoDecisao().
 - [x] Coordenador também acessa `/coordenador/captacoes`. — Rotas mapeadas + botão na tela do coordenador.
 - [x] Link "Pedidos de Captação" no gear menu e Ações Rápidas do admin dashboard. — Adicionado.
+
+---
+
+## 3.5 — Scanner OSINT do Reclame Aqui (Fase 3.5)
+
+- [x] Criar classe `ReclameAquiScanner` em `app/Services/ReclameAquiScanner.php`.
+- [x] Implementar chamada cURL para `google.serper.dev/search` com a query customizada.
+- [x] Criar view do painel administrativo `admin/reclame_aqui.php` contendo campo de CNPJ e botão "Escanear".
+- [x] Implementar rota GET `/admin/reclame-aqui` e método `AdminController::reclameAqui()`.
+- [x] Implementar rota POST `/admin/reclame-aqui/scan` para buscar o Nome Fantasia e injetar no Scanner.
+- [x] Exibir resultados (título, snippet, link) via AJAX na interface do admin.
+- [x] Adicionar botão "Scanner Reclame Aqui" no painel principal do Administrador.
+

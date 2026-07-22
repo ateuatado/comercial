@@ -1955,4 +1955,47 @@ class VendedorController extends BaseController
 
         return $this->response->setJSON(['success' => true, 'message' => 'Sugestão removida.']);
     }
+
+    // ─── Scanner Reclame Aqui OSINT (Fase 3.5) ───────────────────
+
+    public function reclameAquiScan(string $cnpj)
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+        }
+
+        $cnpjClean = preg_replace('/[^0-9]/', '', $cnpj);
+
+        $db = db_connect();
+        
+        // Verifica se o CNPJ é um prospecto ou cliente
+        // Pode ser executado para clientes livres também (modo prospecto)
+        
+        // Busca Nome Fantasia ou Razão Social
+        $empresa = $db->query("
+            SELECT COALESCE(e.nome_fantasia, emp.razao_social) AS nome_busca
+            FROM receita.estabelecimentos e
+            LEFT JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
+            WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
+            LIMIT 1
+        ", [$cnpjClean])->getRowArray();
+
+        if (!$empresa || empty($empresa['nome_busca'])) {
+            return $this->response->setJSON(['error' => 'CNPJ não encontrado na base de dados local.'])->setStatusCode(404);
+        }
+
+        $scanner = new \App\Services\ReclameAquiScanner();
+        $resultados = $scanner->scan($empresa['nome_busca']);
+
+        if (isset($resultados['error'])) {
+            return $this->response->setJSON(['error' => $resultados['error']])->setStatusCode(500);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'empresa' => $empresa['nome_busca'],
+            'resultados' => $resultados
+        ]);
+    }
 }

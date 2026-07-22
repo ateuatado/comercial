@@ -420,6 +420,19 @@
         </div>
 
         <div class="info-card">
+            <h6 class="d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-search text-danger me-2"></i>Reclame Aqui Scanner</span>
+                <button class="btn btn-xs btn-outline-danger" id="btnScanReclameAqui" style="font-size: 10px; padding: 2px 6px; border-radius: 6px;">
+                    <i class="bi bi-radar"></i> Escanear
+                </button>
+            </h6>
+            <div id="raErrorAlert" style="display: none; font-size: 11px; padding: 8px 12px; border-radius: 8px; margin-top: 8px; align-items: center; gap: 6px; border: 1px solid #fee2e2; background-color: #fee2e2; color: #991b1b;"></div>
+            <div id="raResultsList" class="mt-2 d-flex flex-column gap-2">
+                <p class="text-muted small text-center mb-0 py-2" id="noRaMsg">Clique no botão para buscar reclamações logísticas (frete, sedex, etc).</p>
+            </div>
+        </div>
+
+        <div class="info-card">
             <h6><i class="bi bi-tags"></i> Classificação</h6>
             <div class="info-row">
                 <span class="label">Categoria</span>
@@ -1136,6 +1149,80 @@
             }
         }
     }
+})();
+// ─── Scanner Reclame Aqui OSINT ─────────────────────────────────
+(function() {
+    const btnScan = document.getElementById('btnScanReclameAqui');
+    const resultsList = document.getElementById('raResultsList');
+    const errorAlert = document.getElementById('raErrorAlert');
+    const CNPJ = '<?= esc($cliente['cnpj']) ?>';
+
+    if (!btnScan || !resultsList) return;
+
+    btnScan.addEventListener('click', async () => {
+        btnScan.disabled = true;
+        btnScan.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:10px;height:10px;display:inline-block;border:.1em solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite;"></span>...';
+        
+        if (errorAlert) {
+            errorAlert.style.display = 'none';
+            errorAlert.innerHTML = '';
+        }
+        
+        resultsList.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm text-danger" style="width:20px;height:20px;"></span><div class="small text-muted mt-2">Buscando reclamações...</div></div>';
+
+        try {
+            const res = await fetch('<?= site_url('vendedor/cliente/') ?>' + CNPJ + '/reclame-aqui', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
+            
+            const data = await res.json();
+            
+            if (data.success && data.resultados && data.resultados.data) {
+                const organic = data.resultados.data.organic || [];
+                
+                if (organic.length === 0) {
+                    resultsList.innerHTML = '<div class="alert alert-success border-0 shadow-sm py-2 px-3 m-0" style="background:#dcfce7;color:#166534;font-size:12px;border-radius:8px;"><i class="bi bi-emoji-smile"></i> Nenhuma reclamação encontrada sobre frete/logística.</div>';
+                    return;
+                }
+
+                let html = `<div style="font-size:11px; font-weight:700; color:#475569; margin-bottom:8px;">${organic.length} ocorrências mapeadas para "${data.empresa}":</div>`;
+                
+                organic.forEach(item => {
+                    html += `
+                        <div class="card border border-light shadow-sm mb-2" style="border-radius: 10px;">
+                            <div class="card-body p-2 px-3">
+                                <a href="${item.link}" target="_blank" class="fw-bold text-danger d-block mb-1 text-decoration-none" style="font-size: 13px; line-height: 1.2;">
+                                    ${item.title.replace(' - Reclame Aqui', '')}
+                                </a>
+                                <p class="text-muted mb-0" style="font-size: 11px; line-height: 1.3;">
+                                    ${item.snippet}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                resultsList.innerHTML = html;
+            } else {
+                if (errorAlert) {
+                    errorAlert.innerHTML = '❌ ' + (data.error || 'Erro ao buscar dados.');
+                    errorAlert.style.display = 'flex';
+                }
+                resultsList.innerHTML = '';
+            }
+        } catch (err) {
+            if (errorAlert) {
+                errorAlert.innerHTML = '❌ Erro de rede: ' + err.message;
+                errorAlert.style.display = 'flex';
+            }
+            resultsList.innerHTML = '';
+        } finally {
+            btnScan.disabled = false;
+            btnScan.innerHTML = '<i class="bi bi-radar"></i> Escanear';
+        }
+    });
 })();
 </script>
 <?= $this->endSection() ?>

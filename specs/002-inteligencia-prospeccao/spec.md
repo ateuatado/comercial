@@ -97,3 +97,18 @@ Descobrir novas contas promissoras com base no perfil de faturamento dos melhore
 - **Definição de Perfil Campeão:** O administrador no painel gerencial visualiza as faixas de capital social e os CNAEs dos clientes que faturam as maiores faixas de contratos (PAC/SEDEX) ativos.
 - **Mapeamento de Oportunidades:** O sistema busca no banco de dados geral de CNPJs do estado empresas que tenham características idênticas (ex: mesma cidade, faixa de capital social e CNAE semelhante) mas que ainda constem como "Clientes Livres" (sem vendedor atrelado).
 - **Delegação:** O coordenador ou administrador pode, no painel, sugerir esses "leads gêmeos" diretamente para a carteira dos vendedores mais próximos do local.
+
+---
+
+## 6. Prospecção por Logística Reversa e Encomendas (Reclame Aqui OSINT)
+
+### Objetivo de negócio
+Identificar se uma empresa utiliza serviços postais (envio de encomendas, logística reversa, frete) rastreando reclamações públicas no portal Reclame Aqui. Empresas que possuem reclamações sobre "atraso na entrega", "frete" ou "logística reversa" são leads qualificados altíssimos para os Correios, pois já têm volume de postagem.
+
+### Regras de Negócio
+- **Busca Automatizada via Serper API:** O sistema utiliza a API Serper para realizar uma busca estruturada no Google restrita ao domínio do Reclame Aqui (ex: `site:reclameaqui.com.br "Nome Fantasia da Empresa" (frete OR postal OR sedex OR pac OR encomenda OR "logística reversa")`).
+- **Gatilho de Execução:** Esta busca pode ser disparada manualmente pelo administrador no painel para um CNPJ específico ou em lote para leads de alto potencial.
+- **Identificação e Pontuação:**
+  - Se resultados forem encontrados nos últimos 12 meses, a empresa ganha uma pontuação adicional no seu Score Preditivo.
+  - O sistema insere um badge `Volume Postal Detectado 📦` ou `Logística Reversa 🔄` no card do cliente.
+- **Painel Administrativo:** O perfil Admin terá uma interface dedicada para inserir um CNPJ (ou buscar da base) e disparar o "Scanner Reclame Aqui". O resultado mostrará os links das reclamações encontradas, servindo como argumento de vendas (ex: "Vi que seus clientes estão reclamando de atrasos no frete, os Correios podem ajudar...").

@@ -665,12 +665,16 @@ function renderResults(list) {
                 <button class="btn btn-xs btn-outline-secondary btn-buscar-redes" data-cnpj="${cleanCnpj}">
                     <i class="bi bi-share"></i> Buscar Redes
                 </button>
+                <button class="btn btn-xs btn-outline-danger btn-ra-scanner" data-cnpj="${cleanCnpj}">
+                    <i class="bi bi-radar"></i> Reclame Aqui
+                </button>
                 <button class="btn btn-xs btn-primary btn-carteira-prospect" data-cnpj="${cleanCnpj}">
                     <i class="bi bi-briefcase"></i> Detalhes
                 </button>
             </div>
 
             <div class="social-box-container" style="display: none;"></div>
+            <div class="ra-box-container" style="display: none; margin-top: 10px; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 8px;"></div>
         `;
 
         // Bind tooltip toggle (se houver score)
@@ -788,6 +792,66 @@ function bindCardActions() {
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-share"></i> Buscar Redes';
+            }
+        });
+    });
+
+    // Reclame Aqui Scanner
+    resultsSection.querySelectorAll('.btn-ra-scanner').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const cnpj = btn.dataset.cnpj;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:10px;height:10px;"></span>...';
+            
+            const card = btn.closest('.result-card');
+            const raContainer = card.querySelector('.ra-box-container');
+            raContainer.style.display = 'block';
+            raContainer.innerHTML = '<div class="text-center py-2"><span class="spinner-border spinner-border-sm text-danger" style="width:14px;height:14px;"></span><div class="small text-danger mt-1" style="font-size:10px;">Buscando reclamações logísticas...</div></div>';
+            
+            try {
+                const res = await fetch('<?= site_url('vendedor/cliente/') ?>' + cnpj + '/reclame-aqui', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+                const data = await res.json();
+                
+                if (data.success && data.resultados && data.resultados.data) {
+                    const organic = data.resultados.data.organic || [];
+                    
+                    if (organic.length === 0) {
+                        raContainer.innerHTML = '<div class="alert alert-success border-0 py-1 px-2 m-0 text-center" style="background:#dcfce7;color:#166534;font-size:10px;border-radius:6px;"><i class="bi bi-emoji-smile"></i> Nenhuma ocorrência logística recente encontrada.</div>';
+                    } else {
+                        let html = `<div style="font-size:10px; font-weight:700; color:#9f1239; margin-bottom:6px;"><i class="bi bi-radar"></i> ${organic.length} reclamações mapeadas:</div><div style="max-height: 150px; overflow-y: auto; padding-right: 4px;">`;
+                        
+                        organic.forEach(item => {
+                            html += `
+                                <div class="card border-0 shadow-sm mb-1" style="border-radius: 6px; background: #fff;">
+                                    <div class="card-body p-1 px-2 border-start border-3 border-danger">
+                                        <a href="${item.link}" target="_blank" class="fw-bold text-danger d-block text-decoration-none" style="font-size: 11px; line-height: 1.2;">
+                                            ${item.title.replace(' - Reclame Aqui', '')}
+                                        </a>
+                                        <p class="text-muted mb-0" style="font-size: 9px; line-height: 1.2; margin-top:2px;">
+                                            ${item.snippet}
+                                        </p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        raContainer.innerHTML = html;
+                    }
+                    showToast('🔍 Pesquisa Reclame Aqui concluída!');
+                } else {
+                    raContainer.innerHTML = `<div class="social-suggestions text-danger border-danger-subtle bg-danger-subtle" style="font-size:10px; text-align:center;">❌ ${data.error || 'Erro ao buscar dados.'}</div>`;
+                    showToast('❌ ' + (data.error || 'Erro ao buscar.'));
+                }
+            } catch(e) {
+                raContainer.innerHTML = `<div class="social-suggestions text-danger border-danger-subtle bg-danger-subtle" style="font-size:10px; text-align:center;">❌ Erro na requisição.</div>`;
+                showToast('❌ Erro na requisição.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-radar"></i> Reclame Aqui';
             }
         });
     });
