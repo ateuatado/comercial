@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inteligência de Negociações — Plano de Vendas 2026 | Correios</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --azul:       #1e3a8a;
+    --azul-claro: #2563eb;
+    --azul-suave: #dbeafe;
+    --verde:      #15803d;
+    --verde-claro:#dcfce7;
+    --amarelo:    #b45309;
+    --amarelo-claro:#fef3c7;
+    --vermelho:   #b91c1c;
+    --vermelho-claro:#fee2e2;
+    --cinza:      #475569;
+    --cinza-claro:#f8fafc;
+    --borda:      #e2e8f0;
+    --texto:      #1e293b;
+  }
+
+  html { font-size: 14px; }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: #fff;
+    color: var(--texto);
+    line-height: 1.5;
+  }
+
+  /* ── Capa ─────────────────────────────────────────── */
+  .capa {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1d4ed8 100%);
+    color: #fff;
+    padding: 64px 56px 52px;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+  .capa::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 20%, rgba(96,165,250,.25) 0%, transparent 60%);
+  }
+  .capa .logo-area { display: flex; align-items: center; gap: 14px; margin-bottom: 60px; }
+  .capa .logo-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: rgba(255,255,255,.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .capa .logo-text { font-size: 13px; font-weight: 600; opacity: .8; letter-spacing: .05em; text-transform: uppercase; }
+  .capa .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 999px; padding: 4px 14px;
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .capa h1 { font-size: 42px; font-weight: 800; line-height: 1.1; margin-bottom: 12px; }
+  .capa .sub { font-size: 16px; opacity: .75; margin-bottom: 48px; }
+  .capa .meta-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    border-top: 1px solid rgba(255,255,255,.15); padding-top: 32px;
+  }
+  .capa .meta-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; opacity: .6; margin-bottom: 6px; }
+  .capa .meta-item .value { font-size: 28px; font-weight: 800; }
+  .capa .meta-item .value.small { font-size: 18px; }
+  .capa .meta-item .unit { font-size: 11px; opacity: .65; margin-top: 2px; }
+
+  /* ── Layout geral ─────────────────────────────────── */
+  .page { padding: 40px 48px; }
+  .section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--azul); border-bottom: 2px solid var(--azul-suave);
+    padding-bottom: 8px; margin-bottom: 20px;
+  }
+
+  /* ── KPI Cards ────────────────────────────────────── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi-card {
+    border: 1px solid var(--borda); border-radius: 12px;
+    padding: 20px 18px; background: var(--cinza-claro);
+  }
+  .kpi-card .kpi-icon { font-size: 22px; margin-bottom: 10px; }
+  .kpi-card .kpi-label { font-size: 10px; color: var(--cinza); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+  .kpi-card .kpi-value { font-size: 24px; font-weight: 800; color: var(--texto); line-height: 1; }
+  .kpi-card .kpi-sub { font-size: 11px; color: var(--cinza); margin-top: 4px; }
+  .kpi-card.azul  { border-color: #93c5fd; background: #eff6ff; }
+  .kpi-card.verde { border-color: #86efac; background: var(--verde-claro); }
+  .kpi-card.amber { border-color: #fcd34d; background: var(--amarelo-claro); }
+  .kpi-card.slate { border-color: #cbd5e1; background: #f1f5f9; }
+  .kpi-card.azul  .kpi-value { color: var(--azul); }
+  .kpi-card.verde .kpi-value { color: var(--verde); }
+  .kpi-card.amber .kpi-value { color: var(--amarelo); }
+
+  /* ── Tabelas ──────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #f1f5f9; color: var(--cinza); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: .07em; padding: 8px 12px; text-align: left; border-bottom: 2px solid var(--borda); }
+  td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .right { text-align: right; }
+
+  /* ── Barras horizontais ───────────────────────────── */
+  .bar-wrap { background: #e2e8f0; border-radius: 4px; height: 8px; overflow: hidden; display: inline-block; vertical-align: middle; }
+  .bar-fill  { height: 100%; border-radius: 4px; }
+  .bar-azul  { background: var(--azul-claro); }
+  .bar-verde { background: #16a34a; }
+  .bar-amber { background: #d97706; }
+  .bar-red   { background: var(--vermelho); }
+  .bar-slate { background: #64748b; }
+
+  /* ── Badges de status ─────────────────────────────── */
+  .badge-pill {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    font-size: 10px; font-weight: 600; white-space: nowrap;
+  }
+  .badge-concluida   { background: var(--verde-claro);    color: var(--verde); }
+  .badge-andamento   { background: var(--azul-suave);     color: var(--azul); }
+  .badge-nao-aplica  { background: #f1f5f9;               color: #64748b; }
+  .badge-nao-avaliada{ background: var(--amarelo-claro);  color: var(--amarelo); }
+  .badge-suspensa    { background: var(--vermelho-claro);  color: var(--vermelho); }
+  .badge-nao-iniciada{ background: #fce7f3;               color: #9d174d; }
+  .badge-positivo    { background: var(--verde-claro);    color: var(--verde); }
+  .badge-negativo    { background: var(--vermelho-claro); color: var(--vermelho); }
+
+  /* ── Análise narrativa ────────────────────────────── */
+  .insight-box {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-left: 4px solid var(--azul-claro);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px; margin-top: 16px;
+  }
+  .insight-box strong { color: var(--azul); }
+  .insight-box p { font-size: 12px; line-height: 1.6; color: #334155; margin-top: 4px; }
+
+  .alerta-box {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px; margin-top: 12px;
+  }
+  .alerta-box strong { color: #92400e; }
+  .alerta-box p { font-size: 12px; line-height: 1.6; color: #78350f; margin-top: 4px; }
+
+  .destaque-box {
+    background: var(--verde-claro);
+    border-left: 4px solid #16a34a;
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px; margin-top: 12px;
+  }
+  .destaque-box strong { color: var(--verde); }
+  .destaque-box p { font-size: 12px; line-height: 1.6; color: #14532d; margin-top: 4px; }
+
+  /* ── Grid 2 colunas ───────────────────────────────── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  .card {
+    border: 1px solid var(--borda); border-radius: 12px;
+    padding: 20px; background: #fff;
+  }
+  .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--cinza); margin-bottom: 16px; }
+
+  /* ── Funil ────────────────────────────────────────── */
+  .funil-item {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+  }
+  .funil-label { width: 120px; font-size: 11px; font-weight: 600; color: var(--texto); flex-shrink: 0; }
+  .funil-bar-wrap { flex: 1; }
+  .funil-count { width: 60px; text-align: right; font-size: 12px; font-weight: 700; color: var(--texto); }
+  .funil-pct { width: 44px; text-align: right; font-size: 10px; color: var(--cinza); }
+
+  /* ── Print ────────────────────────────────────────── */
+  @media print {
+    .capa { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { padding: 32px 40px; }
+    .section { page-break-inside: avoid; }
+    .kpi-grid { break-inside: avoid; }
+    table { break-inside: avoid; }
+    .grid2, .grid3 { break-inside: avoid; }
+  }
+  @page { size: A4; margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     CAPA
+════════════════════════════════════════════════ -->
+<div class="capa">
+  <div class="logo-area">
+    <div class="logo-icon">📬</div>
+    <div class="logo-text">Correios · DEVEN/SUCAN/DINEG · SPIV</div>
+  </div>
+
+  <div class="badge">🔒 Uso Interno — Dado Sensível</div>
+
+  <h1>Inteligência de<br>Negociações 2026</h1>
+  <div class="sub">Análise completa do Plano de Vendas · SAD Comercial · Extração em 22 jul. 2026</div>
+
+  <div class="meta-row">
+    <div class="meta-item">
+      <div class="label">Total de Negociações</div>
+      <div class="value">22.433</div>
+      <div class="unit">registros no SAD</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Receita Prevista Total</div>
+      <div class="value small">R$ 1,301 bi</div>
+      <div class="unit">valor declarado nas negociações</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Receita Realizada</div>
+      <div class="value small">R$ 305,1 mi</div>
+      <div class="unit">23,4% de conversão</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PÁGINA 1 — KPIs + Funil de Status
+════════════════════════════════════════════════ -->
+<div class="page">
+
+  <div class="section">
+    <div class="section-title">📊 Painel Executivo — Visão Geral</div>
+    <div class="kpi-grid">
+      <div class="kpi-card azul">
+        <div class="kpi-icon">📋</div>
+        <div class="kpi-label">Negociações Totais</div>
+        <div class="kpi-value">22.433</div>
+        <div class="kpi-sub">20 ações do PV 2026</div>
+      </div>
+      <div class="kpi-card verde">
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-label">Negociações Concluídas</div>
+        <div class="kpi-value">6.269</div>
+        <div class="kpi-sub">27,9% do total</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon">⏳</div>
+        <div class="kpi-label">Em Andamento</div>
+        <div class="kpi-value">4.541</div>
+        <div class="kpi-sub">R$ 1,24 bi em disputa</div>
+      </div>
+      <div class="kpi-card slate">
+        <div class="kpi-icon">🏆</div>
+        <div class="kpi-label">Tx. Conversão (Concluídas)</div>
+        <div class="kpi-value">91,9%</div>
+        <div class="kpi-sub">positivas vs. 8,1% negativas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Funil de Status -->
+  <div class="section">
+    <div class="section-title">🔻 Funil de Negociações por Status</div>
+    <div class="grid2">
+      <div>
+        <!-- Não se Aplica: 9388 -->
+        <div class="funil-item">
+          <div class="funil-label"><span class="badge-pill badge-nao-aplica">Não se Aplica</span></div>
+          <div class="funil-bar-wrap">
+            <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-slate" style="width:100%"></div></div>
+          </div>
+          <div class="funil-count">9.388</div>
+          <div class="funil-pct">41,8%</div>
+        </div>
+        <!-- Concluída: 6269 -->
+        <div class="funil-item">
+          <div class="funil-label"><span class="badge-pill badge-concluida">Concluída</span></div>
+          <div class="funil-bar-wrap">
+            <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-verde" style="width:66.8%"></div></div>
+          </div>
+          <div class="funil-count">6.269</div>
+          <div class="funil-pct">27,9%</div>
+        </div>
+        <!-- Andamento: 4541 -->
+        <div class="funil-item">
+          <div class="funil-label"><span class="badge-pill badge-andamento">Andamento</span></div>
+          <div class="funil-bar-wrap">
+            <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-azul" style="width:48.4%"></div></div>
+          </div>
+          <div class="funil-count">4.541</div>
+          <div class="funil-pct">20,2%</div>
+        </div>
+        <!-- Não Avaliada: 2091 -->
+        <div class="funil-item">
+          <div class="funil-label"><span class="badge-pill badge-nao-avaliada">Não Avaliada</span></div>
+          <div class="funil-bar-wrap">
+            <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-amber" style="width:22.3%"></div></div>
+          </div>
+          <div class="funil-count">2.091</div>
+          <div class="funil-pct">9,3%</div>
+        </div>
+        <!-- Não Iniciada: 113 -->
+        <div class="funil-item">
+          <div class="funil-label"><span class="badge-pill badge-nao-iniciada">Não Iniciada</span></div>
+          <div class="funil-bar-wrap">
+            <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-red" style="width:1.2%"></div></div>
+          </div>
+          <div class="funil-count">113</div>
+          <div class="funil-pct">0,5%</div>
+        </div>
+        <!-- Suspensa: 29 -->
+        <div class="funil-item">
+          <div class="funil-label"><span class="badge-pill badge-suspensa">Suspensa</span></div>
+          <div class="funil-bar-wrap">
+            <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-red" style="width:0.3%"></div></div>
+          </div>
+          <div class="funil-count">29</div>
+          <div class="funil-pct">0,1%</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="insight-box">
+          <strong>🔍 Interpretação do Funil</strong>
+          <p>Quase <strong>42% das negociações estão marcadas como "Não se Aplica"</strong> — este é o status padrão atribuído pelo sistema na etapa preparatória para ações que a Força de Vendas descartou após avaliação. Esse número, por si só, não representa ineficiência, mas indica que parte significativa das ações pré-cadastradas não foi considerada aplicável ao perfil dos clientes.</p>
+          <p style="margin-top:8px;">As <strong>4.541 negociações em Andamento representam R$ 1,24 bilhão em receita potencial</strong> ainda não concluída — o principal pipeline ativo do DEVEN.</p>
+        </div>
+        <div class="alerta-box" style="margin-top:12px;">
+          <strong>⚠️ Atenção: 2.091 negociações não avaliadas</strong>
+          <p>9,3% das negociações ainda não receberam avaliação da Força de Vendas. Isso representa lacuna de planejamento e pode afetar o <strong>KPI de Alcance de Clientes</strong> do IPV.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resultados Concluídas -->
+  <div class="section">
+    <div class="section-title">🏁 Resultado das Negociações Concluídas</div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Distribuição de Resultado</div>
+        <div style="margin-bottom:14px;">
+          <div class="funil-item">
+            <div class="funil-label"><span class="badge-pill badge-positivo">✅ Positivo</span></div>
+            <div class="funil-bar-wrap">
+              <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-verde" style="width:91.9%"></div></div>
+            </div>
+            <div class="funil-count">5.761</div>
+            <div class="funil-pct">91,9%</div>
+          </div>
+          <div class="funil-item">
+            <div class="funil-label"><span class="badge-pill badge-negativo">❌ Negativo</span></div>
+            <div class="funil-bar-wrap">
+              <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-red" style="width:8.1%"></div></div>
+            </div>
+            <div class="funil-count">508</div>
+            <div class="funil-pct">8,1%</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;">
+          Receita realizada gerada pelas positivas: <strong>R$ 305.167.281,55</strong>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Negociações Válidas (Critério SAD)</div>
+        <div style="font-size:11px;color:#64748b;margin-bottom:12px;">Classificação interna de qualidade da negociação</div>
+        <div class="funil-item">
+          <div class="funil-label" style="width:80px;font-size:11px;">Válida (1)</div>
+          <div class="funil-bar-wrap">
+            <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-verde" style="width:100%"></div></div>
+          </div>
+          <div class="funil-count">11.156</div>
+          <div class="funil-pct">49,7%</div>
+        </div>
+        <div class="funil-item">
+          <div class="funil-label" style="width:80px;font-size:11px;">Inválida (0)</div>
+          <div class="funil-bar-wrap">
+            <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-red" style="width:80.3%"></div></div>
+          </div>
+          <div class="funil-count">8.961</div>
+          <div class="funil-pct">39,9%</div>
+        </div>
+        <div class="funil-item">
+          <div class="funil-label" style="width:80px;font-size:11px;">Pendente (2)</div>
+          <div class="funil-bar-wrap">
+            <div class="bar-wrap" style="width:100%"><div class="bar-fill bar-amber" style="width:20.7%"></div></div>
+          </div>
+          <div class="funil-count">2.308</div>
+          <div class="funil-pct">10,3%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PÁGINA 2 — Por Ação (Hashtag)
+════════════════════════════════════════════════ -->
+<div class="page" style="page-break-before: always;">
+
+  <div class="section">
+    <div class="section-title">🏷️ Análise por Ação do Plano de Vendas (Hashtag)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Ação</th>
+          <th class="right">Negociações</th>
+          <th class="right">% do Total</th>
+          <th class="right">Receita Prevista</th>
+          <th class="right">Receita Realizada</th>
+          <th class="right">Taxa Conv.</th>
+          <th style="width:120px;">Volume</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td><td><strong>AUMENTODESHARE</strong></td>
+          <td class="num">10.290</td><td class="num">45,9%</td>
+          <td class="num">R$ 1.185.793.988</td><td class="num">R$ 204.930.018</td>
+          <td class="num">17,3%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-azul" style="width:100%"></div></div></td>
+        </tr>
+        <tr>
+          <td>2</td><td><strong>UPGRADE</strong></td>
+          <td class="num">6.985</td><td class="num">31,1%</td>
+          <td class="num">R$ 54.031.935</td><td class="num">R$ 8.816.773</td>
+          <td class="num">16,3%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-azul" style="width:67.9%"></div></div></td>
+        </tr>
+        <tr>
+          <td>3</td><td>LOG+</td>
+          <td class="num">2.188</td><td class="num">9,8%</td>
+          <td class="num">R$ 1.738.284</td><td class="num">R$ 23.170</td>
+          <td class="num">1,3%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-azul" style="width:21.3%"></div></div></td>
+        </tr>
+        <tr>
+          <td>4</td><td>REMESSA</td>
+          <td class="num">424</td><td class="num">1,9%</td>
+          <td class="num">R$ 26.241.120</td><td class="num">R$ 6.727.092</td>
+          <td class="num">25,6%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-azul" style="width:4.1%"></div></div></td>
+        </tr>
+        <tr>
+          <td>5</td><td>COMUNICACAO</td>
+          <td class="num">130</td><td class="num">0,6%</td>
+          <td class="num">R$ 29.771.736</td><td class="num">R$ 4.982.341</td>
+          <td class="num">16,7%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-azul" style="width:1.3%"></div></div></td>
+        </tr>
+        <tr>
+          <td>6</td><td>COPA</td>
+          <td class="num">87</td><td class="num">0,4%</td>
+          <td class="num">R$ 9.949.442</td><td class="num">R$ 5.083.788</td>
+          <td class="num">51,1%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-verde" style="width:0.9%"></div></div></td>
+        </tr>
+        <tr>
+          <td>7</td><td>NOVOMALOTE</td>
+          <td class="num">61</td><td class="num">0,3%</td>
+          <td class="num">R$ 1.505.814</td><td class="num">R$ 181.146</td>
+          <td class="num">12,0%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-slate" style="width:0.6%"></div></div></td>
+        </tr>
+        <tr>
+          <td>8</td><td>MASTER</td>
+          <td class="num">58</td><td class="num">0,3%</td>
+          <td class="num">R$ 132.185.584</td><td class="num">R$ 2.174.284</td>
+          <td class="num">1,6%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-slate" style="width:0.6%"></div></div></td>
+        </tr>
+        <tr>
+          <td>9</td><td>LOGREVERSA</td>
+          <td class="num">56</td><td class="num">0,2%</td>
+          <td class="num">R$ 68.912.485</td><td class="num">R$ 50.994.697</td>
+          <td class="num" style="color:var(--verde);font-weight:700;">74,0%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-verde" style="width:0.6%"></div></div></td>
+        </tr>
+        <tr>
+          <td>10</td><td>MEXPO</td>
+          <td class="num">27</td><td class="num">0,1%</td>
+          <td class="num">R$ 316.950</td><td class="num">R$ 10.377</td>
+          <td class="num">3,3%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-slate" style="width:0.3%"></div></div></td>
+        </tr>
+        <tr>
+          <td>11</td><td>IPTU</td>
+          <td class="num">23</td><td class="num">0,1%</td>
+          <td class="num">R$ 3.847.822</td><td class="num">R$ 2.864.432</td>
+          <td class="num" style="color:var(--verde);font-weight:700;">74,4%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-verde" style="width:0.2%"></div></div></td>
+        </tr>
+        <tr>
+          <td>12</td><td>LOG</td>
+          <td class="num">20</td><td class="num">0,1%</td>
+          <td class="num">R$ 3.546.867</td><td class="num">R$ 0</td>
+          <td class="num" style="color:var(--vermelho);">0%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-slate" style="width:0.2%"></div></div></td>
+        </tr>
+        <tr>
+          <td>13</td><td>BALCAO</td>
+          <td class="num">13</td><td class="num">&lt;0,1%</td>
+          <td class="num">R$ 111.000</td><td class="num">R$ 0</td>
+          <td class="num" style="color:var(--vermelho);">0%</td>
+          <td><div class="bar-wrap" style="width:110px"><div class="bar-fill bar-slate" style="width:0.1%"></div></div></td>
+        </tr>
+        <tr>
+          <td colspan="4"></td>
+          <td class="num" style="font-weight:700;border-top:2px solid #e2e8f0;">+ 7 ações menores</td>
+          <td class="num" style="font-weight:700;border-top:2px solid #e2e8f0;">R$ 90.496.411</td>
+          <td class="num" style="font-weight:700;border-top:2px solid #e2e8f0;">R$ 2.879.641</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="insight-box" style="margin-top:16px;">
+      <strong>🔍 Concentração extrema em duas ações</strong>
+      <p>
+        <strong>AUMENTODESHARE + UPGRADE</strong> respondem por <strong>77% de todas as negociações</strong>
+        (10.290 + 6.985 = 17.275). Isso é coerente com o foco estratégico do PV 2026 em ampliar share e evoluir
+        pacotes comerciais, mas sugere baixa diversificação do esforço comercial — o KPI de Diversificação do IPV
+        pode estar impactado.
+      </p>
+    </div>
+    <div class="destaque-box">
+      <strong>⭐ LOGREVERSA: a ação de maior eficiência</strong>
+      <p>
+        Com apenas 56 negociações, o <strong>LOGREVERSA</strong> apresenta <strong>74% de taxa de conversão</strong>
+        — a maior entre todas as ações — gerando R$ 50,9 milhões em receita realizada contra R$ 68,9 milhões previstos.
+        Uma oportunidade subexplorada com alto potencial de escala.
+      </p>
+    </div>
+    <div class="alerta-box">
+      <strong>⚠️ LOG+ com baixíssima conversão (1,3%)</strong>
+      <p>
+        Apesar de 2.188 negociações registradas (3ª maior ação), o LOG+ realizou apenas R$ 23.170 em receita —
+        uma taxa de conversão de 1,3%. Isso pode indicar barreiras operacionais, tickets abaixo do mínimo (5% da meta)
+        ou negociações cadastradas sem avanço efetivo no ciclo comercial.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PÁGINA 3 — Por Segmento e Tipo
+════════════════════════════════════════════════ -->
+<div class="page" style="page-break-before: always;">
+
+  <div class="section">
+    <div class="section-title">🏭 Distribuição por Segmento de Negócio</div>
+    <div class="grid2">
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th>Segmento</th>
+              <th class="right">Negociações</th>
+              <th class="right">Rec. Prevista</th>
+              <th class="right">Rec. Realizada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>📦 ENCOMENDA</td>
+              <td class="num">17.348</td>
+              <td class="num">R$ 797.752.947</td>
+              <td class="num">R$ 222.854.872</td>
+            </tr>
+            <tr>
+              <td>🏪 CONVENIÊNCIA</td>
+              <td class="num">2.680</td>
+              <td class="num">R$ 19.749.747</td>
+              <td class="num">R$ 6.813.284</td>
+            </tr>
+            <tr>
+              <td>✉️ MENSAGEM</td>
+              <td class="num">1.570</td>
+              <td class="num">R$ 171.817.618</td>
+              <td class="num">R$ 63.552.244</td>
+            </tr>
+            <tr>
+              <td>📣 MARKETING</td>
+              <td class="num">327</td>
+              <td class="num">R$ 17.219.209</td>
+              <td class="num">R$ 5.212.250</td>
+            </tr>
+            <tr>
+              <td>🗂️ MALOTE</td>
+              <td class="num">262</td>
+              <td class="num">R$ 2.932.523</td>
+              <td class="num">R$ 1.588.493</td>
+            </tr>
+            <tr>
+              <td>🚛 LOGÍSTICA</td>
+              <td class="num">137</td>
+              <td class="num">R$ 84.781.471</td>
+              <td class="num">R$ 1.805.749</td>
+            </tr>
+            <tr>
+              <td>🌍 INTERNACIONAL</td>
+              <td class="num">107</td>
+              <td class="num">R$ 207.180.871</td>
+              <td class="num">R$ 3.340.385</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="insight-box">
+          <strong>📦 Encomenda domina com 77% das negociações</strong>
+          <p>O segmento de Encomenda concentra 17.348 negociações (77,3% do total), refletindo o foco estratégico
+          do PV 2026 nos perfis Plataforma e Seller. A receita realizada de <strong>R$ 222,8 milhões</strong>
+          corresponde a 27,9% do potencial previsto neste segmento.</p>
+        </div>
+        <div class="alerta-box" style="margin-top:12px;">
+          <strong>⚠️ Internacional: alta previsão, baixa conversão</strong>
+          <p>O segmento Internacional tem <strong>R$ 207 milhões previstos</strong>, mas apenas
+          <strong>R$ 3,3 milhões realizados</strong> (1,6% de conversão) — consistente com o diagnóstico
+          do PDF sobre a perda de share internacional em 2025.</p>
+        </div>
+        <div class="destaque-box" style="margin-top:12px;">
+          <strong>⭐ MENSAGEM: melhor taxa de conversão relativa</strong>
+          <p>O segmento de Mensagem realizou <strong>R$ 63,5 mi</strong> sobre R$ 171,8 mi previstos —
+          taxa de 37%, a melhor entre os segmentos com volume relevante. Monopólio postal assegura
+          maior previsibilidade neste segmento.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Por Tipo -->
+  <div class="section">
+    <div class="section-title">⚡ Distribuição por Tipo de Negociação</div>
+    <div class="grid3">
+      <div class="card" style="border-color:#93c5fd;background:#eff6ff;">
+        <div class="card-title">🎯 Oportunidade</div>
+        <div style="font-size:28px;font-weight:800;color:var(--azul);">21.121</div>
+        <div style="font-size:11px;color:var(--cinza);margin:4px 0 12px;">94,2% do total</div>
+        <div style="font-size:11px;">Prevista: <strong>R$ 1,407 bi</strong></div>
+        <div style="font-size:11px;">Realizada: <strong>R$ 257,6 mi</strong></div>
+      </div>
+      <div class="card" style="border-color:#fca5a5;background:#fff5f5;">
+        <div class="card-title">⚔️ Contramedida</div>
+        <div style="font-size:28px;font-weight:800;color:#b91c1c;">974</div>
+        <div style="font-size:11px;color:var(--cinza);margin:4px 0 12px;">4,3% do total</div>
+        <div style="font-size:11px;">Prevista: <strong>R$ 417,2 mi</strong></div>
+        <div style="font-size:11px;">Realizada: <strong>R$ 47,2 mi</strong></div>
+      </div>
+      <div class="card" style="border-color:#fcd34d;background:#fffbeb;">
+        <div class="card-title">⚠️ Ameaça</div>
+        <div style="font-size:28px;font-weight:800;color:#92400e;">336</div>
+        <div style="font-size:11px;color:var(--cinza);margin:4px 0 12px;">1,5% do total</div>
+        <div style="font-size:11px;color:#92400e;">Prevista: <strong>-R$ 523 mi</strong> (perda)</div>
+        <div style="font-size:11px;color:var(--cinza);">Realizada: R$ 216.035</div>
+      </div>
+    </div>
+
+    <div class="alerta-box" style="margin-top:16px;">
+      <strong>⚠️ R$ 523 milhões em ameaças mapeadas</strong>
+      <p>As 336 negociações classificadas como Ameaça registram <strong>receita prevista negativa de -R$ 523,0 milhões</strong>
+      — representando risco identificado de perda de receita pela Força de Vendas. Esse volume supera toda a receita realizada
+      no ano, sinalizando um cenário competitivo de alta pressão, especialmente nos segmentos Internacional e Encomenda.
+      As Contramedidas (974 negociações, R$ 47,2 mi realizados) mitigam parte desse risco.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PÁGINA 4 — Top Força de Vendas + Recomendações
+════════════════════════════════════════════════ -->
+<div class="page" style="page-break-before: always;">
+
+  <div class="section">
+    <div class="section-title">👤 Top 10 — Força de Vendas por Receita Realizada</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Vendedor / ACOM</th>
+          <th class="right">Negociações</th>
+          <th class="right">Receita Realizada</th>
+          <th class="right">Média por Neg.</th>
+          <th style="width:130px;">Performance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:800;color:var(--azul);">1º</td>
+          <td>ITALO GASPAR OLIVEIRA</td>
+          <td class="num">7</td>
+          <td class="num" style="font-weight:700;">R$ 42.154.394</td>
+          <td class="num">R$ 6.022.056</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:100%"></div></div></td>
+        </tr>
+        <tr>
+          <td style="font-weight:800;color:var(--azul);">2º</td>
+          <td>FABIANA DO CARMO DE SANTANA</td>
+          <td class="num">23</td>
+          <td class="num" style="font-weight:700;">R$ 23.067.437</td>
+          <td class="num">R$ 1.003.019</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:54.7%"></div></div></td>
+        </tr>
+        <tr>
+          <td style="font-weight:800;color:var(--azul);">3º</td>
+          <td>ANTONIO BISPO DOS SANTOS FILHO</td>
+          <td class="num">47</td>
+          <td class="num" style="font-weight:700;">R$ 19.721.407</td>
+          <td class="num">R$ 419.604</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:46.8%"></div></div></td>
+        </tr>
+        <tr>
+          <td>4º</td>
+          <td>MOISES PEREIRA SANTOS</td>
+          <td class="num">15</td>
+          <td class="num">R$ 18.214.186</td>
+          <td class="num">R$ 1.214.279</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:43.2%"></div></div></td>
+        </tr>
+        <tr>
+          <td>5º</td>
+          <td>ALEXANDRE PEREIRA CHAVES</td>
+          <td class="num">16</td>
+          <td class="num">R$ 14.704.123</td>
+          <td class="num">R$ 919.007</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:34.9%"></div></div></td>
+        </tr>
+        <tr>
+          <td>6º</td>
+          <td>ADRIANA LIMA DE BRITO BRANDAO</td>
+          <td class="num">50</td>
+          <td class="num">R$ 14.428.200</td>
+          <td class="num">R$ 288.564</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:34.2%"></div></div></td>
+        </tr>
+        <tr>
+          <td>7º</td>
+          <td>VANDERLEY GIRAO LIMA</td>
+          <td class="num">34</td>
+          <td class="num">R$ 13.332.136</td>
+          <td class="num">R$ 392.121</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:31.6%"></div></div></td>
+        </tr>
+        <tr>
+          <td>8º</td>
+          <td>CAMILA SOARES DOS SANTOS</td>
+          <td class="num">16</td>
+          <td class="num">R$ 13.201.762</td>
+          <td class="num">R$ 825.110</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:31.3%"></div></div></td>
+        </tr>
+        <tr>
+          <td>9º</td>
+          <td>ANIVALDO GOMES MARTINS JUNIOR</td>
+          <td class="num">19</td>
+          <td class="num">R$ 10.818.200</td>
+          <td class="num">R$ 569.378</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:25.7%"></div></div></td>
+        </tr>
+        <tr>
+          <td>10º</td>
+          <td>CRISTILEIDE LIMA RODRIGUES</td>
+          <td class="num">22</td>
+          <td class="num">R$ 8.047.900</td>
+          <td class="num">R$ 365.813</td>
+          <td><div class="bar-wrap" style="width:120px"><div class="bar-fill bar-azul" style="width:19.1%"></div></div></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="insight-box" style="margin-top:16px;">
+      <strong>🔍 Perfil dos top performers: concentração e eficiência</strong>
+      <p>O 1º colocado (ITALO GASPAR OLIVEIRA) realizou <strong>R$ 42 mi com apenas 7 negociações</strong> —
+      média de R$ 6 mi por negociação, indicando foco em grandes contas estratégicas. Por outro lado,
+      ADRIANA LIMA DE BRITO BRANDAO e ANTONIO BISPO DOS SANTOS FILHO lideram em volume (50 e 47 negociações),
+      com ticket médio mais distribuído. Ambos os perfis são complementares para uma carteira saudável.</p>
+    </div>
+  </div>
+
+  <!-- Recomendações Estratégicas -->
+  <div class="section">
+    <div class="section-title">🎯 Recomendações Estratégicas — Inteligência das Negociações</div>
+    <div class="grid2">
+      <div>
+        <div class="insight-box" style="margin-bottom:12px;">
+          <strong>1. Priorizar LOGREVERSA e IPTU para escala</strong>
+          <p>As duas ações de maior taxa de conversão (74%) têm poucas negociações registradas (56 e 23, respectivamente).
+          Identificar vendedores de destaque nessas ações e replicar as práticas para toda a FV pode gerar
+          ganho de receita rápido e com menor esforço.</p>
+        </div>
+        <div class="alerta-box" style="margin-bottom:12px;">
+          <strong>2. Investigar gargalo do LOG+</strong>
+          <p>2.188 negociações abertas com 1,3% de conversão — isso sugere que o
+          produto pode estar sendo registrado sem prospecção real, ou que há barreiras
+          operacionais (CLIs, capacidade logística) que impedem a formalização.</p>
+        </div>
+        <div class="destaque-box">
+          <strong>3. Converter pipeline de Andamento (R$ 1,24 bi)</strong>
+          <p>As 4.541 negociações em andamento representam o maior potencial latente.
+          Um esforço focado em conclusão dessas negociações ainda em 2026
+          pode impactar significativamente o atingimento da meta de R$ 18,4 bi.</p>
+        </div>
+      </div>
+      <div>
+        <div class="alerta-box" style="margin-bottom:12px;">
+          <strong>4. Reduzir taxa de "Não Avaliadas" (9,3%)</strong>
+          <p>2.091 negociações sem avaliação da FV impactam diretamente o
+          <strong>KPI de Alcance de Clientes</strong> do IPV. Cada negociação não avaliada
+          é um cliente sem direcionamento no plano comercial.</p>
+        </div>
+        <div class="insight-box" style="margin-bottom:12px;">
+          <strong>5. Atenção ao risco de Ameaças (R$ 523 mi)</strong>
+          <p>O volume de ameaças mapeadas supera toda a receita já realizada.
+          As 974 contramedidas registradas cobrem parte desse risco, mas é necessário
+          monitorar semanalmente via SAD as ameaças de maior valor unitário,
+          especialmente no segmento Internacional.</p>
+        </div>
+        <div class="destaque-box">
+          <strong>6. GESTAODOC e LOGSAUDE: ações embrionárias de alto ticket</strong>
+          <p>Apenas 2 negociações cada, mas com valores previstos de R$ 39,6 mi
+          e R$ 34,2 mi respectivamente. São ações de ciclo longo — necessitam
+          de acompanhamento dedicado e articulação com áreas operacionais.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <div style="margin-top:40px;padding-top:16px;border-top:2px solid var(--borda);display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#94a3b8;">
+    <div>
+      <strong style="color:var(--azul);">SPIV — Sistema de Planejamento Interno de Vendas</strong><br>
+      Correios · DEVEN/SUCAN/DINEG · Gerência Regional SPM
+    </div>
+    <div style="text-align:right;">
+      🔒 USO INTERNO — DADO SENSÍVEL<br>
+      Gerado em 22/07/2026 · Fonte: SAD/negociacoes.csv · 22.433 registros
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
