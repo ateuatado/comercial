@@ -638,6 +638,17 @@ function renderResults(list) {
             addressMarkerHtml = `<span class="badge bg-success text-white ms-2" style="font-size: 9px;"><i class="bi bi-geo-alt-fill"></i> Localizado</span>`;
         }
 
+        const isEncarteirado = item.encarteirado === true;
+        let carteiraStatusHtml = '';
+        if (isEncarteirado) {
+            const vNome = item.vendedor_nome ? `: ${item.vendedor_nome}` : '';
+            carteiraStatusHtml = `<span class="badge bg-secondary text-white" style="font-size: 9px;"><i class="bi bi-lock-fill"></i> Em Carteira${vNome}</span>`;
+            card.style.opacity = '0.88';
+            card.style.backgroundColor = '#fafafa';
+        } else {
+            carteiraStatusHtml = `<span class="badge bg-success text-white" style="font-size: 9px;"><i class="bi bi-unlock-fill"></i> Livre para Prospecção</span>`;
+        }
+
         const bd         = item.score_breakdown ? (typeof item.score_breakdown === 'string' ? JSON.parse(item.score_breakdown) : item.score_breakdown) : null;
         const tooltipId  = `stt_${cleanCnpj}`;
 
@@ -645,6 +656,7 @@ function renderResults(list) {
             <h3>${item.nome_fantasia || item.razao_social}</h3>
             <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
                 <div class="result-cnpj">${formattedCnpj}</div>
+                ${carteiraStatusHtml}
                 ${renderScoreBadge(item.logistics_score, !!bd)}
             </div>
             ${bd ? `<div class="score-tooltip-panel" id="${tooltipId}">${buildScoreTooltipHtml(bd, parseInt(item.logistics_score)||0)}</div>` : ''}

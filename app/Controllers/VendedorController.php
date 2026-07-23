@@ -805,17 +805,23 @@ class VendedorController extends BaseController
                        loc.latitude AS loc_lat, loc.longitude AS loc_lng,
                        cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
                        COALESCE(ce.logistics_score, 0) AS logistics_score,
-                       ce.score_breakdown
+                       ce.score_breakdown,
+                       (cr.cnpj IS NOT NULL) AS encarteirado,
+                       cr.matricula_mcmcu AS vendedor_matricula,
+                       COALESCE(vu.nome, cr.forca_vendas_nome, cr.matricula_mcmcu) AS vendedor_nome
                 FROM receita.estabelecimentos e
                 LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
                 LEFT JOIN receita.municipios m ON e.municipio = m.codigo
                 LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_enrichment ce ON ce.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN carteira_raw cr ON REGEXP_REPLACE(cr.cnpj, '[^0-9]', '', 'g') = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN vendor_users vu ON vu.matricula = cr.matricula_mcmcu
                 WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) LIKE ?
                 {$emailFilterSql}
-                ORDER BY COALESCE(ce.logistics_score, 0) DESC
-                LIMIT 30
+                ORDER BY CASE WHEN cr.cnpj IS NOT NULL THEN 1 ELSE 0 END ASC,
+                         COALESCE(ce.logistics_score, 0) DESC
+                LIMIT 50
             ";
             $resultados = $db->query($query, ['%' . $cleanCnpj . '%'])->getResultArray();
         } else {
@@ -827,26 +833,35 @@ class VendedorController extends BaseController
                        loc.latitude AS loc_lat, loc.longitude AS loc_lng,
                        cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
                        COALESCE(ce.logistics_score, 0) AS logistics_score,
-                       ce.score_breakdown
+                       ce.score_breakdown,
+                       (cr.cnpj IS NOT NULL) AS encarteirado,
+                       cr.matricula_mcmcu AS vendedor_matricula,
+                       COALESCE(vu.nome, cr.forca_vendas_nome, cr.matricula_mcmcu) AS vendedor_nome
                 FROM receita.estabelecimentos e
                 LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
                 LEFT JOIN receita.municipios m ON e.municipio = m.codigo
                 LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_enrichment ce ON ce.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN carteira_raw cr ON REGEXP_REPLACE(cr.cnpj, '[^0-9]', '', 'g') = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN vendor_users vu ON vu.matricula = cr.matricula_mcmcu
                 WHERE (LOWER(emp.razao_social) LIKE ?
                    OR LOWER(e.nome_fantasia) LIKE ?
                    OR LOWER(e.logradouro) LIKE ?
                    OR LOWER(e.bairro) LIKE ?)
                    {$emailFilterSql}
-                ORDER BY COALESCE(ce.logistics_score, 0) DESC
-                LIMIT 30
+                ORDER BY CASE WHEN cr.cnpj IS NOT NULL THEN 1 ELSE 0 END ASC,
+                         COALESCE(ce.logistics_score, 0) DESC
+                LIMIT 50
             ";
             $param = '%' . $searchTerm . '%';
             $resultados = $db->query($query, [$param, $param, $param, $param])->getResultArray();
         }
 
         foreach ($resultados as &$res) {
+            $isEncarteirado = !empty($res['encarteirado']) && ($res['encarteirado'] === true || $res['encarteirado'] === 't' || $res['encarteirado'] === '1' || $res['encarteirado'] === 1);
+            $res['encarteirado'] = $isEncarteirado;
+
             $endParts = [];
             if (!empty($res['tipo_logradouro'])) $endParts[] = trim($res['tipo_logradouro']);
             if (!empty($res['logradouro'])) $endParts[] = trim($res['logradouro']);
