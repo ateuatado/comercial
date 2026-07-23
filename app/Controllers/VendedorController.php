@@ -137,9 +137,9 @@ class VendedorController extends BaseController
                 COALESCE(cw.status_operacional, 'ativo') AS status_operacional,
                 COALESCE(ce.logistics_score, 0) AS score
             FROM carteira_raw c
-            JOIN client_locations cl ON cl.cnpj = c.cnpj
-            LEFT JOIN client_wallets cw ON cw.cnpj = c.cnpj
-            LEFT JOIN client_enrichment ce ON ce.cnpj = c.cnpj
+            JOIN client_locations cl ON cl.cnpj = REGEXP_REPLACE(c.cnpj, '[^0-9]', '', 'g')
+            LEFT JOIN client_wallets cw ON cw.cnpj = REGEXP_REPLACE(c.cnpj, '[^0-9]', '', 'g')
+            LEFT JOIN client_enrichment ce ON ce.cnpj = REGEXP_REPLACE(c.cnpj, '[^0-9]', '', 'g')
             WHERE c.matricula_mcmcu = ?
               AND cl.latitude IS NOT NULL
               AND cl.longitude IS NOT NULL
@@ -156,8 +156,8 @@ class VendedorController extends BaseController
     /**
      * Retorna todos os CNPJs com coordenadas em client_locations
      * que NÃO pertencem à carteira DO VENDEDOR LOGADO.
-     * Inclui o campo 'ocupado' = true quando pertence a OUTRO vendedor (laranja),
-     * false = livre para prospecção (vermelho).
+     * Inclui o campo 'ocupado' = true quando pertence a OUTRO vendedor (triângulo vermelho),
+     * false = livre/fora de qualquer carteira (losango verde).
      */
     public function livresMapaApi()
     {
@@ -175,10 +175,10 @@ class VendedorController extends BaseController
                 COALESCE(emp.razao_social, cl.cnpj) AS razao_social,
                 COALESCE(est.cnae_fiscal_principal, '') AS cnae,
                 COALESCE(ce.logistics_score, 0) AS score,
-                -- true = pertence a outro vendedor; false = livre
+                -- true = pertence a outro vendedor; false = fora de qualquer carteira (livre)
                 EXISTS (
                     SELECT 1 FROM carteira_raw cr
-                    WHERE cr.cnpj = cl.cnpj
+                    WHERE REGEXP_REPLACE(cr.cnpj, '[^0-9]', '', 'g') = cl.cnpj
                       AND cr.matricula_mcmcu != ?
                 ) AS ocupado
             FROM client_locations cl
@@ -189,9 +189,9 @@ class VendedorController extends BaseController
             LEFT JOIN client_enrichment ce ON ce.cnpj = cl.cnpj
             WHERE cl.latitude IS NOT NULL
               AND cl.longitude IS NOT NULL
-              -- Exclui apenas os que já são da carteira DO próprio vendedor
+              -- Exclui os que já são da carteira DO próprio vendedor logado
               AND cl.cnpj NOT IN (
-                  SELECT DISTINCT cnpj FROM carteira_raw
+                  SELECT DISTINCT REGEXP_REPLACE(cnpj, '[^0-9]', '', 'g') FROM carteira_raw
                   WHERE matricula_mcmcu = ?
                     AND cnpj IS NOT NULL
               )

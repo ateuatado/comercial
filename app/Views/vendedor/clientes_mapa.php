@@ -51,7 +51,8 @@
 }
 .layer-toggle.active-layer { background: #fff; }
 .layer-toggle.active-layer.layer-meus  { border-color: #3b82f6; color: #1d4ed8; }
-.layer-toggle.active-layer.layer-livres{ border-color: #ef4444; color: #b91c1c; }
+.layer-toggle.active-layer.layer-livres{ border-color: #10b981; color: #15803d; }
+.layer-toggle.active-layer.layer-ocup  { border-color: #ef4444; color: #b91c1c; }
 
 .counter-pill {
     margin-left: auto; font-size: 10px; color: #94a3b8;
@@ -84,8 +85,8 @@
     font-size: 10px; font-weight: 700; margin-bottom: 8px;
 }
 .sheet-type-pill.meu    { background: #eff6ff; color: #1d4ed8; }
-.sheet-type-pill.livre  { background: #fef2f2; color: #b91c1c; }
-.sheet-type-pill.ocupado{ background: #fff7ed; color: #c2410c; }
+.sheet-type-pill.livre  { background: #f0fdf4; color: #15803d; }
+.sheet-type-pill.ocupado{ background: #fef2f2; color: #b91c1c; }
 .sheet-name { font-size: 15px; font-weight: 800; color: #1e293b; margin-bottom: 4px; line-height: 1.3; }
 .sheet-cnpj { font-size: 11px; color: #64748b; font-family: monospace; margin-bottom: 10px; }
 .sheet-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -127,13 +128,13 @@
     <!-- Toggles de camada -->
     <div class="layer-bar">
         <button class="layer-toggle active-layer layer-meus" id="toggleMeus" onclick="toggleLayer('meus')">
-            <span class="dot" style="background:#3b82f6;"></span> Meus Clientes
+            <span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:2px;flex-shrink:0;"></span> Meus Clientes
         </button>
         <button class="layer-toggle active-layer layer-livres" id="toggleLivres" onclick="toggleLayer('livres')">
-            <span class="dot" style="background:#ef4444;"></span> Livres
+            <span style="display:inline-block;width:9px;height:9px;background:#10b981;transform:rotate(45deg);flex-shrink:0;margin:1px 3px 1px 1px;"></span> Fora da Carteira
         </button>
         <button class="layer-toggle active-layer layer-ocup" id="toggleOcup" onclick="toggleLayer('ocup')">
-            <span class="dot" style="background:#f97316;"></span> Outro Vendedor
+            <span style="display:inline-block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:10px solid #ef4444;flex-shrink:0;"></span> Outro Vendedor
         </button>
         <span class="counter-pill" id="counterPill">Carregando...</span>
     </div>
@@ -161,10 +162,41 @@ function scoreColor(score) {
 function fmtCnpj(c) {
     return c.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
 }
-function dotIcon(color, size = 12) {
+
+// ── Ícones Geométricos Personalizados (SVG) ───────────────────
+// 1. Quadrado Azul (Meus Clientes)
+function squareBlueIcon(size = 18) {
     return L.divIcon({
-        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer;"></div>`,
-        className: '', iconSize: [size, size], iconAnchor: [size/2, size/2]
+        html: `<svg width="${size}" height="${size}" viewBox="0 0 18 18" style="filter: drop-shadow(0px 1px 3px rgba(0,0,0,0.35)); cursor:pointer;">
+                 <rect x="2" y="2" width="14" height="14" rx="2" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/>
+               </svg>`,
+        className: '',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2]
+    });
+}
+
+// 2. Triângulo Vermelho (Clientes de Outros Vendedores)
+function triangleRedIcon(size = 18) {
+    return L.divIcon({
+        html: `<svg width="${size}" height="${size}" viewBox="0 0 18 18" style="filter: drop-shadow(0px 1px 3px rgba(0,0,0,0.35)); cursor:pointer;">
+                 <polygon points="9,1 17,16 1,16" fill="#ef4444" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+               </svg>`,
+        className: '',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2]
+    });
+}
+
+// 3. Losango Verde (Clientes Fora de Qualquer Carteira / Livres)
+function diamondGreenIcon(size = 18) {
+    return L.divIcon({
+        html: `<svg width="${size}" height="${size}" viewBox="0 0 18 18" style="filter: drop-shadow(0px 1px 3px rgba(0,0,0,0.35)); cursor:pointer;">
+                 <polygon points="9,1 17,9 9,17 1,9" fill="#10b981" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+               </svg>`,
+        className: '',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2]
     });
 }
 
@@ -218,7 +250,7 @@ function updateCounter() {
     const l = layerState.livres ? totalLivres : 0;
     const o = layerState.ocup   ? totalOcup   : 0;
     document.getElementById('counterPill').textContent =
-        `${m} meus · ${l} livres · ${o} outros`;
+        `${m} meus · ${l} fora da carteira · ${o} outros`;
 }
 
 // ── Carregar dados ───────────────────────────────────────────
@@ -234,21 +266,20 @@ async function loadAll() {
     totalLivres = 0;
     totalOcup   = 0;
 
-    // Marcadores — meus clientes (azul/verde/amarelo por score)
+    // Marcadores — meus clientes (Quadrado Azul)
     (dataMeus.clientes || []).forEach(c => {
-        const color = scoreColor(parseInt(c.score));
-        L.marker([parseFloat(c.latitude), parseFloat(c.longitude)], { icon: dotIcon(color, 13) })
+        L.marker([parseFloat(c.latitude), parseFloat(c.longitude)], { icon: squareBlueIcon(18) })
             .addTo(layerMeus)
             .on('click', () => openSheet(c, 'meu'));
     });
 
-    // Marcadores — livres (vermelho) e de outro vendedor (laranja)
+    // Marcadores — fora de qualquer carteira (Losango Verde) e outro vendedor (Triângulo Vermelho)
     (dataLivres.livres || []).forEach(c => {
         const isOcup = c.ocupado === true || c.ocupado === 't' || c.ocupado === '1' || c.ocupado === 1;
-        const color  = isOcup ? '#f97316' : '#ef4444';
+        const icon   = isOcup ? triangleRedIcon(18) : diamondGreenIcon(18);
         const layer  = isOcup ? layerOcup : layerLivres;
         if (isOcup) totalOcup++; else totalLivres++;
-        L.marker([parseFloat(c.latitude), parseFloat(c.longitude)], { icon: dotIcon(color, 10) })
+        L.marker([parseFloat(c.latitude), parseFloat(c.longitude)], { icon: icon })
             .addTo(layer)
             .on('click', () => openSheet(c, isOcup ? 'ocupado' : 'livre'));
     });
@@ -276,10 +307,10 @@ function openSheet(c, tipo) {
     const scoreLabel = score >= 60 ? '🔥 Alto' : score >= 30 ? '⚡ Médio' : score > 0 ? '· Baixo' : '—';
 
     const pill = tipo === 'livre'
-        ? `<span class="sheet-type-pill livre">🔴 Livre para Prospecção</span>`
+        ? `<span class="sheet-type-pill livre"><span style="display:inline-block;width:8px;height:8px;background:#10b981;transform:rotate(45deg);margin-right:4px;"></span> Fora de qualquer carteira</span>`
         : tipo === 'ocupado'
-        ? `<span class="sheet-type-pill ocupado">🟠 Em carteira de outro vendedor</span>`
-        : `<span class="sheet-type-pill meu">🔵 Meu Cliente</span>`;
+        ? `<span class="sheet-type-pill ocupado"><span style="display:inline-block;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:8px solid #ef4444;margin-right:4px;"></span> Carteira de outro vendedor</span>`
+        : `<span class="sheet-type-pill meu"><span style="display:inline-block;width:8px;height:8px;background:#3b82f6;border-radius:1.5px;margin-right:4px;"></span> Meu Cliente</span>`;
 
     const scoreRow = score > 0 ? `
         <div class="sheet-score-row">
