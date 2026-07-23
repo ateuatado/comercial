@@ -158,6 +158,7 @@
                     $cnpjFmt = strlen($cnpj) === 14
                         ? substr($cnpj,0,2).'.'.substr($cnpj,2,3).'.'.substr($cnpj,5,3).'/'.substr($cnpj,8,4).'-'.substr($cnpj,12,2)
                         : $cnpj;
+                    $isPublica = ($nota['publica'] === true || $nota['publica'] === 't' || $nota['publica'] === '1' || $nota['publica'] === 1 || $nota['publica'] === 'true');
                 ?>
                 <div class="d-flex gap-2 mb-3 pb-2 border-bottom align-items-start">
                     <span style="margin-top:3px; font-size:16px;"><?= $tipoIcons[$nota['tipo']] ?? '📝' ?></span>
@@ -174,7 +175,7 @@
                             <span style="font-size:9.5px; background:#f1f5f9; color:#475569; border-radius:4px; padding:1px 5px; font-weight:600;">
                                 <?= esc($tipoLabels[$nota['tipo']] ?? $nota['tipo']) ?>
                             </span>
-                            <?php if (!empty($nota['publica'])): ?>
+                            <?php if ($isPublica): ?>
                                 <span style="font-size:9px;background:#dcfce7;color:#166534;border-radius:4px;padding:1px 6px;font-weight:700;">🌐 Pública</span>
                             <?php else: ?>
                                 <span style="font-size:9px;background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 6px;font-weight:700;">🔒 Privada</span>

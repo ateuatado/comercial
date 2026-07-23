@@ -120,7 +120,8 @@ class VendorNoteModel extends Model
         if (!$nota) {
             return false;
         }
-        $this->update($id, ['publica' => !$nota['publica']]);
+        $isPub = ($nota['publica'] === true || $nota['publica'] === 't' || $nota['publica'] === '1' || $nota['publica'] === 1 || $nota['publica'] === 'true');
+        $this->update($id, ['publica' => !$isPub]);
         return true;
     }
 

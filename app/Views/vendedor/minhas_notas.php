@@ -192,7 +192,7 @@
                     $cnpjFmt = strlen($cnpj) === 14
                         ? substr($cnpj,0,2).'.'.substr($cnpj,2,3).'.'.substr($cnpj,5,3).'/'.substr($cnpj,8,4).'-'.substr($cnpj,12,2)
                         : $cnpj;
-                    $isPublica = !empty($nota['publica']);
+                    $isPublica = ($nota['publica'] === true || $nota['publica'] === 't' || $nota['publica'] === '1' || $nota['publica'] === 1 || $nota['publica'] === 'true');
                 ?>
                 <div class="note-card">
                     <!-- Nome do cliente e CNPJ -->
