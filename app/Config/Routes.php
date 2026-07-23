@@ -115,6 +115,7 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->post('captacao/salvar', 'VendedorController::captacaoSalvar');
     $routes->get('captacao/anexo/(:num)', 'VendedorController::captacaoAnexo/$1');
     $routes->get('minhas-captacoes', 'VendedorController::minhasCaptacoes');
+    $routes->get('minhas-notas', 'VendedorController::minhasNotas');
 });
 
 // Coordenador — visão do time (Fase 2.9) + gestão avançada (Fase 3)

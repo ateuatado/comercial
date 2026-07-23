@@ -54,9 +54,38 @@ class VendedorController extends BaseController
 
         $noteModel = new VendorNoteModel();
         $ultimasNotas = $noteModel->getRecentByVendor($mat, 5);
+        $totalNotas   = (int) ($db->query("SELECT COUNT(*) AS c FROM vendor_notes WHERE matricula_vendedor = ?", [$mat])->getRow()->c ?? 0);
         $isCoordenador = $this->vendorModel->isCoordinator($mat);
 
-        return view('vendedor/dashboard', compact('vendorUser', 'totalClientes', 'categorias', 'ciclos', 'segmentos', 'ultimasNotas', 'isCoordenador'));
+        return view('vendedor/dashboard', compact('vendorUser', 'totalClientes', 'categorias', 'ciclos', 'segmentos', 'ultimasNotas', 'totalNotas', 'isCoordenador'));
+    }
+
+    /**
+     * Tela dedicada "Minhas Notas": Central de Histórico e Pesquisa de Notas do Vendedor.
+     */
+    public function minhasNotas()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return redirect()->to('/sem-carteira');
+
+        $tipo    = $this->request->getGet('tipo') ?? '';
+        $publica = $this->request->getGet('publica') ?? '';
+        $busca   = trim($this->request->getGet('busca') ?? '');
+
+        $noteModel = new VendorNoteModel();
+        $mat = $vendorUser['matricula'];
+
+        $notas = $noteModel->getAllByVendor($mat, [
+            'tipo'    => $tipo,
+            'publica' => $publica,
+            'busca'   => $busca,
+        ]);
+
+        $contadores = $noteModel->countByType($mat);
+        $totaisPorTipo = array_column($contadores, 'total', 'tipo');
+        $totalGeral = array_sum($totaisPorTipo);
+
+        return view('vendedor/minhas_notas', compact('vendorUser', 'notas', 'tipo', 'publica', 'busca', 'totaisPorTipo', 'totalGeral'));
     }
 
     // ─── Clientes ────────────────────────────────────────────────

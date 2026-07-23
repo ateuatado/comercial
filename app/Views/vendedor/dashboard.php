@@ -119,9 +119,18 @@
                 </a>
             </div>
         </div>
-        <a href="<?= site_url('vendedor/minhas-captacoes') ?>" class="btn btn-outline-secondary w-100" style="border-radius: 12px;">
-            <i class="bi bi-inbox me-1"></i> Minhas Solicitações de Captação
-        </a>
+        <div class="row g-2">
+            <div class="col-6">
+                <a href="<?= site_url('vendedor/minhas-captacoes') ?>" class="btn btn-outline-secondary w-100" style="border-radius: 12px; font-size: 13px;">
+                    <i class="bi bi-inbox me-1"></i> Captações
+                </a>
+            </div>
+            <div class="col-6">
+                <a href="<?= site_url('vendedor/minhas-notas') ?>" class="btn btn-outline-primary w-100" style="border-radius: 12px; font-size: 13px;">
+                    <i class="bi bi-journal-text me-1"></i> Minhas Notas
+                </a>
+            </div>
+        </div>
         <?php if ($isCoordenador): ?>
             <a href="<?= site_url('coordenador') ?>" class="btn btn-outline-primary btn-lg" style="border-radius: 12px;">
                 <i class="bi bi-diagram-3 me-2"></i> Visão do Time
@@ -133,32 +142,54 @@
     <?php if (!empty($ultimasNotas)): ?>
     <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
         <div class="card-body">
-            <h6 class="fw-bold mb-3"><i class="bi bi-journal-text"></i> Últimas Notas</h6>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold m-0"><i class="bi bi-journal-text text-primary me-2"></i>Últimas Notas</h6>
+                <a href="<?= site_url('vendedor/minhas-notas') ?>" class="small text-primary text-decoration-none fw-bold">
+                    Ver todas (<?= $totalNotas ?? count($ultimasNotas) ?>) →
+                </a>
+            </div>
             <?php
                 $tipoIcons = ['visita' => '🟢', 'observacao' => '🔵', 'contato_telefonico' => '🟠', 'reuniao' => '🟣', 'estrategia' => '⚡'];
+                $tipoLabels = ['visita' => 'Visita', 'observacao' => 'Observação', 'contato_telefonico' => 'Contato', 'reuniao' => 'Reunião', 'estrategia' => 'Estratégia'];
             ?>
             <?php foreach ($ultimasNotas as $nota): ?>
-                <div class="d-flex gap-2 mb-2 pb-2 border-bottom align-items-start">
-                    <span style="margin-top:2px;"><?= $tipoIcons[$nota['tipo']] ?? '📝' ?></span>
+                <?php
+                    $cnpj = $nota['cnpj'];
+                    $cnpjFmt = strlen($cnpj) === 14
+                        ? substr($cnpj,0,2).'.'.substr($cnpj,2,3).'.'.substr($cnpj,5,3).'/'.substr($cnpj,8,4).'-'.substr($cnpj,12,2)
+                        : $cnpj;
+                ?>
+                <div class="d-flex gap-2 mb-3 pb-2 border-bottom align-items-start">
+                    <span style="margin-top:3px; font-size:16px;"><?= $tipoIcons[$nota['tipo']] ?? '📝' ?></span>
                     <div class="flex-grow-1 min-width-0">
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-1 mb-1">
                             <a href="<?= site_url('vendedor/cliente/' . $nota['cnpj']) ?>"
-                               class="text-decoration-none fw-semibold" style="font-size:11px;color:#1e40af;">
-                                <i class="bi bi-person-vcard-fill me-1"></i><?= esc($nota['cnpj']) ?>
+                               class="text-decoration-none fw-bold text-dark text-truncate" style="max-width:240px; font-size:13px;" title="<?= esc($nota['razao_social'] ?? '') ?>">
+                                <?= esc($nota['razao_social'] ?? 'Cliente ' . $cnpj) ?>
                             </a>
-                            <small class="text-muted"><?= date('d/m H:i', strtotime($nota['created_at'])) ?></small>
+                            <small class="text-muted" style="font-size:11px;"><?= date('d/m H:i', strtotime($nota['created_at'])) ?></small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                            <span class="text-muted font-monospace" style="font-size:11px;"><?= $cnpjFmt ?></span>
+                            <span style="font-size:9.5px; background:#f1f5f9; color:#475569; border-radius:4px; padding:1px 5px; font-weight:600;">
+                                <?= esc($tipoLabels[$nota['tipo']] ?? $nota['tipo']) ?>
+                            </span>
                             <?php if (!empty($nota['publica'])): ?>
                                 <span style="font-size:9px;background:#dcfce7;color:#166534;border-radius:4px;padding:1px 6px;font-weight:700;">🌐 Pública</span>
                             <?php else: ?>
                                 <span style="font-size:9px;background:#f1f5f9;color:#64748b;border-radius:4px;padding:1px 6px;font-weight:700;">🔒 Privada</span>
                             <?php endif; ?>
                         </div>
-                        <div class="small text-muted mt-1" style="line-height:1.3;"><?= esc(mb_strimwidth($nota['conteudo'], 0, 90, '...')) ?></div>
+                        <div class="small text-secondary mt-1" style="line-height:1.4; font-size:12px; background:#fafafa; padding:6px 10px; border-radius:8px;">
+                            <?= esc($nota['conteudo']) ?>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
-            <div class="text-end mt-1">
-                <a href="<?= site_url('vendedor/clientes') ?>" class="small text-primary text-decoration-none">Ver carteira →</a>
+            <div class="text-end mt-2">
+                <a href="<?= site_url('vendedor/minhas-notas') ?>" class="btn btn-sm btn-outline-primary w-100" style="border-radius:10px; font-weight:600;">
+                    <i class="bi bi-journal-text me-1"></i> Abrir Central de Minhas Notas
+                </a>
             </div>
         </div>
     </div>

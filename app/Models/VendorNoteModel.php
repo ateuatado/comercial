@@ -46,15 +46,56 @@ class VendorNoteModel extends Model
     }
 
     /**
-     * Retorna as últimas N notas privadas + públicas de um vendedor.
+     * Retorna as últimas N notas de um vendedor com Razão Social do cliente.
      * Usado no dashboard do próprio vendedor.
      */
     public function getRecentByVendor(string $matricula, int $limit = 10): array
     {
-        return $this->where('matricula_vendedor', $matricula)
-                    ->orderBy('created_at', 'DESC')
-                    ->limit($limit)
-                    ->findAll();
+        return $this->select("
+                    vendor_notes.*,
+                    COALESCE(c.razao_social, emp.razao_social, 'Cliente ' || vendor_notes.cnpj) AS razao_social
+                ")
+                ->join('carteira_raw c', "REGEXP_REPLACE(c.cnpj, '[^0-9]', '', 'g') = REGEXP_REPLACE(vendor_notes.cnpj, '[^0-9]', '', 'g')", 'left')
+                ->join('receita.empresas emp', "emp.cnpj_basico = SUBSTRING(REGEXP_REPLACE(vendor_notes.cnpj, '[^0-9]', '', 'g'), 1, 8)", 'left')
+                ->where('vendor_notes.matricula_vendedor', $matricula)
+                ->orderBy('vendor_notes.created_at', 'DESC')
+                ->limit($limit)
+                ->findAll();
+    }
+
+    /**
+     * Retorna todas as notas de um vendedor com filtros e busca.
+     */
+    public function getAllByVendor(string $matricula, array $filters = []): array
+    {
+        $builder = $this->select("
+                    vendor_notes.*,
+                    COALESCE(c.razao_social, emp.razao_social, 'Cliente ' || vendor_notes.cnpj) AS razao_social
+                ")
+                ->join('carteira_raw c', "REGEXP_REPLACE(c.cnpj, '[^0-9]', '', 'g') = REGEXP_REPLACE(vendor_notes.cnpj, '[^0-9]', '', 'g')", 'left')
+                ->join('receita.empresas emp', "emp.cnpj_basico = SUBSTRING(REGEXP_REPLACE(vendor_notes.cnpj, '[^0-9]', '', 'g'), 1, 8)", 'left')
+                ->where('vendor_notes.matricula_vendedor', $matricula);
+
+        if (!empty($filters['tipo'])) {
+            $builder->where('vendor_notes.tipo', $filters['tipo']);
+        }
+
+        if (isset($filters['publica']) && $filters['publica'] !== '') {
+            $pub = ($filters['publica'] === '1' || $filters['publica'] === 'true' || $filters['publica'] === true);
+            $builder->where('vendor_notes.publica', $pub);
+        }
+
+        if (!empty($filters['busca'])) {
+            $term = strtolower(trim($filters['busca']));
+            $builder->groupStart()
+                        ->like('LOWER(vendor_notes.conteudo)', $term)
+                        ->orLike('vendor_notes.cnpj', $term)
+                        ->orLike('LOWER(c.razao_social)', $term)
+                        ->orLike('LOWER(emp.razao_social)', $term)
+                    ->groupEnd();
+        }
+
+        return $builder->orderBy('vendor_notes.created_at', 'DESC')->findAll();
     }
 
     /**
