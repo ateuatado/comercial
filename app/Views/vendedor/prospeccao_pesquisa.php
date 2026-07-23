@@ -1019,27 +1019,12 @@ async function loadRanking(offset) {
             const nome   = item.nome_fantasia || item.razao_social || 'Sem nome';
             const cnpj   = item.cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
             const cidade = [item.municipio_nome, item.uf].filter(Boolean).join(' - ');
+            const email  = item.email ? `· ${item.email}` : '';
 
             // Reutiliza a função compartilhada
             const bd        = item.score_breakdown || {};
             const tooltipId = `tt_${item.cnpj}`;
             const scoreLabel = score >= 60 ? '🔥 Alto potencial' : score >= 30 ? '⚡ Potencial moderado' : '· Baixo potencial';
-
-            // CNAEs
-            let cnaesHtml = '';
-            if (item.cnaes_detalhados && item.cnaes_detalhados.length > 0) {
-                cnaesHtml = '<div class="mt-1 d-flex flex-wrap gap-1">';
-                item.cnaes_detalhados.slice(0, 2).forEach(c => {
-                    const isPrin = c.tipo === 'Principal';
-                    cnaesHtml += `<span class="badge ${isPrin ? 'bg-primary' : 'bg-secondary'}" style="font-size:9.5px;font-weight:500;" title="${c.descricao}">
-                        ${isPrin ? '📌' : '🏷️'} ${c.codigo} - ${c.descricao.length > 40 ? c.descricao.substring(0,40) + '...' : c.descricao}
-                    </span>`;
-                });
-                if (item.cnaes_detalhados.length > 2) {
-                    cnaesHtml += `<span class="badge bg-light text-dark border" style="font-size:9px;">+${item.cnaes_detalhados.length - 2} CNAEs</span>`;
-                }
-                cnaesHtml += '</div>';
-            }
 
             const card = document.createElement('div');
             card.className = 'rank-card';
@@ -1048,8 +1033,7 @@ async function loadRanking(offset) {
                 <div class="rank-body">
                     <div class="rank-name" title="${nome}">${nome}</div>
                     <div class="rank-meta">${cnpj} ${cidade ? '· ' + cidade : ''}</div>
-                    ${cnaesHtml}
-                    <div style="display:flex; align-items:center; gap:4px; margin-top:6px; margin-bottom:4px;">
+                    <div style="display:flex; align-items:center; gap:4px; margin-bottom:4px;">
                         <div class="score-bar-wrap" style="flex:1; margin-bottom:0;">
                             <div class="score-bar-fill ${bar}" style="width: ${score}%"></div>
                         </div>
