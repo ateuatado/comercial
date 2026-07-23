@@ -25,6 +25,12 @@
         <div class="collapse navbar-collapse" id="navbarSPIV">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
 
+                <li class="nav-item">
+                    <a class="nav-link <?= (uri_string() === '' || uri_string() === '/') ? 'active' : '' ?>" href="<?= base_url('/') ?>">
+                        <i class="bi bi-house-door-fill me-1"></i>Início
+                    </a>
+                </li>
+
                 <?php if (auth()->loggedIn()): ?>
 
                     <?php if (auth()->user()->inGroup('admin')): ?>
