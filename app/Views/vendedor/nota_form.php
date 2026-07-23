@@ -268,7 +268,7 @@
         <!-- Visibilidade -->
         <div class="form-section">
             <label><i class="bi bi-eye"></i> Visibilidade</label>
-            <label style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 14px;border:2px solid #86efac;border-radius:12px;background:#fafbfc;transition:border-color .2s;" id="visibilidadeToggleWrap">
+            <div style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 14px;border:2px solid #86efac;border-radius:12px;background:#fafbfc;transition:border-color .2s;user-select:none;" id="visibilidadeToggleWrap">
                 <div style="position:relative;flex-shrink:0;">
                     <input type="checkbox" id="chkPublica" name="publica" value="1" checked="checked" style="opacity:0;width:0;height:0;position:absolute;">
                     <div id="toggleTrack" style="width:44px;height:24px;border-radius:99px;background:#22c55e;transition:background .2s;position:relative;">
@@ -279,7 +279,7 @@
                     <div style="font-size:13px;font-weight:700;color:#1e293b;" id="visLabel">🌐 Pública</div>
                     <div style="font-size:11px;color:#94a3b8;" id="visDesc">Visível para todos os usuários do sistema</div>
                 </div>
-            </label>
+            </div>
         </div>
 
     </form>
@@ -335,11 +335,12 @@
             toggleThumb.style.left = '2px';
             visLabel.textContent = '🔒 Privada';
             visDesc.textContent  = 'Somente você pode ver esta nota';
-            visWrap.style.borderColor = '#e5e7eb';
+            visWrap.style.borderColor = '#cbd5e1';
         }
     }
 
-    visWrap.addEventListener('click', () => {
+    visWrap.addEventListener('click', (e) => {
+        e.preventDefault();
         chkPublica.checked = !chkPublica.checked;
         atualizaToggle();
     });

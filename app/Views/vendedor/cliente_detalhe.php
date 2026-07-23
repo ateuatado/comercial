@@ -525,7 +525,7 @@
                 <?php foreach ($notas as $nota): ?>
                     <?php
                         $eMinhaNote = ($nota['matricula_vendedor'] === $vendorUser['matricula']);
-                        $isPublica  = !empty($nota['publica']);
+                        $isPublica  = ($nota['publica'] === true || $nota['publica'] === 't' || $nota['publica'] === '1' || $nota['publica'] === 1 || $nota['publica'] === 'true');
                     ?>
                     <div class="note-item" id="note-item-<?= $nota['id'] ?>">
                         <div class="note-dot <?= esc($nota['tipo']) ?>"></div>
