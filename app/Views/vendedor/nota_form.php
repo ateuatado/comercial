@@ -268,16 +268,16 @@
         <!-- Visibilidade -->
         <div class="form-section">
             <label><i class="bi bi-eye"></i> Visibilidade</label>
-            <label style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 14px;border:2px solid #e5e7eb;border-radius:12px;background:#fafbfc;transition:border-color .2s;" id="visibilidadeToggleWrap">
+            <label style="display:flex;align-items:center;gap:14px;cursor:pointer;padding:10px 14px;border:2px solid #86efac;border-radius:12px;background:#fafbfc;transition:border-color .2s;" id="visibilidadeToggleWrap">
                 <div style="position:relative;flex-shrink:0;">
-                    <input type="checkbox" id="chkPublica" name="publica" value="1" style="opacity:0;width:0;height:0;position:absolute;">
-                    <div id="toggleTrack" style="width:44px;height:24px;border-radius:99px;background:#e5e7eb;transition:background .2s;position:relative;">
-                        <div id="toggleThumb" style="width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);position:absolute;top:2px;left:2px;transition:left .2s;"></div>
+                    <input type="checkbox" id="chkPublica" name="publica" value="1" checked="checked" style="opacity:0;width:0;height:0;position:absolute;">
+                    <div id="toggleTrack" style="width:44px;height:24px;border-radius:99px;background:#22c55e;transition:background .2s;position:relative;">
+                        <div id="toggleThumb" style="width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);position:absolute;top:2px;left:22px;transition:left .2s;"></div>
                     </div>
                 </div>
                 <div>
-                    <div style="font-size:13px;font-weight:700;color:#1e293b;" id="visLabel">🔒 Privada</div>
-                    <div style="font-size:11px;color:#94a3b8;" id="visDesc">Somente você pode ver esta nota</div>
+                    <div style="font-size:13px;font-weight:700;color:#1e293b;" id="visLabel">🌐 Pública</div>
+                    <div style="font-size:11px;color:#94a3b8;" id="visDesc">Visível para todos os usuários do sistema</div>
                 </div>
             </label>
         </div>
@@ -343,6 +343,9 @@
         chkPublica.checked = !chkPublica.checked;
         atualizaToggle();
     });
+
+    // Inicializa o estado visual do toggle ao carregar
+    atualizaToggle();
 
     // Sentiment selection
     document.querySelectorAll('.sentiment-btn').forEach(btn => {

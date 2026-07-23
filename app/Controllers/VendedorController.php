@@ -557,36 +557,71 @@ class VendedorController extends BaseController
         $vendorUser = $this->getVendorUser();
         if (!$vendorUser) return redirect()->to('/sem-carteira');
 
+        $cleanCnpj = preg_replace('/[^0-9]/', '', $cnpj);
         $db = db_connect();
-        $cliente = $db->query("SELECT cnpj, razao_social, categoria, segmento_mercado FROM carteira_raw WHERE cnpj = ? AND matricula_mcmcu = ? LIMIT 1", [$cnpj, $vendorUser['matricula']])->getRowArray();
-        if (!$cliente) return redirect()->to('/vendedor')->with('error', 'Cliente não encontrado.');
+
+        // 1. Tenta buscar na carteira do próprio vendedor logado
+        $cliente = $db->query("
+            SELECT cnpj, razao_social, categoria, segmento_mercado
+            FROM carteira_raw
+            WHERE REGEXP_REPLACE(cnpj, '[^0-9]', '', 'g') = ? AND matricula_mcmcu = ?
+            LIMIT 1
+        ", [$cleanCnpj, $vendorUser['matricula']])->getRowArray();
+
+        // 2. Se não encontrou na sua carteira, busca na carteira_raw de outro vendedor ou na Receita Federal
+        if (!$cliente) {
+            $clienteRaw = $db->query("
+                SELECT cnpj, razao_social, categoria, segmento_mercado
+                FROM carteira_raw
+                WHERE REGEXP_REPLACE(cnpj, '[^0-9]', '', 'g') = ?
+                LIMIT 1
+            ", [$cleanCnpj])->getRowArray();
+
+            if ($clienteRaw) {
+                $cliente = $clienteRaw;
+            } else {
+                // Busca dados públicos na Receita Federal
+                $receita = $db->query("
+                    SELECT (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) AS cnpj,
+                           emp.razao_social, 'Prospecto' AS categoria, '' AS segmento_mercado
+                    FROM receita.estabelecimentos e
+                    LEFT JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
+                    WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ?
+                    LIMIT 1
+                ", [$cleanCnpj])->getRowArray();
+
+                $cliente = $receita ?: [
+                    'cnpj'             => $cleanCnpj,
+                    'razao_social'     => 'Cliente ' . $cleanCnpj,
+                    'categoria'        => 'Prospecto',
+                    'segmento_mercado' => '',
+                ];
+            }
+        }
 
         return view('vendedor/nota_form', compact('vendorUser', 'cliente'));
     }
 
     /**
      * POST — Grava nota no banco.
+     * Permitido para qualquer vendedor em qualquer cliente.
      */
     public function notaSalvar()
     {
         $vendorUser = $this->getVendorUser();
         if (!$vendorUser) return $this->response->setJSON(['error' => 'Sem carteira'])->setStatusCode(403);
 
-        $cnpj       = $this->request->getPost('cnpj');
+        $cnpj       = preg_replace('/[^0-9]/', '', $this->request->getPost('cnpj') ?? '');
         $tipo       = $this->request->getPost('tipo');
-        $conteudo   = $this->request->getPost('conteudo');
+        $conteudo   = trim($this->request->getPost('conteudo') ?? '');
         $sentimento = $this->request->getPost('sentimento');
-        $publica    = (bool) $this->request->getPost('publica'); // false por padrão
+        
+        // Pública por padrão (true), a menos que explicitamente enviado '0', 'false' ou false
+        $publicaVal = $this->request->getPost('publica');
+        $publica    = ($publicaVal === '0' || $publicaVal === 'false' || $publicaVal === false) ? false : true;
 
         if (empty($cnpj) || empty($tipo) || empty($conteudo)) {
             return $this->response->setJSON(['error' => 'Campos obrigatórios não preenchidos.'])->setStatusCode(422);
-        }
-
-        // Verifica se o CNPJ pertence à carteira do vendedor
-        $db = db_connect();
-        $exists = $db->query("SELECT 1 FROM carteira_raw WHERE cnpj = ? AND matricula_mcmcu = ? LIMIT 1", [$cnpj, $vendorUser['matricula']])->getRow();
-        if (!$exists) {
-            return $this->response->setJSON(['error' => 'Cliente não pertence à sua carteira.'])->setStatusCode(403);
         }
 
         $noteModel = new VendorNoteModel();
@@ -604,7 +639,7 @@ class VendedorController extends BaseController
             'success' => true,
             'message' => 'Nota registrada com sucesso.',
             'nota_id' => $newId,
-            'publica'  => $publica,
+            'publica' => $publica,
         ]);
     }
 

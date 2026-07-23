@@ -374,7 +374,8 @@ class AdminController extends BaseController
             SELECT vn.*, vu.nome AS nome_autor
             FROM vendor_notes vn
             LEFT JOIN vendor_users vu ON vu.matricula = vn.matricula_vendedor
-            WHERE vn.cnpj = ? ORDER BY vn.created_at DESC LIMIT 10
+            WHERE REGEXP_REPLACE(vn.cnpj, '[^0-9]', '', 'g') = ? AND vn.publica = true
+            ORDER BY vn.created_at DESC LIMIT 10
         ", [$cnpj])->getResultArray();
 
         // Carteira atual (se houver)
