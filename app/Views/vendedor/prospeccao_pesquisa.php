@@ -652,6 +652,22 @@ function renderResults(list) {
         const bd         = item.score_breakdown ? (typeof item.score_breakdown === 'string' ? JSON.parse(item.score_breakdown) : item.score_breakdown) : null;
         const tooltipId  = `stt_${cleanCnpj}`;
 
+        const cnaesSearchHtml = (item.cnaes_detalhados && item.cnaes_detalhados.length > 0)
+            ? `<div style="margin-top:8px;padding:6px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px;">
+                <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:4px;">
+                    <i class="bi bi-briefcase text-primary me-1"></i> CNAEs & Atividades (${item.cnaes_detalhados.length})
+                </div>
+                <div style="display:flex;flex-direction:column;gap:4px;max-height:110px;overflow-y:auto;">
+                    ${item.cnaes_detalhados.map(cnae => `
+                        <div style="line-height:1.3;color:#334155;background:#fff;padding:4px 6px;border-radius:4px;border:1px solid #f1f5f9;">
+                            <span class="badge ${cnae.tipo === 'Principal' ? 'bg-primary' : 'bg-secondary'}" style="font-size:8px;padding:1px 4px;"># ${escHtml(cnae.codigo)} · ${escHtml(cnae.tipo)}</span>
+                            <span style="font-weight:500;">${escHtml(cnae.descricao)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+               </div>`
+            : '';
+
         card.innerHTML = `
             <h3>${item.nome_fantasia || item.razao_social}</h3>
             <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
@@ -666,6 +682,7 @@ function renderResults(list) {
             </div>
             
             <div class="rfb-status-container">${statusAlertHtml}</div>
+            ${cnaesSearchHtml}
 
             <div class="action-bar">
                 <button class="btn btn-xs btn-outline-secondary btn-verificar-cnpj" data-cnpj="${cleanCnpj}">

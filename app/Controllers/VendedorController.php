@@ -110,6 +110,14 @@ class VendedorController extends BaseController
         $sql .= " ORDER BY c.razao_social ASC";
         $clientes = $db->query($sql, $params)->getResultArray();
 
+        $cnpjs = array_column($clientes, 'cnpj');
+        $bulkCnaes = $this->getBulkCnaesDetalhados($cnpjs);
+
+        foreach ($clientes as &$c) {
+            $cleanC = preg_replace('/[^0-9]/', '', $c['cnpj']);
+            $c['cnaes_detalhados'] = $bulkCnaes[$cleanC] ?? [];
+        }
+
         return $this->response->setJSON(['total' => count($clientes), 'clientes' => $clientes]);
     }
 
@@ -327,7 +335,11 @@ class VendedorController extends BaseController
                 ->get()->getRow();
         }
 
-        return view('vendedor/cliente_detalhe', compact('vendorUser', 'cliente', 'notas', 'estrategias', 'redesSociais', 'modoProspecto', 'pedidoExistente'));
+        // Carrega CNAEs detalhados (Principal + Secundários com descrições)
+        $cleanCnpj = preg_replace('/[^0-9]/', '', $cnpj);
+        $cnaesDetalhados = $this->getCnaesDetalhados($cleanCnpj);
+
+        return view('vendedor/cliente_detalhe', compact('vendorUser', 'cliente', 'notas', 'estrategias', 'redesSociais', 'modoProspecto', 'pedidoExistente', 'cnaesDetalhados'));
 
     }
 
@@ -893,7 +905,13 @@ class VendedorController extends BaseController
             $resultados = $db->query($query, [$param, $param, $param, $param])->getResultArray();
         }
 
+        $cnpjs = array_column($resultados, 'cnpj');
+        $bulkCnaes = $this->getBulkCnaesDetalhados($cnpjs);
+
         foreach ($resultados as &$res) {
+            $cleanC = preg_replace('/[^0-9]/', '', $res['cnpj']);
+            $res['cnaes_detalhados'] = $bulkCnaes[$cleanC] ?? [];
+
             $isEncarteirado = !empty($res['encarteirado']) && ($res['encarteirado'] === true || $res['encarteirado'] === 't' || $res['encarteirado'] === '1' || $res['encarteirado'] === 1);
             $res['encarteirado'] = $isEncarteirado;
 
@@ -2193,5 +2211,93 @@ class VendedorController extends BaseController
             'pesquisado_em' => $agora,
             'pesquisado_por_id' => $userId,
         ]);
+    }
+
+    /**
+     * Retorna os CNAEs (Principal e Secundários) com seus códigos e descrições textuais para 1 CNPJ.
+     */
+    public function getCnaesDetalhados(string $cnpj): array
+    {
+        $cleanCnpj = preg_replace('/[^0-9]/', '', $cnpj);
+        $res = $this->getBulkCnaesDetalhados([$cleanCnpj]);
+        return $res[$cleanCnpj] ?? [];
+    }
+
+    /**
+     * Retorna os CNAEs (Principal e Secundários) com seus códigos e descrições textuais em lote para N CNPJs.
+     */
+    public function getBulkCnaesDetalhados(array $cnpjs): array
+    {
+        if (empty($cnpjs)) return [];
+
+        $cleanCnpjs = array_map(fn($c) => preg_replace('/[^0-9]/', '', (string)$c), $cnpjs);
+        $cleanCnpjs = array_values(array_unique(array_filter($cleanCnpjs)));
+        if (empty($cleanCnpjs)) return [];
+
+        $db = db_connect();
+        $placeholders = implode(',', array_fill(0, count($cleanCnpjs), '?'));
+        $estRows = $db->query("
+            SELECT (cnpj_basico || cnpj_ordem || cnpj_dv) AS cnpj,
+                   cnae_fiscal_principal, cnae_fiscal_secundaria
+            FROM receita.estabelecimentos
+            WHERE (cnpj_basico || cnpj_ordem || cnpj_dv) IN ({$placeholders})
+        ", $cleanCnpjs)->getResultArray();
+
+        $allCodes = [];
+        $cnpjCnaes = [];
+
+        foreach ($estRows as $row) {
+            $cnpj = $row['cnpj'];
+            $principal = !empty($row['cnae_fiscal_principal']) ? trim($row['cnae_fiscal_principal']) : null;
+            $items = [];
+
+            if ($principal) {
+                $items[] = ['codigo' => $principal, 'tipo' => 'Principal', 'descricao' => '—'];
+                $allCodes[] = $principal;
+            }
+
+            if (!empty($row['cnae_fiscal_secundaria'])) {
+                $secs = explode(',', $row['cnae_fiscal_secundaria']);
+                foreach ($secs as $s) {
+                    $code = trim($s);
+                    if (!empty($code) && $code !== $principal) {
+                        $already = false;
+                        foreach ($items as $it) {
+                            if ($it['codigo'] === $code) { $already = true; break; }
+                        }
+                        if (!$already) {
+                            $items[] = ['codigo' => $code, 'tipo' => 'Secundário', 'descricao' => '—'];
+                            $allCodes[] = $code;
+                        }
+                    }
+                }
+            }
+            $cnpjCnaes[$cnpj] = $items;
+        }
+
+        $allCodes = array_values(array_unique(array_filter($allCodes)));
+        if (empty($allCodes)) return $cnpjCnaes;
+
+        $placeholdersCodes = implode(',', array_fill(0, count($allCodes), '?'));
+        $cnaeDescs = $db->query("
+            SELECT codigo, descricao
+            FROM receita.cnaes
+            WHERE codigo IN ({$placeholdersCodes})
+        ", $allCodes)->getResultArray();
+
+        $map = [];
+        foreach ($cnaeDescs as $cd) {
+            $map[trim($cd['codigo'])] = trim($cd['descricao']);
+        }
+
+        foreach ($cnpjCnaes as $cnpj => &$items) {
+            foreach ($items as &$it) {
+                if (isset($map[$it['codigo']])) {
+                    $it['descricao'] = $map[$it['codigo']];
+                }
+            }
+        }
+
+        return $cnpjCnaes;
     }
 }

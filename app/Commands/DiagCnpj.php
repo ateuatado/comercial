@@ -9,7 +9,7 @@ class DiagCnpj extends BaseCommand
 {
     protected $group       = 'Diagnostic';
     protected $name        = 'diag:cnpj';
-    protected $description = 'Diagnostica CNPJ na carteira e localizacao';
+    protected $description = 'Diagnostica CNAEs na Receita';
     protected $usage       = 'diag:cnpj [cnpj]';
 
     public function run(array $params)
@@ -17,14 +17,33 @@ class DiagCnpj extends BaseCommand
         $cleanCnpj = preg_replace('/[^0-9]/', '', $params[0] ?? '35303077000115');
         $db = \Config\Database::connect();
 
-        CLI::write("=== BUSCANDO CNPJ: {$cleanCnpj} ===", 'yellow');
+        $est = $db->query("
+            SELECT (cnpj_basico || cnpj_ordem || cnpj_dv) AS cnpj,
+                   cnae_fiscal_principal, cnae_fiscal_secundaria
+            FROM receita.estabelecimentos
+            WHERE (cnpj_basico || cnpj_ordem || cnpj_dv) = ?
+            LIMIT 1
+        ", [$cleanCnpj])->getRowArray();
 
-        $rows = $db->query("SELECT id, cnpj, matricula_mcmcu, forca_vendas_nome, gerencia FROM carteira_raw WHERE regexp_replace(cnpj, '[^0-9]', '', 'g') = ?", [$cleanCnpj])->getResultArray();
-        CLI::write("CARTEIRA RAW (" . count($rows) . " resultados):", 'green');
-        print_r($rows);
+        $cnaesList = [];
+        if (!empty($est['cnae_fiscal_principal'])) {
+            $cnaesList[] = trim($est['cnae_fiscal_principal']);
+        }
+        if (!empty($est['cnae_fiscal_secundaria'])) {
+            foreach (explode(',', $est['cnae_fiscal_secundaria']) as $c) {
+                $c = trim($c);
+                if (!empty($c) && !in_array($c, $cnaesList)) {
+                    $cnaesList[] = $c;
+                }
+            }
+        }
 
-        $locs = $db->query("SELECT * FROM client_locations WHERE cnpj = ?", [$cleanCnpj])->getResultArray();
-        CLI::write("CLIENT LOCATIONS (" . count($locs) . " resultados):", 'green');
-        print_r($locs);
+        CLI::write("CNAEs extraídos: " . implode(', ', $cnaesList), 'yellow');
+
+        if (!empty($cnaesList)) {
+            $placeholders = implode(',', array_fill(0, count($cnaesList), '?'));
+            $descs = $db->query("SELECT codigo, descricao FROM receita.cnaes WHERE codigo IN ({$placeholders})", $cnaesList)->getResultArray();
+            print_r($descs);
+        }
     }
 }

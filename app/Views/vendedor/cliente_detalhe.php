@@ -460,14 +460,6 @@
                 <span class="value"><?= esc($cliente['ciclo_de_vida'] ?? '—') ?></span>
             </div>
             <div class="info-row">
-                <span class="label">CNAE</span>
-                <span class="value"><?= esc($cliente['cnae'] ?? '—') ?></span>
-            </div>
-            <div class="info-row">
-                <span class="label">Desc. CNAE</span>
-                <span class="value" style="font-size:11px;"><?= esc($cliente['cnae_desc'] ?? '—') ?></span>
-            </div>
-            <div class="info-row">
                 <span class="label">Prospecção</span>
                 <span class="value">
                     <?php if (strtoupper($cliente['prospeccao'] ?? '') === 'SIM'): ?>
@@ -477,6 +469,41 @@
                     <?php endif; ?>
                 </span>
             </div>
+        </div>
+
+        <!-- Card de CNAEs e Atividades Econômicas -->
+        <div class="info-card">
+            <h6><i class="bi bi-briefcase text-primary me-2"></i> CNAEs & Atividades Econômicas</h6>
+            <?php if (!empty($cnaesDetalhados)): ?>
+                <div class="d-flex flex-column gap-2 mt-2">
+                    <?php foreach ($cnaesDetalhados as $cnaeItem): ?>
+                        <div class="p-2 border-bottom d-flex flex-column gap-1" style="background: #fafafa; border-radius: 8px;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-bold font-monospace small text-dark d-flex align-items-center gap-1">
+                                    <i class="bi bi-hash text-primary"></i> <?= esc($cnaeItem['codigo']) ?>
+                                </span>
+                                <?php if ($cnaeItem['tipo'] === 'Principal'): ?>
+                                    <span class="badge bg-primary text-white" style="font-size: 10px; padding: 3px 8px; border-radius: 6px;">Principal</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary text-white" style="font-size: 9px; padding: 2px 6px; border-radius: 6px; opacity: 0.8;">Secundário</span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="small" style="font-size: 12px; line-height: 1.35; color: #334155; font-weight: 500;">
+                                <?= esc($cnaeItem['descricao']) ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="info-row">
+                    <span class="label">CNAE Principal</span>
+                    <span class="value"><?= esc($cliente['cnae'] ?? '—') ?></span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Descrição</span>
+                    <span class="value" style="font-size:11px;"><?= esc($cliente['cnae_desc'] ?? '—') ?></span>
+                </div>
+            <?php endif; ?>
         </div>
 
         <div class="info-card">

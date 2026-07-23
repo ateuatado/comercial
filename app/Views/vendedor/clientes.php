@@ -596,7 +596,25 @@
                     ${canais.map(ch => `<span class="tag">${escHtml(ch)}</span>`).join('')}
                 </div>
 
-                ${c.cnae_desc ? `<div style="font-size:11px;color:#94a3b8;margin-top:4px;line-height:1.3"><i class="bi bi-info-circle"></i> ${escHtml(c.cnae_desc)}</div>` : ''}
+                ${(c.cnaes_detalhados && c.cnaes_detalhados.length > 0)
+                    ? `<div style="margin-top:10px;padding:8px 10px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+                        <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+                            <span><i class="bi bi-briefcase text-primary me-1"></i> CNAEs & Atividades (${c.cnaes_detalhados.length})</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:5px;max-height:140px;overflow-y:auto;padding-right:2px;">
+                            ${c.cnaes_detalhados.map(item => `
+                                <div style="font-size:11px;line-height:1.3;color:#334155;background:#fff;padding:6px 8px;border-radius:6px;border:1px solid #f1f5f9;">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+                                        <span style="font-weight:700;font-family:monospace;color:#1e40af;"># ${escHtml(item.codigo)}</span>
+                                        <span class="badge ${item.tipo === 'Principal' ? 'bg-primary' : 'bg-secondary'}" style="font-size:8px;padding:2px 5px;border-radius:4px;">${escHtml(item.tipo)}</span>
+                                    </div>
+                                    <div style="color:#475569;font-weight:500;">${escHtml(item.descricao)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                       </div>`
+                    : (c.cnae_desc ? `<div style="font-size:11px;color:#94a3b8;margin-top:4px;line-height:1.3"><i class="bi bi-info-circle"></i> ${escHtml(c.cnae_desc)}</div>` : '')
+                }
             </div>
             <div class="card-actions">
                 <a href="<?= site_url('vendedor/cliente/') ?>${c.cnpj}" class="action-btn">
