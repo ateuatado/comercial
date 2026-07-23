@@ -172,16 +172,20 @@ class VendedorController extends BaseController
                 cl.cnpj,
                 cl.latitude,
                 cl.longitude,
-                COALESCE(emp.razao_social, cl.cnpj) AS razao_social,
+                COALESCE(cr_outra.razao_social, emp.razao_social, cl.cnpj) AS razao_social,
                 COALESCE(est.cnae_fiscal_principal, '') AS cnae,
                 COALESCE(ce.logistics_score, 0) AS score,
                 -- true = pertence a outro vendedor; false = fora de qualquer carteira (livre)
-                EXISTS (
-                    SELECT 1 FROM carteira_raw cr
-                    WHERE REGEXP_REPLACE(cr.cnpj, '[^0-9]', '', 'g') = cl.cnpj
-                      AND cr.matricula_mcmcu != ?
-                ) AS ocupado
+                (cr_outra.cnpj IS NOT NULL) AS ocupado,
+                cr_outra.matricula_mcmcu AS outro_vendedor_matricula,
+                COALESCE(vu.nome, cr_outra.forca_vendas_nome, cr_outra.matricula_mcmcu) AS outro_vendedor_nome,
+                cr_outra.gerencia AS outro_vendedor_gerencia
             FROM client_locations cl
+            LEFT JOIN carteira_raw cr_outra
+                   ON REGEXP_REPLACE(cr_outra.cnpj, '[^0-9]', '', 'g') = cl.cnpj
+                  AND cr_outra.matricula_mcmcu != ?
+            LEFT JOIN vendor_users vu
+                   ON vu.matricula = cr_outra.matricula_mcmcu
             LEFT JOIN receita.empresas emp
                    ON emp.cnpj_basico = SUBSTRING(cl.cnpj, 1, 8)
             LEFT JOIN receita.estabelecimentos est

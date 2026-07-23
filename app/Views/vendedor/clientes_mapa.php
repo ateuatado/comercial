@@ -326,6 +326,37 @@ function openSheet(c, tipo) {
         .map(t => `<span class="sheet-tag">${t}</span>`)
         .join('');
 
+    // Exibição do Vendedor Responsável
+    let vendorBox = '';
+    if (tipo === 'ocupado') {
+        const vNome = c.outro_vendedor_nome || c.outro_vendedor_matricula || 'Outro vendedor';
+        const vMat  = c.outro_vendedor_matricula ? `(${c.outro_vendedor_matricula})` : '';
+        const vGer  = c.outro_vendedor_gerencia ? ` — ${c.outro_vendedor_gerencia}` : '';
+        vendorBox = `
+            <div style="background:#fff7ed; border:1px solid #ffedd5; border-radius:10px; padding:8px 12px; margin-bottom:12px; font-size:12px;">
+                <div style="color:#c2410c; font-weight:700; display:flex; align-items:center; gap:5px;">
+                    <i class="bi bi-person-badge-fill"></i> Vendedor Responsável:
+                </div>
+                <div style="color:#9a3412; font-weight:600; margin-top:2px;">
+                    ${vNome} ${vMat} <span style="font-weight:400; color:#c2410c;">${vGer}</span>
+                </div>
+            </div>`;
+    } else if (tipo === 'meu') {
+        vendorBox = `
+            <div style="background:#eff6ff; border:1px solid #dbeafe; border-radius:10px; padding:8px 12px; margin-bottom:12px; font-size:12px;">
+                <div style="color:#1d4ed8; font-weight:700; display:flex; align-items:center; gap:5px;">
+                    <i class="bi bi-person-check-fill"></i> Sua Carteira (<?= esc($vendorUser['matricula']) ?>)
+                </div>
+            </div>`;
+    } else {
+        vendorBox = `
+            <div style="background:#f0fdf4; border:1px solid #dcfce7; border-radius:10px; padding:8px 12px; margin-bottom:12px; font-size:12px;">
+                <div style="color:#15803d; font-weight:700; display:flex; align-items:center; gap:5px;">
+                    <i class="bi bi-unlock-fill"></i> Cliente sem carteira atribuída (Livre)
+                </div>
+            </div>`;
+    }
+
     const actionBtn = tipo === 'livre'
         ? `<button class="btn-sh-primary verde" onclick="location.href='<?= site_url('vendedor/cliente/') ?>${c.cnpj}'">
                <i class="bi bi-person-plus-fill"></i> Prospectar
@@ -338,6 +369,7 @@ function openSheet(c, tipo) {
         ${pill}
         <div class="sheet-name">${c.razao_social || c.cnpj}</div>
         <div class="sheet-cnpj">${cnpjFmt}</div>
+        ${vendorBox}
         ${tags ? `<div class="sheet-meta">${tags}</div>` : ''}
         ${scoreRow}
         <div class="sheet-actions">
