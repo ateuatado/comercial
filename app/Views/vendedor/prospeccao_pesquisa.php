@@ -600,6 +600,17 @@ function renderScoreBadge(score, hasTooltip) {
     return `<span class="score-badge ${cls}">${icon} Score ${s}</span>${btn}`;
 }
 
+function renderRaBadge(raStatus, raTotal) {
+    if (!raStatus) return '';
+    if (raStatus === 'encontrado') {
+        return `<span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;font-size:8px;padding:2px 5px;border-radius:99px;" title="Reclamações logísticas encontradas"><i class="bi bi-radar"></i> ${raTotal} reclam.</span>`;
+    }
+    if (raStatus === 'nao_encontrado') {
+        return `<span class="badge" style="background:#dcfce7;color:#166534;border:1px solid #86efac;font-size:8px;padding:2px 5px;border-radius:99px;" title="Nenhuma reclamação encontrada"><i class="bi bi-check-circle"></i> RA: limpo</span>`;
+    }
+    return '';
+}
+
 function renderResults(list) {
 
     if (!list || list.length === 0) {
@@ -674,6 +685,7 @@ function renderResults(list) {
                 <div class="result-cnpj">${formattedCnpj}</div>
                 ${carteiraStatusHtml}
                 ${renderScoreBadge(item.logistics_score, !!bd)}
+                <span class="ra-badge-slot">${renderRaBadge(item.ra_status, item.ra_total)}</span>
             </div>
             ${bd ? `<div class="score-tooltip-panel" id="${tooltipId}">${buildScoreTooltipHtml(bd, parseInt(item.logistics_score)||0)}</div>` : ''}
             <div class="result-address">
@@ -715,6 +727,23 @@ function renderResults(list) {
                 const isOpen = panel.classList.toggle('open');
                 infoBtn.classList.toggle('open', isOpen);
             });
+        }
+
+        // Pré-popula o ra-box-container se já há um scan salvo no banco
+        if (item.ra_status) {
+            const raBox = card.querySelector('.ra-box-container');
+            const dataStr = item.ra_pesquisado_em
+                ? ` <span style="font-size:8px;color:#94a3b8;">· ${new Date(item.ra_pesquisado_em).toLocaleDateString('pt-BR')}</span>`
+                : '';
+            if (item.ra_status === 'encontrado') {
+                raBox.style.display = 'block';
+                raBox.innerHTML = `<div style="font-size:10px;color:#9f1239;"><i class="bi bi-radar"></i> <strong>${item.ra_total}</strong> reclamação(ões) logística(s) encontrada(s) no último scan.${dataStr} <span style="color:#64748b;">Clique em "Reclame Aqui" para ver os detalhes.</span></div>`;
+            } else if (item.ra_status === 'nao_encontrado') {
+                raBox.style.display = 'block';
+                raBox.style.background = '#f0fdf4';
+                raBox.style.borderColor = '#bbf7d0';
+                raBox.innerHTML = `<div style="font-size:10px;color:#166534;"><i class="bi bi-check-circle"></i> Nenhuma reclamação logística encontrada no último scan.${dataStr}</div>`;
+            }
         }
 
         resultsSection.appendChild(card);
@@ -917,7 +946,11 @@ function bindCardActions() {
                 if (data.success && Array.isArray(data.resultados)) {
                     if (data.resultados.length === 0) {
                         raContainer.innerHTML = '<div style="background:#dcfce7;color:#166534;font-size:10px;border-radius:6px;padding:8px 12px;"><i class="bi bi-emoji-smile"></i> Nenhuma reclamação logística recente encontrada.</div>';
+                        raContainer.style.background = '#f0fdf4';
+                        raContainer.style.borderColor = '#bbf7d0';
                     } else {
+                        raContainer.style.background = '#fdf2f8';
+                        raContainer.style.borderColor = '#fbcfe8';
                         let html = `<div style="font-size:10px;font-weight:700;color:#9f1239;margin-bottom:6px;"><i class="bi bi-radar"></i> ${data.resultados.length} reclamação(ões) mapeada(s):</div><div style="max-height:150px;overflow-y:auto;padding-right:4px;">`;
                         data.resultados.forEach(item => {
                             html += `
@@ -930,6 +963,12 @@ function bindCardActions() {
                         raContainer.innerHTML = html;
                     }
                     showToast('🔍 Pesquisa Reclame Aqui concluída!');
+
+                    // Atualiza o badge de RA no header do card
+                    const badgeSlot = card.querySelector('.ra-badge-slot');
+                    if (badgeSlot) {
+                        badgeSlot.innerHTML = renderRaBadge(data.cache_status, data.cache_total);
+                    }
                 } else {
                     // Erro genérico com mensagem útil
                     raContainer.innerHTML = `<div style="background:#fee2e2;color:#991b1b;font-size:10px;border-radius:8px;padding:8px 12px;text-align:center;">❌ ${data.error || 'Erro ao buscar dados.'}</div>`;

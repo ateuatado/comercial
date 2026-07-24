@@ -884,7 +884,10 @@ class VendedorController extends BaseController
                        ce.score_breakdown,
                        (cr.cnpj IS NOT NULL) AS encarteirado,
                        cr.matricula_mcmcu AS vendedor_matricula,
-                       COALESCE(vu.nome, cr.forca_vendas_nome, cr.matricula_mcmcu) AS vendedor_nome
+                       COALESCE(vu.nome, cr.forca_vendas_nome, cr.matricula_mcmcu) AS vendedor_nome,
+                       ra.status         AS ra_status,
+                       ra.total          AS ra_total,
+                       ra.pesquisado_em  AS ra_pesquisado_em
                 FROM receita.estabelecimentos e
                 LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
                 LEFT JOIN receita.municipios m ON e.municipio = m.codigo
@@ -893,6 +896,7 @@ class VendedorController extends BaseController
                 LEFT JOIN client_enrichment ce ON ce.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN carteira_raw cr ON REGEXP_REPLACE(cr.cnpj, '[^0-9]', '', 'g') = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN vendor_users vu ON vu.matricula = cr.matricula_mcmcu
+                LEFT JOIN client_ra_scans ra ON ra.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) LIKE ?
                 {$emailFilterSql}
                 ORDER BY CASE WHEN cr.cnpj IS NOT NULL THEN 1 ELSE 0 END ASC,
@@ -912,7 +916,10 @@ class VendedorController extends BaseController
                        ce.score_breakdown,
                        (cr.cnpj IS NOT NULL) AS encarteirado,
                        cr.matricula_mcmcu AS vendedor_matricula,
-                       COALESCE(vu.nome, cr.forca_vendas_nome, cr.matricula_mcmcu) AS vendedor_nome
+                       COALESCE(vu.nome, cr.forca_vendas_nome, cr.matricula_mcmcu) AS vendedor_nome,
+                       ra.status         AS ra_status,
+                       ra.total          AS ra_total,
+                       ra.pesquisado_em  AS ra_pesquisado_em
                 FROM receita.estabelecimentos e
                 LEFT JOIN receita.empresas emp ON e.cnpj_basico = emp.cnpj_basico
                 LEFT JOIN receita.municipios m ON e.municipio = m.codigo
@@ -921,6 +928,7 @@ class VendedorController extends BaseController
                 LEFT JOIN client_enrichment ce ON ce.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN carteira_raw cr ON REGEXP_REPLACE(cr.cnpj, '[^0-9]', '', 'g') = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN vendor_users vu ON vu.matricula = cr.matricula_mcmcu
+                LEFT JOIN client_ra_scans ra ON ra.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 WHERE (LOWER(emp.razao_social) LIKE ?
                    OR LOWER(e.nome_fantasia) LIKE ?
                    OR LOWER(e.logradouro) LIKE ?
@@ -956,6 +964,11 @@ class VendedorController extends BaseController
 
             $res['endereco_completo'] = implode(', ', $endParts);
             $res['rfb_verificado_em_fmt'] = !empty($res['rfb_verificado_em']) ? date('d/m/Y H:i', strtotime($res['rfb_verificado_em'])) : null;
+
+            // Normaliza campos do Reclame Aqui (NULL quando nunca pesquisado)
+            $res['ra_status']       = $res['ra_status'] ?? null;
+            $res['ra_total']        = isset($res['ra_total']) ? (int) $res['ra_total'] : null;
+            $res['ra_pesquisado_em'] = $res['ra_pesquisado_em'] ?? null;
         }
 
         return $this->response->setJSON([
