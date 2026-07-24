@@ -56,6 +56,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="<?= base_url('admin/cnae-postal') ?>">
+                                <i class="bi bi-tags me-1"></i>CNAE Postal
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="<?= base_url('admin/busca') ?>">
                                 <i class="bi bi-search me-1"></i>Consulta RFB
                             </a>

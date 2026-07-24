@@ -62,11 +62,18 @@
 - [x] Liberação por admin/supervisor.
 - [x] Resumo para usuário operacional.
 
-### 7. Enriquecimento de potencialidade
+### 7. Enriquecimento de potencialidade e Ranking de Prospects
 
-- [x] Modelagem para enriquecimentos futuros (JSONB).
+- [x] Modelagem para enriquecimentos futuros (JSONB na `client_enrichment`).
 - [x] Base por capital social.
 - [x] Preparação para dados futuros.
+- [x] Migration `CreateCnaePostalScore` e importador/classificador dos 1.332 CNAEs por potencial postal (`cnae_postal_score`).
+- [x] Painel Administrativo de gestão e revisão do CNAE Postal (`/admin/cnae-postal`) com edição inline AJAX.
+- [x] Análise estatística de Idade da Empresa e Taxa de Mortalidade até 5 Anos (SEBRAE/IBGE) por setor.
+- [x] Cálculo da Mediana do Capital Social de Empresas Sobreviventes (> 5 Anos) por setor econômico como benchmark financeiro.
+- [x] Migration `CreateProspectScoresTable` (tabela de cache `prospect_scores`).
+- [x] Command CLI `php spark prospects:recalculate` (fórmula tripartida: 35% CNAE + 35% Idade/Mortalidade + 30% Adequação de Capital Social).
+- [x] Otimização da API de Prospecção `VendedorController::rankingApi` para consulta de alta performance no cache persistido (< 10ms).
 
 ### 8. Portal operacional
 

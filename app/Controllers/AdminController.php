@@ -290,6 +290,143 @@ class AdminController extends BaseController
         return $this->response->setJSON(['success' => true]);
     }
 
+    // ─── Classificação Postal por CNAE (Ranking de Prospects) ────
+
+    /**
+     * Exibe o painel de gestão da tabela cnae_postal_score.
+     */
+    public function cnaePostalIndex(): string
+    {
+        $db = db_connect();
+
+        $search    = trim($this->request->getGet('q') ?? '');
+        $scoreFilter = $this->request->getGet('score');
+        $catFilter   = trim($this->request->getGet('categoria') ?? '');
+        $revFilter   = $this->request->getGet('revisado');
+        $page        = max(1, (int) $this->request->getGet('page'));
+        $perPage     = 50;
+        $offset      = ($page - 1) * $perPage;
+
+        $where = ["1=1"];
+        $params = [];
+
+        if ($search !== '') {
+            $where[] = "(subclasse LIKE ? OR LOWER(denominacao) LIKE LOWER(?))";
+            $params[] = "%{$search}%";
+            $params[] = "%{$search}%";
+        }
+        if ($scoreFilter !== null && $scoreFilter !== '') {
+            $where[] = "postal_score = ?";
+            $params[] = (int) $scoreFilter;
+        }
+        if ($catFilter !== '') {
+            $where[] = "postal_categoria = ?";
+            $params[] = $catFilter;
+        }
+        if ($revFilter !== null && $revFilter !== '') {
+            $where[] = "revisado = ?";
+            $params[] = $revFilter === '1' ? 'true' : 'false';
+        }
+
+        $whereSql = implode(' AND ', $where);
+
+        $total = (int) ($db->query("SELECT COUNT(*) AS c FROM cnae_postal_score WHERE {$whereSql}", $params)->getRow()->c ?? 0);
+
+        $cnaes = $db->query("
+            SELECT * FROM cnae_postal_score
+            WHERE {$whereSql}
+            ORDER BY revisado ASC, postal_score DESC, subclasse ASC
+            LIMIT {$perPage} OFFSET {$offset}
+        ", $params)->getResultArray();
+
+        // Resumo estatístico
+        $dist = $db->query("
+            SELECT postal_score, COUNT(*) AS total
+            FROM cnae_postal_score
+            GROUP BY postal_score ORDER BY postal_score DESC
+        ")->getResultArray();
+
+        $stats = [
+            'total'     => (int) ($db->query("SELECT COUNT(*) AS c FROM cnae_postal_score")->getRow()->c ?? 0),
+            'revisados' => (int) ($db->query("SELECT COUNT(*) AS c FROM cnae_postal_score WHERE revisado = true")->getRow()->c ?? 0),
+            'dist'      => array_column($dist, 'total', 'postal_score')
+        ];
+
+        $categorias = $db->query("SELECT DISTINCT postal_categoria FROM cnae_postal_score ORDER BY postal_categoria")->getResultArray();
+
+        return view('admin/cnae_postal', [
+            'cnaes'       => $cnaes,
+            'total'       => $total,
+            'page'        => $page,
+            'totalPages'  => ceil($total / $perPage),
+            'search'      => $search,
+            'scoreFilter' => $scoreFilter,
+            'catFilter'   => $catFilter,
+            'revFilter'   => $revFilter,
+            'stats'       => $stats,
+            'categorias'  => array_column($categorias, 'postal_categoria'),
+            'flash_success' => session()->getFlashdata('cnae_postal_success'),
+            'flash_error'   => session()->getFlashdata('cnae_postal_error'),
+        ]);
+    }
+
+    /**
+     * Salva alterações manuais em um CNAE postal (via AJAX ou POST).
+     */
+    public function cnaePostalSalvar()
+    {
+        $input = json_decode($this->request->getBody(), true);
+        if (!$input) {
+            $input = $this->request->getPost();
+        }
+
+        $subclasse    = trim($input['subclasse'] ?? '');
+        $score        = (int) ($input['postal_score'] ?? 0);
+        $categoria    = trim($input['postal_categoria'] ?? 'descarte');
+        $justificativa= trim($input['postal_justificativa'] ?? '');
+
+        if (empty($subclasse) || $score < 0 || $score > 5) {
+            return $this->response->setJSON(['error' => 'Dados inválidos. Score deve ser entre 0 e 5.'])->setStatusCode(422);
+        }
+
+        $userId = auth()->user() ? auth()->user()->id : null;
+
+        db_connect()->query("
+            UPDATE cnae_postal_score
+            SET postal_score         = ?,
+                postal_categoria     = ?,
+                postal_justificativa = ?,
+                revisado             = TRUE,
+                revisado_em          = NOW(),
+                revisado_por         = ?,
+                updated_at           = NOW()
+            WHERE subclasse = ?
+        ", [$score, $categoria, $justificativa, $userId, $subclasse]);
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON(['success' => true]);
+        }
+
+        session()->setFlashdata('cnae_postal_success', "CNAE {$subclasse} atualizado com sucesso.");
+        return redirect()->to(site_url('admin/cnae-postal'));
+    }
+
+    /**
+     * Re-executa o script de classificação automática para CNAEs não revisados.
+     */
+    public function cnaePostalReclassificar()
+    {
+        $scriptPath = ROOTPATH . 'scratch/importar_cnae_postal.php';
+        if (file_exists($scriptPath)) {
+            require $scriptPath;
+            session()->setFlashdata('cnae_postal_success', 'Reclassificação automática executada com sucesso para os registros não revisados.');
+        } else {
+            session()->setFlashdata('cnae_postal_error', 'Script de importação não encontrado.');
+        }
+
+        return redirect()->to(site_url('admin/cnae-postal'));
+    }
+
     // ─── Pedidos de Captação (PR-CAP) ────────────────────────────
 
     /**

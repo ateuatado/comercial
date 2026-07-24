@@ -779,7 +779,7 @@ class VendedorController extends BaseController
 
     /**
      * Retorna o Ranking de Potencial Logístico: leads livres (fora de qualquer carteira)
-     * ordenados por logistics_score DESC. Usados na aba "Ranking" da prospecção.
+     * ordenados por score_final DESC a partir da tabela de cache prospect_scores.
      */
     public function rankingApi()
     {
@@ -791,28 +791,51 @@ class VendedorController extends BaseController
         $db     = db_connect();
         $limit  = max(1, min(100, (int) ($this->request->getGet('limit') ?? 50)));
         $offset = max(0, (int) ($this->request->getGet('offset') ?? 0));
+        $cat    = trim($this->request->getGet('categoria') ?? '');
+        $uf     = trim($this->request->getGet('uf') ?? '');
 
-        // Só exibe CNPJs com score calculado, excluindo os já em carteira_raw
+        $where  = ["1=1"];
+        $params = [];
+
+        if ($cat !== '') {
+            $where[]  = "ps.postal_categoria = ?";
+            $params[] = $cat;
+        }
+        if ($uf !== '') {
+            $where[]  = "ps.uf = ?";
+            $params[] = $uf;
+        }
+
+        $whereSql = implode(' AND ', $where);
+
+        // Consulta instantânea na tabela de cache prospect_scores
         $rows = $db->query("
             SELECT
-                ce.cnpj,
-                ce.logistics_score,
-                ce.score_breakdown,
-                ce.score_justification,
-                COALESCE(e.nome_fantasia, '')     AS nome_fantasia,
-                COALESCE(emp.razao_social, '')    AS razao_social,
-                e.cnae_fiscal_principal,
-                COALESCE(e.email, '')             AS email,
+                ps.cnpj,
+                ps.razao_social,
+                ps.cnae_fiscal_principal,
+                ps.postal_categoria,
+                ps.score_cnae,
+                ps.score_idade,
+                ps.score_capital,
+                ps.fator_setor,
+                ps.score_final AS logistics_score,
+                ps.dt_abertura,
+                ps.idade_anos,
+                ps.capital_social,
+                ps.mediana_setor,
+                ps.razao_capital,
+                ps.uf,
+                ps.municipio AS municipio_codigo,
+                COALESCE(e.nome_fantasia, '') AS nome_fantasia,
+                COALESCE(e.email, '')         AS email,
                 COALESCE(
                     TRIM(e.tipo_logradouro || ' ' || e.logradouro || ', ' || e.numero
                         || CASE WHEN e.bairro <> '' THEN ' - ' || e.bairro ELSE '' END),
                     ''
                 ) AS endereco_resumo,
-                e.municipio AS municipio_codigo,
-                e.uf,
                 COALESCE(cl.latitude,  0) AS loc_lat,
                 COALESCE(cl.longitude, 0) AS loc_lng
-            FROM client_enrichment ce
             JOIN receita.estabelecimentos e
                 ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ce.cnpj
             JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico

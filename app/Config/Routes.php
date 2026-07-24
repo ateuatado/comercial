@@ -62,6 +62,11 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     $routes->post('scoring/cnae/adicionar',    '\App\Controllers\AdminController::cnaeAdicionar');
     $routes->post('scoring/cnae/remover',      '\App\Controllers\AdminController::cnaeRemover');
 
+    // CNAE Postal Score (Ranking de Prospects)
+    $routes->get('cnae-postal',                '\App\Controllers\AdminController::cnaePostalIndex');
+    $routes->post('cnae-postal/salvar',        '\App\Controllers\AdminController::cnaePostalSalvar');
+    $routes->post('cnae-postal/reclassificar', '\App\Controllers\AdminController::cnaePostalReclassificar');
+
     // Scanner Reclame Aqui (Fase 3.5)
     $routes->get('reclame-aqui',               '\App\Controllers\AdminController::reclameAqui');
     $routes->post('reclame-aqui/scan',         '\App\Controllers\AdminController::reclameAquiScan');

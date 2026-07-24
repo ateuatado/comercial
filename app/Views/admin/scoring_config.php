@@ -89,11 +89,14 @@
 </style>
 
 <div class="container-fluid py-4" style="max-width: 900px;">
-    <div class="d-flex align-items-center gap-3 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h1 class="h4 fw-bold text-dark mb-0">⚙️ Scoring Preditivo</h1>
             <p class="text-muted small mb-0">Configure os pesos do algoritmo de qualificação de leads logísticos</p>
         </div>
+        <a href="<?= site_url('admin/cnae-postal') ?>" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-tags me-1"></i> Classificação Postal por CNAE (Prospects)
+        </a>
     </div>
 
     <?php if (!empty($flash_success)): ?>
