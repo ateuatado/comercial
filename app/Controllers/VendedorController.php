@@ -904,7 +904,18 @@ class VendedorController extends BaseController
                        m.descricao AS municipio_nome,
                        loc.latitude AS loc_lat, loc.longitude AS loc_lng,
                        cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
-                       COALESCE(ce.logistics_score, 0) AS logistics_score,
+                       COALESCE(ps.score_final, ce.logistics_score, 0) AS logistics_score,
+                       ps.score_cnae,
+                       ps.score_idade,
+                       ps.score_capital,
+                       ps.score_email,
+                       ps.fator_setor,
+                       ps.postal_categoria,
+                       ps.dt_abertura,
+                       ps.idade_anos,
+                       ps.capital_social,
+                       ps.mediana_setor,
+                       ps.razao_capital,
                        ce.score_breakdown,
                        (cr.cnpj IS NOT NULL) AS encarteirado,
                        cr.matricula_mcmcu AS vendedor_matricula,
@@ -917,6 +928,7 @@ class VendedorController extends BaseController
                 LEFT JOIN receita.municipios m ON e.municipio = m.codigo
                 LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN prospect_scores ps ON ps.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_enrichment ce ON ce.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN carteira_raw cr ON REGEXP_REPLACE(cr.cnpj, '[^0-9]', '', 'g') = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN vendor_users vu ON vu.matricula = cr.matricula_mcmcu
@@ -924,7 +936,7 @@ class VendedorController extends BaseController
                 WHERE (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) LIKE ?
                 {$emailFilterSql}
                 ORDER BY CASE WHEN cr.cnpj IS NOT NULL THEN 1 ELSE 0 END ASC,
-                         COALESCE(ce.logistics_score, 0) DESC
+                         COALESCE(ps.score_final, ce.logistics_score, 0) DESC
                 LIMIT 50
             ";
             $resultados = $db->query($query, ['%' . $cleanCnpj . '%'])->getResultArray();
@@ -936,7 +948,18 @@ class VendedorController extends BaseController
                        m.descricao AS municipio_nome,
                        loc.latitude AS loc_lat, loc.longitude AS loc_lng,
                        cw.rfb_situacao_cadastral, cw.rfb_verificado_em,
-                       COALESCE(ce.logistics_score, 0) AS logistics_score,
+                       COALESCE(ps.score_final, ce.logistics_score, 0) AS logistics_score,
+                       ps.score_cnae,
+                       ps.score_idade,
+                       ps.score_capital,
+                       ps.score_email,
+                       ps.fator_setor,
+                       ps.postal_categoria,
+                       ps.dt_abertura,
+                       ps.idade_anos,
+                       ps.capital_social,
+                       ps.mediana_setor,
+                       ps.razao_capital,
                        ce.score_breakdown,
                        (cr.cnpj IS NOT NULL) AS encarteirado,
                        cr.matricula_mcmcu AS vendedor_matricula,
@@ -949,6 +972,7 @@ class VendedorController extends BaseController
                 LEFT JOIN receita.municipios m ON e.municipio = m.codigo
                 LEFT JOIN client_locations loc ON loc.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_wallets cw ON cw.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
+                LEFT JOIN prospect_scores ps ON ps.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN client_enrichment ce ON ce.cnpj = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN carteira_raw cr ON REGEXP_REPLACE(cr.cnpj, '[^0-9]', '', 'g') = (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv)
                 LEFT JOIN vendor_users vu ON vu.matricula = cr.matricula_mcmcu
@@ -959,7 +983,7 @@ class VendedorController extends BaseController
                    OR LOWER(e.bairro) LIKE ?)
                    {$emailFilterSql}
                 ORDER BY CASE WHEN cr.cnpj IS NOT NULL THEN 1 ELSE 0 END ASC,
-                         COALESCE(ce.logistics_score, 0) DESC
+                         COALESCE(ps.score_final, ce.logistics_score, 0) DESC
                 LIMIT 50
             ";
             $param = '%' . $searchTerm . '%';
