@@ -454,6 +454,11 @@ const btnSearchGo = document.getElementById('btnSearchGo');
 const resultsSection = document.getElementById('resultsSection');
 const chkOnlyCorpEmail = document.getElementById('chkOnlyCorpEmail');
 
+function escHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 btnSearchGo.addEventListener('click', performSearch);
 searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') performSearch();
