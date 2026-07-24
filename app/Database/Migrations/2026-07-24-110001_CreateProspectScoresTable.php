@@ -24,6 +24,7 @@ class CreateProspectScoresTable extends Migration
                 score_cnae              SMALLINT       NOT NULL DEFAULT 0,
                 score_idade             SMALLINT       NOT NULL DEFAULT 0,
                 score_capital           SMALLINT       NOT NULL DEFAULT 0,
+                score_email             SMALLINT       NOT NULL DEFAULT 0,
                 fator_setor             NUMERIC(3,2)   NOT NULL DEFAULT 1.00,
                 
                 -- Score Final Combinado (0 a 120+)

@@ -121,7 +121,7 @@ Fase 2.1 (Migrations) → 2.2 (Import) → 2.3 (Login) → 2.4 (Dashboard)
 | `client_locations` | Lat/long dos clientes para proximidade |
 | `system_messages` | Mensagens editáveis pelo admin |
 | `cnae_postal_score` | Classificação postal dos 1.332 CNAEs (escala 0-5) editável via admin |
-| `prospect_scores` | Tabela de cache para o Ranking Tripartido de Prospects (35% CNAE, 35% Idade, 30% Capital) |
+| `prospect_scores` | Tabela de cache para o Ranking de Prospects (30% CNAE, 30% Idade, 25% Capital, 15% E-mail) |
 
 ### Esquema: vendor_users
 

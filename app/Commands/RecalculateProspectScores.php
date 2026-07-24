@@ -11,10 +11,11 @@ use CodeIgniter\CLI\CLI;
  * Recalcula o ranking de potencial de prospecção para todas as empresas ativas
  * fora da carteira de clientes (`carteira_raw`) e grava na tabela de cache `prospect_scores`.
  * 
- * Lógica Tripartida:
- *  - 35% Score CNAE Postal (tabela cnae_postal_score)
- *  - 35% Score Idade * Fator Setor (Taxa de Mortalidade SEBRAE/IBGE)
- *  - 30% Adequação de Capital Social (Razão vs Mediana dos Sobreviventes do Setor)
+ * Lógica de 4 Pilares:
+ *  - 30% Score CNAE Postal (tabela cnae_postal_score)
+ *  - 30% Score Idade * Fator Setor (Taxa de Mortalidade SEBRAE/IBGE)
+ *  - 25% Adequação de Capital Social (Razão vs Mediana dos Sobreviventes do Setor)
+ *  - 15% Maturidade Digital (Domínio de E-mail Corporativo Próprio)
  * 
  * Uso: php spark prospects:recalculate
  */
@@ -27,7 +28,7 @@ class RecalculateProspectScores extends BaseCommand
     public function run(array $params)
     {
         $db = db_connect();
-        CLI::write('🚀 Iniciando recálculo do Ranking de Prospects...', 'yellow');
+        CLI::write('🚀 Iniciando recálculo do Ranking de Prospects (Fórmula 4 Pilares)...', 'yellow');
 
         $startTime = microtime(true);
 
@@ -38,7 +39,7 @@ class RecalculateProspectScores extends BaseCommand
         $sql = "
             INSERT INTO prospect_scores (
                 cnpj, razao_social, cnae_fiscal_principal, postal_categoria,
-                score_cnae, score_idade, score_capital, fator_setor, score_final,
+                score_cnae, score_idade, score_capital, score_email, fator_setor, score_final,
                 dt_abertura, idade_anos, capital_social, mediana_setor, razao_capital,
                 uf, municipio, calculated_at
             )
@@ -70,6 +71,7 @@ class RecalculateProspectScores extends BaseCommand
                     EXTRACT(YEAR FROM AGE(CURRENT_DATE, TO_DATE(e.data_inicio_atividade, 'YYYYMMDD')))::smallint AS idade_anos,
                     e.uf,
                     e.municipio,
+                    e.email,
                     
                     CASE 
                         WHEN emp.capital_social IS NULL OR emp.capital_social = '' THEN 0
@@ -78,7 +80,7 @@ class RecalculateProspectScores extends BaseCommand
 
                     COALESCE(m.mediana_capital_sobrevivente, 5000.00) AS mediana_setor,
 
-                    -- Score Idade
+                    -- Score Idade (Pilar 2)
                     CASE 
                         WHEN TO_DATE(e.data_inicio_atividade, 'YYYYMMDD') >= CURRENT_DATE - INTERVAL '3 years' THEN 100
                         WHEN TO_DATE(e.data_inicio_atividade, 'YYYYMMDD') >= CURRENT_DATE - INTERVAL '5 years' THEN 85
@@ -87,14 +89,25 @@ class RecalculateProspectScores extends BaseCommand
                         ELSE 15
                     END AS score_idade,
 
-                    -- Fator Mortalidade Setorial
+                    -- Fator Mortalidade Setorial (Pilar 2)
                     CASE 
                         WHEN c.postal_categoria IN ('ecommerce', 'varejo') THEN 1.20
                         WHEN c.postal_categoria IN ('distribuicao', 'industria') THEN 1.10
                         WHEN c.postal_categoria IN ('servico', 'saude', 'educacao') THEN 1.00
                         WHEN c.postal_categoria = 'agro' THEN 0.70
                         ELSE 0.50
-                    END AS fator_setor
+                    END AS fator_setor,
+
+                    -- Score Maturidade Digital (Pilar 4)
+                    CASE 
+                        WHEN e.email IS NULL OR TRIM(e.email) = '' OR e.email NOT LIKE '%@%' THEN 0
+                        WHEN LOWER(TRIM(SUBSTRING(e.email FROM '@(.*)$'))) IN (
+                            'gmail.com', 'gmail.com.br', 'hotmail.com', 'hotmail.com.br', 'outlook.com', 'outlook.com.br',
+                            'yahoo.com', 'yahoo.com.br', 'ymail.com', 'bol.com.br', 'uol.com.br', 'ig.com.br',
+                            'terra.com.br', 'globo.com', 'globomail.com', 'icloud.com', 'me.com', 'msn.com', 'live.com', 'oi.com.br'
+                        ) THEN 40
+                        ELSE 100
+                    END AS score_email
 
                 FROM receita.estabelecimentos e
                 JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
@@ -108,13 +121,10 @@ class RecalculateProspectScores extends BaseCommand
             prospects_scored AS (
                 SELECT 
                     *,
-                    -- Score CNAE em escala 0-100 (postal_score * 20)
                     (postal_score_raw * 20)::smallint AS score_cnae,
-                    
-                    -- Razão de Capital frente à Mediana do Setor
                     ROUND((capital_social / NULLIF(mediana_setor, 0))::numeric, 2) AS razao_capital,
 
-                    -- Score Adequação de Capital (0-100)
+                    -- Score Adequação de Capital (Pilar 3)
                     (CASE 
                         WHEN capital_social = 0 THEN 20
                         WHEN (capital_social / NULLIF(mediana_setor, 0)) >= 2.0 THEN 100
@@ -134,11 +144,13 @@ class RecalculateProspectScores extends BaseCommand
                 score_cnae,
                 score_idade,
                 score_capital,
+                score_email,
                 fator_setor,
                 ROUND(
-                    (score_cnae * 0.35) +
-                    (score_idade * fator_setor * 0.35) +
-                    (score_capital * 0.30),
+                    (score_cnae * 0.30) +
+                    (score_idade * fator_setor * 0.30) +
+                    (score_capital * 0.25) +
+                    (score_email * 0.15),
                     2
                 ) AS score_final,
                 dt_abertura,
@@ -179,7 +191,7 @@ class RecalculateProspectScores extends BaseCommand
             GROUP BY faixa ORDER BY faixa
         ")->getResultArray();
 
-        CLI::write("\n=== Distribuição de Scores Persistidos ===", 'cyan');
+        CLI::write("\n=== Distribuição de Scores Persistidos (4 Pilares) ===", 'cyan');
         foreach ($dist as $d) {
             $pct = round($d['total'] * 100.0 / $totalInserted, 2);
             CLI::write(sprintf("  %-30s: %6d (%5.2f%%)", $d['faixa'], $d['total'], $pct));

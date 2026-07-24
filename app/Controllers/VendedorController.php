@@ -818,6 +818,7 @@ class VendedorController extends BaseController
                 ps.score_cnae,
                 ps.score_idade,
                 ps.score_capital,
+                ps.score_email,
                 ps.fator_setor,
                 ps.score_final AS logistics_score,
                 ps.dt_abertura,

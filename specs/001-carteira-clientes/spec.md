@@ -92,15 +92,16 @@ A base de CNPJs da Receita Federal já está importada no banco de dados do SPIV
 - O sistema deve nascer preparado para enriquecer a potencialidade do cliente.
 - A base atual usa capital social como referência inicial, com evolução futura para modelos mais ricos.
 
-### 3.3 Ranking de Potencial de Prospects (Algoritmo Tripartido Persistido em Cache)
+### 3.3 Ranking de Potencial de Prospects (Algoritmo de 4 Pilares Persistido em Cache)
 
-Para ranquear as empresas ativas fora de carteira e priorizar as melhores oportunidades para a força de vendas dos Correios, o sistema utiliza um algoritmo tripartido de pontuação persistido na tabela de cache `prospect_scores`:
+Para ranquear as empresas ativas fora de carteira e priorizar as melhores oportunidades para a força de vendas dos Correios, o sistema utiliza um algoritmo de 4 pilares de pontuação persistido na tabela de cache `prospect_scores`:
 
-$$\text{Score Final} = (\text{Score CNAE} \times 20) \times 35\% + (\text{Score Idade} \times \text{Fator Setor}) \times 35\% + \text{Score Capital Relativo} \times 30\%$$
+$$\text{Score Final} = (\text{Score CNAE} \times 20) \times 30\% + (\text{Score Idade} \times \text{Fator Setor}) \times 30\% + \text{Score Capital Relativo} \times 25\% + \text{Score E-mail} \times 15\%$$
 
-- **Pilar 1 — Atração Postal do CNAE (35%):** Tabela `cnae_postal_score` com 1.332 CNAEs classificados (0 a 5) e auditáveis pelo painel admin `/admin/cnae-postal`.
-- **Pilar 2 — Tempo de Vida / Idade $\times$ Mortalidade Setorial (35%):** Pontua empresas mais novas (0 a 3 anos: 100 pts, 3 a 5 anos: 85 pts, 5 a 10 anos: 70 pts, >15 anos: 15 pts) multiplicadas pelo Fator Setorial do SEBRAE/IBGE (Comércio/E-commerce: 1.20x, Indústria/Atacado: 1.10x, Serviços: 1.00x, Agro: 0.70x, Extrativa: 0.50x).
-- **Pilar 3 — Adequação do Capital Social relativo à Mediana dos Sobreviventes (30%):** Compara o capital social da empresa com a mediana do capital social de empresas ativas com mais de 5 anos de vida do seu mesmo setor econômico (benchmark de sobrevivência).
+- **Pilar 1 — Atração Postal do CNAE (30%):** Tabela `cnae_postal_score` com 1.332 CNAEs classificados (0 a 5) e auditáveis pelo painel admin `/admin/cnae-postal`.
+- **Pilar 2 — Tempo de Vida / Idade $\times$ Mortalidade Setorial (30%):** Pontua empresas mais novas (0 a 3 anos: 100 pts, 3 a 5 anos: 85 pts, 5 a 10 anos: 70 pts, >15 anos: 15 pts) multiplicadas pelo Fator Setorial do SEBRAE/IBGE (Comércio/E-commerce: 1.20x, Indústria/Atacado: 1.10x, Serviços: 1.00x, Agro: 0.70x, Extrativa: 0.50x).
+- **Pilar 3 — Adequação do Capital Social relativo à Mediana dos Sobreviventes (25%):** Compara o capital social da empresa com a mediana do capital social de empresas ativas com mais de 5 anos de vida do seu mesmo setor econômico (benchmark de sobrevivência).
+- **Pilar 4 — Maturidade Digital via Domínio de E-mail (15%):** Identifica a posse de domínio corporativo próprio (ex: `@empresa.com.br` = 100 pts), diferenciando de webmails pessoais e genéricos (ex: `@gmail.com`, `@hotmail.com` = 40 pts; sem e-mail = 0 pts).
 - **Persistência em Cache:** Tabela `prospect_scores` alimentada pelo comando CLI `php spark prospects:recalculate`, garantindo respostas instantâneas (< 10ms) no portal do vendedor.
 
 ### 4. Portal do Vendedor (Mobile-First)

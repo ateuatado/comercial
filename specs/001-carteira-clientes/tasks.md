@@ -71,8 +71,9 @@
 - [x] Painel Administrativo de gestão e revisão do CNAE Postal (`/admin/cnae-postal`) com edição inline AJAX.
 - [x] Análise estatística de Idade da Empresa e Taxa de Mortalidade até 5 Anos (SEBRAE/IBGE) por setor.
 - [x] Cálculo da Mediana do Capital Social de Empresas Sobreviventes (> 5 Anos) por setor econômico como benchmark financeiro.
-- [x] Migration `CreateProspectScoresTable` (tabela de cache `prospect_scores`).
-- [x] Command CLI `php spark prospects:recalculate` (fórmula tripartida: 35% CNAE + 35% Idade/Mortalidade + 30% Adequação de Capital Social).
+- [x] Migration `CreateProspectScoresTable` (tabela de cache `prospect_scores` com `score_email`).
+- [x] Filtro e qualificação por Maturidade Digital baseada na análise de domínio próprio de e-mail corporativo (excluindo webmails gratuitos como gmail, hotmail, yahoo, etc.).
+- [x] Command CLI `php spark prospects:recalculate` (fórmula de 4 pilares: 30% CNAE + 30% Idade/Mortalidade + 25% Adequação de Capital Social + 15% Maturidade Digital).
 - [x] Otimização da API de Prospecção `VendedorController::rankingApi` para consulta de alta performance no cache persistido (< 10ms).
 
 ### 8. Portal operacional
