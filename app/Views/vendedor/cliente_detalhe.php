@@ -432,7 +432,8 @@
                 </div>
             </h6>
             <div id="raCacheMeta" style="display:none;font-size:10px;color:#94a3b8;margin-bottom:6px;"></div>
-            <div id="raResultsList" class="mt-1 d-flex flex-column gap-2">
+            <div id="raResultsList" class="mt-1 d-flex flex-column gap-2"
+                 data-cache="<?= !empty($raScan) ? esc(json_encode($raScan, JSON_UNESCAPED_UNICODE), 'attr') : '' ?>">
                 <p class="text-muted small text-center mb-0 py-2" id="noRaMsg">Clique no botão para buscar reclamações logísticas (frete, sedex, etc).</p>
             </div>
         </div>
@@ -1215,6 +1216,46 @@
     const SCAN_URL     = '<?= site_url('vendedor/cliente/') ?>' + CNPJ + '/reclame-aqui';
 
     if (!btnScan || !resultsList) return;
+
+    // ── Carrega cache do servidor ao abrir a página ─────────────
+    (function loadCacheOnOpen() {
+        const raw = resultsList.dataset.cache;
+        if (!raw) return;
+        try {
+            const cache = JSON.parse(raw);
+            if (!cache || !cache.pesquisado_em) return;
+
+            // Monta objeto no formato esperado por showCacheMeta e renderResults
+            const fakeData = {
+                is_cache:      true,
+                pesquisado_em: cache.pesquisado_em,
+                empresa:       cache.empresa_nome || '',
+                resultados:    JSON.parse(cache.resultado_json || '[]'),
+                cache_status:  cache.status,
+                cache_total:   parseInt(cache.total) || 0,
+            };
+
+            showCacheMeta(fakeData);
+
+            if (fakeData.resultados.length === 0) {
+                resultsList.innerHTML = '<div style="background:#dcfce7;color:#166534;font-size:12px;border-radius:8px;padding:10px 14px;"><i class="bi bi-emoji-smile"></i> Nenhuma reclamação logística encontrada.</div>';
+            } else {
+                let html = `<div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px;">${fakeData.resultados.length} ocorrência(s) mapeada(s) para "${fakeData.empresa}":</div>`;
+                fakeData.resultados.forEach(item => {
+                    html += `
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+                            <a href="${item.link}" target="_blank" style="font-size:13px;font-weight:700;color:#dc2626;text-decoration:none;display:block;margin-bottom:4px;line-height:1.2;">
+                                ${item.title.replace(' - Reclame Aqui', '')}
+                            </a>
+                            <p style="font-size:11px;color:#64748b;margin:0;line-height:1.3;">${item.snippet}</p>
+                        </div>`;
+                });
+                resultsList.innerHTML = html;
+            }
+        } catch(e) {
+            // JSON inválido — ignora silenciosamente
+        }
+    })();
 
     // ── Helper: formata data ──────────────────────────────────────
     function fmtDate(dt) {

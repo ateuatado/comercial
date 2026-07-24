@@ -368,7 +368,12 @@ class VendedorController extends BaseController
         $cleanCnpj = preg_replace('/[^0-9]/', '', $cnpj);
         $cnaesDetalhados = $this->getCnaesDetalhados($cleanCnpj);
 
-        return view('vendedor/cliente_detalhe', compact('vendorUser', 'cliente', 'notas', 'estrategias', 'redesSociais', 'modoProspecto', 'pedidoExistente', 'cnaesDetalhados'));
+        // Carrega cache do Reclame Aqui (se houver scan anterior)
+        $raScan = $db->table('client_ra_scans')
+                     ->where('cnpj', $cleanCnpj)
+                     ->get()->getRowArray();
+
+        return view('vendedor/cliente_detalhe', compact('vendorUser', 'cliente', 'notas', 'estrategias', 'redesSociais', 'modoProspecto', 'pedidoExistente', 'cnaesDetalhados', 'raScan'));
 
     }
 
