@@ -34,6 +34,44 @@
         </div>
     </div>
 
+    <!-- Ações Rápidas (Topo Condensado) -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px; background: #ffffff;">
+        <div class="card-body p-3">
+            <div class="d-grid gap-2">
+                <a href="<?= site_url('vendedor/clientes') ?>" class="btn btn-primary btn-lg fw-bold shadow-sm" style="border-radius: 12px; font-size: 16px;">
+                    <i class="bi bi-people-fill me-2"></i> Ver Meus Clientes
+                </a>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="<?= site_url('vendedor/clientes/ver-mapa') ?>" class="btn btn-outline-primary w-100 py-2 fw-semibold" style="border-radius: 10px; font-size: 13px;">
+                            <i class="bi bi-map me-1"></i> Mapa da Carteira
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="<?= site_url('vendedor/prospectar') ?>" class="btn btn-success w-100 py-2 fw-semibold shadow-sm" style="border-radius: 10px; font-size: 13px; background-color: #10b981; border-color: #10b981;">
+                            <i class="bi bi-geo-alt-fill me-1"></i> Radar
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="<?= site_url('vendedor/minhas-captacoes') ?>" class="btn btn-outline-secondary w-100 py-2 fw-semibold" style="border-radius: 10px; font-size: 13px;">
+                            <i class="bi bi-inbox me-1"></i> Captações
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="<?= site_url('vendedor/minhas-notas') ?>" class="btn btn-outline-primary w-100 py-2 fw-semibold" style="border-radius: 10px; font-size: 13px;">
+                            <i class="bi bi-journal-text me-1"></i> Minhas Notas
+                        </a>
+                    </div>
+                </div>
+                <?php if ($isCoordenador): ?>
+                    <a href="<?= site_url('coordenador') ?>" class="btn btn-outline-primary w-100 py-2 fw-bold mt-1" style="border-radius: 10px; font-size: 13px;">
+                        <i class="bi bi-diagram-3 me-2"></i> Visão do Time (Coordenador)
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <!-- KPIs -->
     <div class="row g-3 mb-4">
         <div class="col-4">
@@ -102,41 +140,6 @@
     </div>
     <?php endif; ?>
 
-    <!-- Ação principal -->
-    <div class="d-grid gap-2 mb-4">
-        <a href="<?= site_url('vendedor/clientes') ?>" class="btn btn-primary btn-lg" style="border-radius: 12px;">
-            <i class="bi bi-people-fill me-2"></i> Ver Meus Clientes
-        </a>
-        <div class="row g-2">
-            <div class="col-6">
-                <a href="<?= site_url('vendedor/clientes/ver-mapa') ?>" class="btn btn-outline-primary btn-lg w-100" style="border-radius: 12px;">
-                    <i class="bi bi-map me-1"></i> Mapa da Carteira
-                </a>
-            </div>
-            <div class="col-6">
-                <a href="<?= site_url('vendedor/prospectar') ?>" class="btn btn-success btn-lg w-100" style="border-radius: 12px;">
-                    <i class="bi bi-geo-alt-fill me-1"></i> Radar
-                </a>
-            </div>
-        </div>
-        <div class="row g-2">
-            <div class="col-6">
-                <a href="<?= site_url('vendedor/minhas-captacoes') ?>" class="btn btn-outline-secondary w-100" style="border-radius: 12px; font-size: 13px;">
-                    <i class="bi bi-inbox me-1"></i> Captações
-                </a>
-            </div>
-            <div class="col-6">
-                <a href="<?= site_url('vendedor/minhas-notas') ?>" class="btn btn-outline-primary w-100" style="border-radius: 12px; font-size: 13px;">
-                    <i class="bi bi-journal-text me-1"></i> Minhas Notas
-                </a>
-            </div>
-        </div>
-        <?php if ($isCoordenador): ?>
-            <a href="<?= site_url('coordenador') ?>" class="btn btn-outline-primary btn-lg" style="border-radius: 12px;">
-                <i class="bi bi-diagram-3 me-2"></i> Visão do Time
-            </a>
-        <?php endif; ?>
-    </div>
 
     <!-- Últimas Notas -->
     <?php if (!empty($ultimasNotas)): ?>
