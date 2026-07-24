@@ -275,6 +275,46 @@
     color: #94a3b8;
 }
 
+/* ── Selo de Ranking (Badge Interativo com Hover & Popover) ── */
+.selo-ranking {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    user-select: none;
+    line-height: 1;
+}
+.selo-ranking:hover {
+    transform: translateY(-1px) scale(1.04);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+.selo-ranking-excelente {
+    background: linear-gradient(135deg, #fef08a 0%, #facc15 100%);
+    color: #713f12;
+    border: 1.5px solid #eab308;
+}
+.selo-ranking-alto {
+    background: linear-gradient(135deg, #dcfce7 0%, #4ade80 100%);
+    color: #14532d;
+    border: 1.5px solid #22c55e;
+}
+.selo-ranking-medio {
+    background: linear-gradient(135deg, #e0f2fe 0%, #38bdf8 100%);
+    color: #0c4a6e;
+    border: 1.5px solid #0284c7;
+}
+.selo-ranking-baixo {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1.5px solid #cbd5e1;
+}
+
 /* ── Tooltip de Score Expandido ── */
 .score-info-btn {
     background: none;
@@ -529,50 +569,142 @@ SCORE_STYLE.textContent = `
 document.head.appendChild(SCORE_STYLE);
 
 // A função buildScoreTooltipHtml é compartilhada entre Busca e Ranking
-function buildScoreTooltipHtml(bd, score) {
+function renderRankingSelo(score, isHoverable = true) {
+    const s = parseFloat(score) || 0;
+    let cls = 'selo-ranking-baixo';
+    let icon = '·';
+    let label = 'Baixo';
+    
+    if (s >= 80) {
+        cls = 'selo-ranking-excelente';
+        icon = '🏆';
+        label = 'Excelente';
+    } else if (s >= 60) {
+        cls = 'selo-ranking-alto';
+        icon = '🔥';
+        label = 'Alto Potencial';
+    } else if (s >= 40) {
+        cls = 'selo-ranking-medio';
+        icon = '⚡';
+        label = 'Médio';
+    }
+
+    return `
+        <span class="selo-ranking ${cls}" ${isHoverable ? 'title="Passe o mouse ou clique para ver a explicação do score"' : ''}>
+            <span>${icon}</span>
+            <span>Score ${s.toFixed(0)}</span>
+            <small class="opacity-75" style="font-size:9.5px;font-weight:700;">(${label})</small>
+        </span>
+    `;
+}
+
+function buildScoreTooltipHtml(item, score) {
+    // Se for o objeto do novo modelo de 4 pilares
+    if (item && item.score_cnae !== undefined) {
+        const sCnae  = parseFloat(item.score_cnae || 0);
+        const sIdade = parseFloat(item.score_idade || 0);
+        const fSetor = parseFloat(item.fator_setor || 1.0);
+        const sCap   = parseFloat(item.score_capital || 0);
+        const sEmail = parseFloat(item.score_email || 0);
+        const sFinal = parseFloat(score || item.logistics_score || item.score_final || 0);
+
+        const pCnae  = (sCnae * 0.30).toFixed(1);
+        const pIdade = (sIdade * fSetor * 0.30).toFixed(1);
+        const pCap   = (sCap * 0.25).toFixed(1);
+        const pEmail = (sEmail * 0.15).toFixed(1);
+
+        const catName = (item.postal_categoria || 'servico').toUpperCase();
+        const idadeTxt = item.idade_anos !== undefined ? `${item.idade_anos} anos de atividade` : 'Recente';
+        
+        const capVal = item.capital_social ? parseFloat(item.capital_social) : 0;
+        const medVal = item.mediana_setor ? parseFloat(item.mediana_setor) : 5000;
+        const capFmt = capVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0});
+        const medFmt = medVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0});
+
+        let emailDesc = 'Sem e-mail cadastrado (0 pts)';
+        if (sEmail >= 100) {
+            emailDesc = 'Domínio corporativo próprio (Alta maturidade digital)';
+        } else if (sEmail >= 40) {
+            emailDesc = 'Webmail genérico (Gmail/Hotmail)';
+        }
+
+        return `
+            <div style="padding: 2px 0;">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                    <span style="font-size:11px;font-weight:700;color:#1e3a8a;">
+                        <i class="bi bi-diagram-3-fill me-1"></i> Composição Ponderada do Score (4 Pilares)
+                    </span>
+                    <span class="badge bg-primary" style="font-size:10px;">${sFinal.toFixed(1)} pts</span>
+                </div>
+                
+                <div class="score-factor-row">
+                    <div class="score-factor-icon">🏭</div>
+                    <div class="score-factor-body">
+                        <div class="score-factor-label">1. Atração CNAE Postal (Peso 30%)</div>
+                        <div class="score-factor-desc">Setor ${catName} · Nota Bruta: ${sCnae}/100</div>
+                    </div>
+                    <div class="score-factor-mini-bar">
+                        <div class="score-factor-mini-fill" style="width:${Math.min(100, (pCnae/30)*100)}%;background:#3b82f6;"></div>
+                    </div>
+                    <div class="score-factor-pts">${pCnae} <small style="font-size:9px;color:#94a3b8;">/30</small></div>
+                </div>
+
+                <div class="score-factor-row">
+                    <div class="score-factor-icon">⏳</div>
+                    <div class="score-factor-body">
+                        <div class="score-factor-label">2. Idade x Mortalidade Setorial (Peso 30%)</div>
+                        <div class="score-factor-desc">${idadeTxt} · Fator Mortalidade ${fSetor}x</div>
+                    </div>
+                    <div class="score-factor-mini-bar">
+                        <div class="score-factor-mini-fill" style="width:${Math.min(100, (pIdade/36)*100)}%;background:#10b981;"></div>
+                    </div>
+                    <div class="score-factor-pts">${pIdade} <small style="font-size:9px;color:#94a3b8;">/36</small></div>
+                </div>
+
+                <div class="score-factor-row">
+                    <div class="score-factor-icon">💼</div>
+                    <div class="score-factor-body">
+                        <div class="score-factor-label">3. Adequação de Capital Social (Peso 25%)</div>
+                        <div class="score-factor-desc">Capital ${capFmt} (Mediana Setor: ${medFmt})</div>
+                    </div>
+                    <div class="score-factor-mini-bar">
+                        <div class="score-factor-mini-fill" style="width:${Math.min(100, (pCap/25)*100)}%;background:#f59e0b;"></div>
+                    </div>
+                    <div class="score-factor-pts">${pCap} <small style="font-size:9px;color:#94a3b8;">/25</small></div>
+                </div>
+
+                <div class="score-factor-row">
+                    <div class="score-factor-icon">✉️</div>
+                    <div class="score-factor-body">
+                        <div class="score-factor-label">4. Maturidade Digital (Peso 15%)</div>
+                        <div class="score-factor-desc">${emailDesc}</div>
+                    </div>
+                    <div class="score-factor-mini-bar">
+                        <div class="score-factor-mini-fill" style="width:${Math.min(100, (pEmail/15)*100)}%;background:#8b5cf6;"></div>
+                    </div>
+                    <div class="score-factor-pts">${pEmail} <small style="font-size:9px;color:#94a3b8;">/15</small></div>
+                </div>
+
+                <div class="score-total-line mt-2 pt-2 border-top">
+                    <span class="score-total-label">Score Final Combinado</span>
+                    <span class="score-total-pts text-primary">${sFinal.toFixed(1)} <small style="font-size:10px;font-weight:600;">pts</small></span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Fallback para modelo antigo se houver
+    const bd = item || {};
     const maxes = { cnae: 40, capital: 20, email: 15, nome_fantasia: 10, localizacao: 15 };
     const factors = [
-        {
-            key: 'cnae', icon: '🏭', label: 'Ramo de Atividade (CNAE)', color: '#3b82f6',
-            desc: () => (bd.cnae||0) >= 35
-                ? 'CNAE fortemente relacionado a comércio varejista de bens físicos (e-commerce, logística).'
-                : (bd.cnae||0) >= 20
-                ? 'CNAE com atividade moderada de expedição ou distribuição física.'
-                : 'CNAE com baixa relação direta com logística de distribuição.',
-        },
-        {
-            key: 'capital', icon: '💰', label: 'Porte da Empresa (Capital Social)', color: '#22c55e',
-            desc: () => (bd.capital||0) >= 20
-                ? 'Capital social alto (acima de R$ 100 mil) — empresa consolidada, alto potencial de envios.'
-                : (bd.capital||0) >= 10
-                ? 'Capital social médio (R$ 20–100 mil) — porte relevante para expedição periódica.'
-                : 'Capital social baixo — micro/pequena empresa; volume provável menor.',
-        },
-        {
-            key: 'email', icon: '✉️', label: 'Maturidade Digital (E-mail)', color: '#06b6d4',
-            desc: () => (bd.email||0) > 0
-                ? 'E-mail corporativo próprio — forte indício de presença online e e-commerce ativo.'
-                : 'Sem e-mail ou usa provedor genérico (Gmail etc.) — menor chance de operação digital estruturada.',
-        },
-        {
-            key: 'nome_fantasia', icon: '🏷️', label: 'Presença Comercial (Marca)', color: '#f59e0b',
-            desc: () => (bd.nome_fantasia||0) > 0
-                ? 'Nome Fantasia registrado — empresa com identidade comercial ativa no mercado.'
-                : 'Sem Nome Fantasia — opera só com a Razão Social, comum em MEIs e iniciantes.',
-        },
-        {
-            key: 'localizacao', icon: '📍', label: 'Localização Estratégica', color: '#8b5cf6',
-            desc: () => (bd.localizacao||0) >= 15
-                ? 'Coordenadas GPS mapeadas — endereço exato validado para roteirização.'
-                : 'Coordenadas não mapeadas — endereço estimado pelo CEP/bairro.',
-        },
+        { key: 'cnae', icon: '🏭', label: 'Ramo de Atividade (CNAE)', color: '#3b82f6', desc: () => (bd.cnae||0) >= 35 ? 'CNAE fortemente relacionado a e-commerce/logística.' : 'CNAE geral.' },
+        { key: 'capital', icon: '💰', label: 'Porte da Empresa (Capital Social)', color: '#22c55e', desc: () => (bd.capital||0) >= 20 ? 'Capital social alto.' : 'Capital social médio.' },
+        { key: 'email', icon: '✉️', label: 'Maturidade Digital (E-mail)', color: '#06b6d4', desc: () => (bd.email||0) > 0 ? 'Possui e-mail corporativo.' : 'Sem e-mail.' },
     ];
-
     let rows = '';
     factors.forEach(f => {
         const pts = bd[f.key] || 0;
-        const pct = Math.round((pts / maxes[f.key]) * 100);
-        if (pts === 0 && f.key !== 'localizacao' && f.key !== 'nome_fantasia') return;
+        const pct = Math.round((pts / (maxes[f.key] || 1)) * 100);
         rows += `
             <div class="score-factor-row">
                 <div class="score-factor-icon">${f.icon}</div>
@@ -595,14 +727,7 @@ function buildScoreTooltipHtml(bd, score) {
 }
 
 function renderScoreBadge(score, hasTooltip) {
-    const s = parseInt(score) || 0;
-    if (s === 0) return '';
-    const cls  = s >= 60 ? 'high' : (s >= 30 ? 'medium' : 'low');
-    const icon = s >= 60 ? '🔥' : (s >= 30 ? '⚡' : '·');
-    const btn  = hasTooltip
-        ? `<button class="score-info-btn" title="Ver detalhes do score"><i class="bi bi-info"></i></button>`
-        : '';
-    return `<span class="score-badge ${cls}">${icon} Score ${s}</span>${btn}`;
+    return renderRankingSelo(score, hasTooltip);
 }
 
 function renderRaBadge(raStatus, raTotal) {
@@ -689,10 +814,10 @@ function renderResults(list) {
             <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
                 <div class="result-cnpj">${formattedCnpj}</div>
                 ${carteiraStatusHtml}
-                ${renderScoreBadge(item.logistics_score, !!bd)}
+                ${renderRankingSelo(item.logistics_score, true)}
                 <span class="ra-badge-slot">${renderRaBadge(item.ra_status, item.ra_total)}</span>
             </div>
-            ${bd ? `<div class="score-tooltip-panel" id="${tooltipId}">${buildScoreTooltipHtml(bd, parseInt(item.logistics_score)||0)}</div>` : ''}
+            <div class="score-tooltip-panel" id="${tooltipId}">${buildScoreTooltipHtml(bd || item, parseInt(item.logistics_score)||0)}</div>
             <div class="result-address">
                 <i class="bi bi-geo-alt text-muted"></i> ${item.endereco_completo}
                 <span class="geo-status-indicator">${addressMarkerHtml}</span>
@@ -723,14 +848,20 @@ function renderResults(list) {
             <div class="ra-box-container" style="display: none; margin-top: 10px; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 8px;"></div>
         `;
 
-        // Bind tooltip toggle (se houver score)
-        const infoBtn = card.querySelector('.score-info-btn');
-        if (infoBtn) {
-            const panel = card.querySelector('.score-tooltip-panel');
-            infoBtn.addEventListener('click', (e) => {
+        // Bind mouseover e click no Selo de Ranking
+        const seloBtn = card.querySelector('.selo-ranking');
+        const panel   = card.querySelector('.score-tooltip-panel');
+        if (seloBtn && panel) {
+            seloBtn.addEventListener('mouseenter', () => panel.classList.add('open'));
+            seloBtn.addEventListener('mouseleave', (e) => {
+                if (!panel.contains(e.relatedTarget)) panel.classList.remove('open');
+            });
+            panel.addEventListener('mouseleave', (e) => {
+                if (!seloBtn.contains(e.relatedTarget)) panel.classList.remove('open');
+            });
+            seloBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const isOpen = panel.classList.toggle('open');
-                infoBtn.classList.toggle('open', isOpen);
+                panel.classList.toggle('open');
             });
         }
 
@@ -1066,44 +1197,44 @@ async function loadRanking(offset) {
             const email  = item.email ? `· ${item.email}` : '';
 
             // Reutiliza a função compartilhada
-            const bd        = item.score_breakdown || {};
             const tooltipId = `tt_${item.cnpj}`;
-            const scoreLabel = score >= 60 ? '🔥 Alto potencial' : score >= 30 ? '⚡ Potencial moderado' : '· Baixo potencial';
+            const seloHtml  = renderRankingSelo(score, true);
 
             const card = document.createElement('div');
             card.className = 'rank-card';
             card.innerHTML = `
                 <div class="rank-position ${posCls}">${pos <= 3 ? ['🥇','🥈','🥉'][pos-1] : '#' + pos}</div>
                 <div class="rank-body">
-                    <div class="rank-name" title="${nome}">${nome}</div>
-                    <div class="rank-meta">${cnpj} ${cidade ? '· ' + cidade : ''}</div>
-                    <div style="display:flex; align-items:center; gap:4px; margin-bottom:4px;">
-                        <div class="score-bar-wrap" style="flex:1; margin-bottom:0;">
-                            <div class="score-bar-fill ${bar}" style="width: ${score}%"></div>
-                        </div>
-                        <span style="font-size:10px;font-weight:700;color:#1e3a8a;min-width:30px;text-align:right;">${score}<small style="font-weight:400;color:#94a3b8;">/100</small></span>
-                        <button class="score-info-btn" data-tooltip="${tooltipId}" title="Ver detalhes do score">
-                            <i class="bi bi-info"></i>
-                        </button>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-1 mb-1">
+                        <div class="rank-name m-0" title="${nome}">${nome}</div>
+                        <div>${seloHtml}</div>
                     </div>
-                    <div class="rank-breakdown">${scoreLabel}</div>
+                    <div class="rank-meta mb-1">${cnpj} ${cidade ? '· ' + cidade : ''}</div>
                     <div class="score-tooltip-panel" id="${tooltipId}">
-                        ${buildScoreTooltipHtml(bd, score)}
+                        ${buildScoreTooltipHtml(item, score)}
                     </div>
                 </div>
-                <button class="rank-action-btn" onclick="location.href='<?= site_url('vendedor/cliente/') ?>' + '${item.cnpj}'">
+                <button class="rank-action-btn" onclick="location.href='<?= site_url('vendedor/cliente/') ?>' + '${item.cnpj}'" title="Ver detalhes do lead">
                     <i class="bi bi-arrow-right"></i>
                 </button>
             `;
 
-            // Bind toggle do tooltip
-            const infoBtn = card.querySelector('.score-info-btn');
+            // Bind mouseover e click no Selo de Ranking
+            const seloBtn = card.querySelector('.selo-ranking');
             const panel   = card.querySelector('.score-tooltip-panel');
-            infoBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = panel.classList.toggle('open');
-                infoBtn.classList.toggle('open', isOpen);
-            });
+            if (seloBtn && panel) {
+                seloBtn.addEventListener('mouseenter', () => panel.classList.add('open'));
+                seloBtn.addEventListener('mouseleave', (e) => {
+                    if (!panel.contains(e.relatedTarget)) panel.classList.remove('open');
+                });
+                panel.addEventListener('mouseleave', (e) => {
+                    if (!seloBtn.contains(e.relatedTarget)) panel.classList.remove('open');
+                });
+                seloBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    panel.classList.toggle('open');
+                });
+            }
 
             section.appendChild(card);
 

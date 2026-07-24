@@ -837,15 +837,13 @@ class VendedorController extends BaseController
                 ) AS endereco_resumo,
                 COALESCE(cl.latitude,  0) AS loc_lat,
                 COALESCE(cl.longitude, 0) AS loc_lng
-            JOIN receita.estabelecimentos e
-                ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ce.cnpj
-            JOIN receita.empresas emp ON emp.cnpj_basico = e.cnpj_basico
-            LEFT JOIN client_locations cl ON cl.cnpj = ce.cnpj
-            WHERE ce.logistics_score > 0
-              AND ce.cnpj NOT IN (SELECT cnpj FROM carteira_raw WHERE cnpj IS NOT NULL)
-            ORDER BY ce.logistics_score DESC
+            FROM prospect_scores ps
+            LEFT JOIN receita.estabelecimentos e ON (e.cnpj_basico || e.cnpj_ordem || e.cnpj_dv) = ps.cnpj
+            LEFT JOIN client_locations cl ON cl.cnpj = ps.cnpj
+            WHERE {$whereSql}
+            ORDER BY ps.score_final DESC, ps.dt_abertura DESC
             LIMIT {$limit} OFFSET {$offset}
-        ")->getResultArray();
+        ", $params)->getResultArray();
 
         // Resolver nome dos municípios em batch
         $codigos = array_unique(array_filter(array_column($rows, 'municipio_codigo')));
@@ -859,16 +857,13 @@ class VendedorController extends BaseController
         }
 
         foreach ($rows as &$row) {
-            $row['municipio_nome']   = $munMap[$row['municipio_codigo']] ?? '';
-            $row['score_breakdown']  = json_decode($row['score_breakdown'] ?? '{}', true);
+            $row['municipio_nome'] = $munMap[$row['municipio_codigo']] ?? '';
         }
 
-        // Contar total de leads livres com score
+        // Contar total de prospects no cache
         $total = (int) ($db->query("
-            SELECT COUNT(*) AS c FROM client_enrichment ce
-            WHERE ce.logistics_score > 0
-              AND ce.cnpj NOT IN (SELECT cnpj FROM carteira_raw WHERE cnpj IS NOT NULL)
-        ")->getRow()->c ?? 0);
+            SELECT COUNT(*) AS c FROM prospect_scores ps WHERE {$whereSql}
+        ", $params)->getRow()->c ?? 0);
 
         return $this->response->setJSON([
             'success'  => true,
