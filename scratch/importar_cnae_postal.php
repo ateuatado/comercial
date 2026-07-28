@@ -236,7 +236,7 @@ while (($line = fgetcsv($handle)) !== false) {
     $denomLower = mb_strtolower($denominacao);
     $boostTotal = 0;
     $boostsUsados = [];
-    foreach ($GLOBALS['keywordBoosts'] as $kw => $adj) {
+    foreach ($keywordBoosts as $kw => $adj) {
         if (str_contains($denomLower, $kw)) {
             $boostTotal += $adj;
             $boostsUsados[] = "$kw($adj)";
