@@ -91,7 +91,8 @@
                         <th>Data / Hora</th>
                         <th>CNPJ / Razão Social</th>
                         <th>Vendedor</th>
-                        <th>Status</th>
+                        <th>Status / Contrato</th>
+                        <th>Produtos de Interesse</th>
                         <th>Observação</th>
                     </tr>
                 </thead>
@@ -106,6 +107,8 @@
                             'sem_interesse'      => ['label' => '❌ Sem Interesse',       'class' => 'bg-danger'],
                         ];
                         $st = $statusBadgeMap[$c['status']] ?? ['label' => $c['status'], 'class' => 'bg-secondary'];
+                        $possuiContrato = !empty($c['possui_contrato']) && ($c['possui_contrato'] === true || $c['possui_contrato'] === 't' || $c['possui_contrato'] === 1 || $c['possui_contrato'] === '1');
+                        $produtos = !empty($c['produtos_interesse']) ? array_filter(array_map('trim', explode(',', $c['produtos_interesse']))) : [];
                     ?>
                     <tr>
                         <td>
@@ -125,9 +128,33 @@
                             <small class="text-muted" style="font-size:11px;"><?= esc($c['matricula_vendedor']) ?></small>
                         </td>
                         <td>
-                            <span class="badge <?= $st['class'] ?>"><?= $st['label'] ?></span>
+                            <span class="badge <?= $st['class'] ?> mb-1 d-inline-block"><?= $st['label'] ?></span>
+                            <div>
+                                <?php if ($possuiContrato): ?>
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle" title="Cliente já tem contrato com os Correios">
+                                        <i class="bi bi-file-earmark-check me-1"></i>Com Contrato
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-light text-muted border" title="Não possui contrato">
+                                        Sem Contrato
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                         </td>
-                        <td style="max-width: 300px;">
+                        <td>
+                            <?php if (!empty($produtos)): ?>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <?php foreach ($produtos as $prod): ?>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:10px;">
+                                            <?= esc($prod) ?>
+                                        </span>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <span class="text-muted small">—</span>
+                            <?php endif; ?>
+                        </td>
+                        <td style="max-width: 260px;">
                             <?php if (!empty($c['observacao'])): ?>
                                 <span class="small text-dark"><?= nl2br(esc($c['observacao'])) ?></span>
                             <?php else: ?>

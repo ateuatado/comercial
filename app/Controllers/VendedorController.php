@@ -2443,11 +2443,19 @@ class VendedorController extends BaseController
             return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
         }
 
-        $eventoId   = (int) $this->request->getPost('evento_id');
-        $cnpj       = preg_replace('/[^0-9]/', '', (string)$this->request->getPost('cnpj'));
-        $razaoSocial= trim((string)$this->request->getPost('razao_social'));
-        $status     = trim((string)$this->request->getPost('status'));
-        $observacao = trim((string)$this->request->getPost('observacao'));
+        $eventoId          = (int) $this->request->getPost('evento_id');
+        $cnpj              = preg_replace('/[^0-9]/', '', (string)$this->request->getPost('cnpj'));
+        $razaoSocial       = trim((string)$this->request->getPost('razao_social'));
+        $status            = trim((string)$this->request->getPost('status'));
+        $observacao        = trim((string)$this->request->getPost('observacao'));
+        $possuiContrato    = $this->request->getPost('possui_contrato') === '1' || $this->request->getPost('possui_contrato') === 'true';
+        $produtosRaw       = $this->request->getPost('produtos_interesse');
+        $produtosInteresse = '';
+        if (is_array($produtosRaw)) {
+            $produtosInteresse = implode(', ', array_filter(array_map('trim', $produtosRaw)));
+        } else if (is_string($produtosRaw)) {
+            $produtosInteresse = trim($produtosRaw);
+        }
 
         if (empty($eventoId) || strlen($cnpj) !== 14) {
             return $this->response->setJSON(['error' => 'Evento ou CNPJ inválido.'])->setStatusCode(422);
@@ -2475,6 +2483,8 @@ class VendedorController extends BaseController
             'matricula_vendedor' => $vendorUser['matricula'],
             'status'             => $status,
             'observacao'         => $observacao ?: null,
+            'possui_contrato'    => $possuiContrato,
+            'produtos_interesse' => $produtosInteresse ?: null,
             'created_at'         => $now,
             'updated_at'         => $now,
         ]);
@@ -2498,7 +2508,7 @@ class VendedorController extends BaseController
 
         $db = db_connect();
         $contatos = $db->query("
-            SELECT cnpj, status, observacao, created_at
+            SELECT cnpj, status, observacao, possui_contrato, produtos_interesse, created_at
             FROM evento_contacts
             WHERE evento_id = ? AND matricula_vendedor = ?
             ORDER BY created_at DESC

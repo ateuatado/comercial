@@ -284,6 +284,48 @@
                         </select>
                     </div>
 
+                    <!-- Contrato com os Correios? (Seletor Aberto/Fechado) -->
+                    <div class="mb-3 p-2 border rounded bg-white d-flex align-items-center justify-content-between">
+                        <div>
+                            <label class="form-check-label fw-bold small text-dark d-block mb-0" for="regPossuiContrato">
+                                <i class="bi bi-file-earmark-text text-primary me-1"></i>Contrato com os Correios?
+                            </label>
+                            <small class="text-muted" style="font-size: 10px;">Cliente já possui contrato ativo</small>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="regPossuiContrato" style="cursor: pointer; transform: scale(1.2);">
+                        </div>
+                    </div>
+
+                    <!-- Lista de Produtos de Interesse -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small mb-1">
+                            <i class="bi bi-box-seam me-1"></i>Produtos de Interesse
+                        </label>
+                        <div class="d-flex flex-wrap gap-2 pt-1 p-2 bg-white rounded border">
+                            <div class="form-check form-check-inline me-2">
+                                <input class="form-check-input chk-produto" type="checkbox" id="prod_encomenda" value="Encomenda" style="cursor:pointer;">
+                                <label class="form-check-label small" for="prod_encomenda" style="cursor:pointer;">Encomenda</label>
+                            </div>
+                            <div class="form-check form-check-inline me-2">
+                                <input class="form-check-input chk-produto" type="checkbox" id="prod_mensagem" value="Mensagem" style="cursor:pointer;">
+                                <label class="form-check-label small" for="prod_mensagem" style="cursor:pointer;">Mensagem</label>
+                            </div>
+                            <div class="form-check form-check-inline me-2">
+                                <input class="form-check-input chk-produto" type="checkbox" id="prod_logplus" value="Log+" style="cursor:pointer;">
+                                <label class="form-check-label small" for="prod_logplus" style="cursor:pointer;">Log+</label>
+                            </div>
+                            <div class="form-check form-check-inline me-2">
+                                <input class="form-check-input chk-produto" type="checkbox" id="prod_adicionais" value="Adicionais" style="cursor:pointer;">
+                                <label class="form-check-label small" for="prod_adicionais" style="cursor:pointer;">Adicionais</label>
+                            </div>
+                            <div class="form-check form-check-inline me-2">
+                                <input class="form-check-input chk-produto" type="checkbox" id="prod_outros" value="Outros" style="cursor:pointer;">
+                                <label class="form-check-label small" for="prod_outros" style="cursor:pointer;">Outros</label>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Observações -->
                     <div class="mb-2">
                         <label class="form-label fw-semibold small">
@@ -472,6 +514,8 @@ function abrirModalRegistro(cnpj, razao) {
     // Reset campos
     document.getElementById('regStatus').value = '';
     document.getElementById('regObservacao').value = '';
+    document.getElementById('regPossuiContrato').checked = false;
+    document.querySelectorAll('.chk-produto').forEach(c => c.checked = false);
 
     bsModal.show();
 }
@@ -481,6 +525,12 @@ document.getElementById('btnSalvarRegistro').addEventListener('click', async () 
     const razao = document.getElementById('regRazaoSocial').value;
     const status = document.getElementById('regStatus').value;
     const observacao = document.getElementById('regObservacao').value;
+    const possuiContrato = document.getElementById('regPossuiContrato').checked ? '1' : '0';
+
+    const produtosSelecionados = [];
+    document.querySelectorAll('.chk-produto:checked').forEach(c => {
+        produtosSelecionados.push(c.value);
+    });
 
     if (!status) {
         alert('Por favor, selecione um Status da Abordagem.');
@@ -498,6 +548,10 @@ document.getElementById('btnSalvarRegistro').addEventListener('click', async () 
         formData.append('razao_social', razao);
         formData.append('status', status);
         formData.append('observacao', observacao);
+        formData.append('possui_contrato', possuiContrato);
+        produtosSelecionados.forEach(p => {
+            formData.append('produtos_interesse[]', p);
+        });
         formData.append('<?= csrf_token() ?>', '<?= csrf_hash() ?>');
 
         const res = await fetch('<?= site_url('vendedor/eventos/registrar') ?>', {
