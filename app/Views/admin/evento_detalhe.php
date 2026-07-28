@@ -1,6 +1,9 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
+<link rel="stylesheet" href="<?= base_url('assets/css/leaflet.css') ?>" />
+<script src="<?= base_url('assets/js/leaflet.js') ?>"></script>
+
 <div class="mb-4">
     <a href="<?= site_url('admin/eventos') ?>" class="btn btn-outline-secondary btn-sm mb-2">
         <i class="bi bi-arrow-left me-1"></i>Voltar para Eventos
@@ -12,19 +15,34 @@
                 <?php if (!empty($evento['local'])): ?>
                     <span class="me-3"><i class="bi bi-geo-alt me-1"></i><?= esc($evento['local']) ?></span>
                 <?php endif; ?>
-                <?php if ($evento['data_inicio']): ?>
+                <?php if (!empty($evento['data_inicio'])): ?>
                     <span><i class="bi bi-calendar3 me-1"></i><?= date('d/m/Y', strtotime($evento['data_inicio'])) ?>
-                    <?php if ($evento['data_fim']): ?> até <?= date('d/m/Y', strtotime($evento['data_fim'])) ?><?php endif; ?></span>
+                    <?php if (!empty($evento['data_fim'])): ?> até <?= date('d/m/Y', strtotime($evento['data_fim'])) ?><?php endif; ?></span>
                 <?php endif; ?>
             </div>
         </div>
         <div>
-            <?php if ($evento['ativo']): ?>
+            <?php if (!empty($evento['ativo'])): ?>
                 <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>Evento Ativo</span>
             <?php else: ?>
                 <span class="badge bg-secondary fs-6"><i class="bi bi-pause-circle me-1"></i>Evento Inativo</span>
             <?php endif; ?>
         </div>
+    </div>
+</div>
+
+<!-- Card do Mapa Interativo de Abordagens -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h6 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-map-fill text-danger me-2"></i>Mapa de Abordagens dos Vendedores
+        </h6>
+        <span class="badge bg-primary-subtle text-primary fw-bold" id="mapPointsCount">
+            Carregando pontos...
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <div id="mapEventoAdmin" style="height: 380px; width: 100%; border-radius: 0 0 8px 8px; background: #f8fafc; z-index: 1;"></div>
     </div>
 </div>
 
@@ -59,7 +77,7 @@
             <!-- Filtro Vendedor -->
             <div class="col-md-4">
                 <form action="<?= site_url('admin/eventos/' . $evento['id']) ?>" method="GET" class="d-flex align-items-center gap-2">
-                    <?php if ($filtroStatus): ?>
+                    <?php if (!empty($filtroStatus)): ?>
                         <input type="hidden" name="status" value="<?= esc($filtroStatus) ?>">
                     <?php endif; ?>
                     <select name="vendedor" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -78,12 +96,12 @@
 
 <!-- Tabela de Contatos -->
 <?php if (empty($contatos)): ?>
-    <div class="text-center py-5 text-muted card border-0 shadow-sm">
+    <div class="text-center py-5 text-muted card border-0 shadow-sm mb-4">
         <i class="bi bi-inbox" style="font-size: 48px; color: #cbd5e1;"></i>
         <p class="mt-3">Nenhum contato captado encontrado para os filtros selecionados.</p>
     </div>
 <?php else: ?>
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 shadow-sm mb-4">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -186,5 +204,128 @@
         </div>
     </div>
 <?php endif; ?>
+
+<?php
+$gpsContatos = [];
+if (!empty($contatos)) {
+    foreach ($contatos as $c) {
+        if (!empty($c['latitude']) && !empty($c['longitude'])) {
+            $gpsContatos[] = [
+                'id'                 => $c['id'],
+                'cnpj'               => $c['cnpj'],
+                'razao_social'       => $c['razao_social'] ?: 'Razão Social Indisponível',
+                'nome_vendedor'      => $c['nome_vendedor'],
+                'matricula_vendedor' => $c['matricula_vendedor'],
+                'status'             => $c['status'],
+                'possui_contrato'    => !empty($c['possui_contrato']) && ($c['possui_contrato'] === true || $c['possui_contrato'] === 't' || $c['possui_contrato'] === 1 || $c['possui_contrato'] === '1'),
+                'produtos_interesse' => $c['produtos_interesse'],
+                'observacao'         => $c['observacao'],
+                'created_at'         => date('d/m/Y H:i', strtotime($c['created_at'])),
+                'lat'                => (float)$c['latitude'],
+                'lng'                => (float)$c['longitude'],
+            ];
+        }
+    }
+}
+?>
+
+<script>
+const pointsData = <?= json_encode($gpsContatos) ?>;
+
+document.addEventListener("DOMContentLoaded", function() {
+    const pointsCountEl = document.getElementById('mapPointsCount');
+    if (pointsCountEl) {
+        pointsCountEl.textContent = `${pointsData.length} ponto(s) no mapa`;
+    }
+
+    if (!document.getElementById('mapEventoAdmin')) return;
+
+    let defaultCoords = [-23.5505, -46.6333];
+    if (pointsData.length > 0) {
+        defaultCoords = [pointsData[0].lat, pointsData[0].lng];
+    }
+
+    const map = L.map('mapEventoAdmin').setView(defaultCoords, 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    if (pointsData.length === 0) {
+        L.popup()
+            .setLatLng(defaultCoords)
+            .setContent('<div class="text-muted p-2 text-center">Nenhum registro com GPS capturado ainda neste evento.</div>')
+            .openOn(map);
+        return;
+    }
+
+    const bounds = L.latLngBounds();
+
+    const statusColors = {
+        'marcar_reuniao': '#10b981',
+        'ligar_depois': '#3b82f6',
+        'interesse_limitado': '#f59e0b',
+        'sem_interesse': '#ef4444'
+    };
+
+    const statusLabels = {
+        'marcar_reuniao': '📅 Marcar Reunião',
+        'ligar_depois': '📞 Ligar Depois',
+        'interesse_limitado': '⚡ Interesse Limitado',
+        'sem_interesse': '❌ Sem Interesse'
+    };
+
+    pointsData.forEach(pt => {
+        const color = statusColors[pt.status] || '#64748b';
+        const label = statusLabels[pt.status] || pt.status;
+        const cnpjFmt = pt.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+
+        const iconHtml = `<i class="bi bi-geo-alt-fill" style="font-size: 26px; color: ${color}; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></i>`;
+
+        const marker = L.marker([pt.lat, pt.lng], {
+            icon: L.divIcon({
+                html: iconHtml,
+                className: 'spiv-map-marker',
+                iconSize: [26, 26],
+                iconAnchor: [13, 26]
+            })
+        }).addTo(map);
+
+        const popupHtml = `
+            <div style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px; min-width: 220px;">
+                <h6 style="font-size: 13px; font-weight: 700; margin: 0 0 4px 0; color: #1e293b;">${escHtml(pt.razao_social)}</h6>
+                <div style="font-family: monospace; font-size: 11px; color: #64748b; margin-bottom: 6px;">${cnpjFmt}</div>
+                
+                <div style="margin-bottom: 4px;">
+                    <strong>Vendedor:</strong> ${escHtml(pt.nome_vendedor)} <small class="text-muted">(${escHtml(pt.matricula_vendedor)})</small>
+                </div>
+                
+                <div style="margin-bottom: 4px;">
+                    <strong>Status:</strong> <span style="color:${color}; font-weight:bold;">${label}</span>
+                </div>
+
+                ${pt.possui_contrato ? '<div style="color:#0284c7; font-weight:600; margin-bottom:4px;"><i class="bi bi-file-earmark-check"></i> Possui Contrato Correios</div>' : ''}
+                ${pt.produtos_interesse ? `<div style="margin-bottom:4px;"><strong>Produtos:</strong> ${escHtml(pt.produtos_interesse)}</div>` : ''}
+                ${pt.observacao ? `<div style="font-style:italic; background:#f8fafc; padding:4px 6px; border-radius:4px; margin-top:4px;">"${escHtml(pt.observacao)}"</div>` : ''}
+
+                <div style="font-size:10px; color:#94a3b8; margin-top:6px; text-align:right;">
+                    Registrado em ${pt.created_at}
+                </div>
+            </div>
+        `;
+
+        marker.bindPopup(popupHtml);
+        bounds.extend([pt.lat, pt.lng]);
+    });
+
+    if (pointsData.length > 0) {
+        map.fitBounds(bounds, { padding: [30, 30] });
+    }
+});
+
+function escHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
 
 <?= $this->endSection() ?>

@@ -78,7 +78,7 @@
                                         </button>
                                     </form>
                                     <a href="<?= site_url('admin/eventos/' . $ev['id']) ?>" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-eye me-1"></i>Ver Lista
+                                        <i class="bi bi-map me-1"></i>Ver Lista & Mapa
                                     </a>
                                 </div>
                             </div>
