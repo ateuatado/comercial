@@ -449,10 +449,14 @@ function renderResults(list) {
     });
 }
 
-const modalEl = document.getElementById('modalRegistroEvento');
-const bsModal = new bootstrap.Modal(modalEl);
+let bsModal = null;
 
 function abrirModalRegistro(cnpj, razao) {
+    if (!bsModal) {
+        const modalEl = document.getElementById('modalRegistroEvento');
+        bsModal = new bootstrap.Modal(modalEl);
+    }
+
     const formattedCnpj = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 
     document.getElementById('regCnpj').value = cnpj;
