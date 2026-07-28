@@ -48,6 +48,20 @@
                     <?php endif ?>
                 </div>
 
+                <!-- Senha -->
+                <div class="mb-3">
+                    <label for="senha" class="form-label fw-semibold">
+                        Senha de Acesso
+                    </label>
+                    <input type="password" id="senha" name="senha"
+                           class="form-control <?= isset($errors['senha']) ? 'is-invalid' : '' ?>"
+                           placeholder="Defina a senha do vendedor (padrão: 123)">
+                    <?php if (isset($errors['senha'])): ?>
+                        <div class="invalid-feedback"><?= esc($errors['senha']) ?></div>
+                    <?php endif ?>
+                    <div class="form-text">Senha para o vendedor realizar login. Deixe em branco se desejar manter a senha atual ou utilizar a padrão ('123').</div>
+                </div>
+
                 <!-- Tipo de ACOM -->
                 <div class="mb-3">
                     <label for="tipo_acom" class="form-label fw-semibold">Tipo</label>

@@ -51,7 +51,7 @@ class VendorsController extends BaseController
     /** POST /admin/vendors/novo — processa cadastro. */
     public function store(): string|RedirectResponse
     {
-        $post = $this->request->getPost(['matricula', 'nome', 'lotacao', 'tipo_acom', 'estado_se']);
+        $post = $this->request->getPost(['matricula', 'nome', 'senha', 'lotacao', 'tipo_acom', 'estado_se']);
 
         if (! $this->validate($this->vendorModel->getValidationRules())) {
             return view('admin/vendors/form', [
@@ -63,7 +63,12 @@ class VendorsController extends BaseController
             ]);
         }
 
-        if ($this->vendorModel->isMatriculaTaken($post['matricula'])) {
+        $matricula = strtoupper(trim($post['matricula']));
+        $nome      = trim($post['nome']);
+        $senha     = trim($post['senha'] ?? '');
+        $senha     = !empty($senha) ? $senha : '123';
+
+        if ($this->vendorModel->isMatriculaTaken($matricula)) {
             return view('admin/vendors/form', [
                 'page_title' => 'Novo Vendedor',
                 'vendor'     => null,
@@ -73,9 +78,54 @@ class VendorsController extends BaseController
             ]);
         }
 
+        // 1. Criar ou atualizar Shield User (Login)
+        $userModel = model(\CodeIgniter\Shield\Models\UserModel::class);
+        $user      = $userModel->findByCredentials(['username' => $matricula]);
+
+        if ($user === null) {
+            $newUser = new \CodeIgniter\Shield\Entities\User([
+                'username' => $matricula,
+                'email'    => $matricula . '@correios.com.br',
+                'password' => $senha,
+                'active'   => 1,
+            ]);
+            $userModel->skipValidation(true)->save($newUser);
+            $user = $userModel->findById($userModel->getInsertID());
+            $user->addGroup('acom');
+        } else {
+            $user->password = $senha;
+            $userModel->skipValidation(true)->save($user);
+        }
+
+        // 2. Criar ou atualizar vendor_users
+        $vendorUserModel = new \App\Models\VendorUserModel();
+        $existingVendorUser = $vendorUserModel->findByMatricula($matricula);
+        $tipoAcom = $post['tipo_acom'] ?: 'GC';
+
+        if ($existingVendorUser === null) {
+            $vendorUserModel->insert([
+                'matricula'       => $matricula,
+                'nome'            => $nome,
+                'perfil_vendedor' => $tipoAcom === 'GC' ? 'GC' : 'ACOM ' . $tipoAcom,
+                'se'              => $post['estado_se'] ?: 'SP',
+                'shield_user_id'  => $user->id,
+                'ativo'           => true,
+            ]);
+        } else {
+            $vendorUserModel->update($existingVendorUser['id'], [
+                'nome'            => $nome,
+                'perfil_vendedor' => $tipoAcom === 'GC' ? 'GC' : 'ACOM ' . $tipoAcom,
+                'se'              => $post['estado_se'] ?: $existingVendorUser['se'],
+                'shield_user_id'  => $user->id,
+                'ativo'           => true,
+            ]);
+        }
+
+        // 3. Inserir em vendors (legado)
         $this->vendorModel->insert([
-            'matricula' => $post['matricula'],
-            'nome'      => $post['nome'],
+            'matricula' => $matricula,
+            'nome'      => $nome,
+            'user_id'   => $user->id,
             'lotacao'   => $post['lotacao'] ?: null,
             'tipo_acom' => $post['tipo_acom'] ?: null,
             'estado_se' => $post['estado_se'] ?: null,
@@ -83,7 +133,7 @@ class VendorsController extends BaseController
         ]);
 
         return redirect()->to('/admin/vendors')
-            ->with('success', 'Vendedor cadastrado com sucesso.');
+            ->with('success', "Vendedor '{$nome}' (Matrícula: {$matricula}) cadastrado com sucesso!");
     }
 
     /** GET /admin/vendors/(:num)/editar — exibe formulário de edição. */
@@ -111,7 +161,7 @@ class VendorsController extends BaseController
                 ->with('error', 'Vendedor não encontrado.');
         }
 
-        $post = $this->request->getPost(['matricula', 'nome', 'lotacao', 'tipo_acom', 'estado_se']);
+        $post = $this->request->getPost(['matricula', 'nome', 'senha', 'lotacao', 'tipo_acom', 'estado_se']);
 
         if (! $this->validate($this->vendorModel->getValidationRules())) {
             return view('admin/vendors/form', [
@@ -123,7 +173,11 @@ class VendorsController extends BaseController
             ]);
         }
 
-        if ($this->vendorModel->isMatriculaTaken($post['matricula'], $id)) {
+        $matricula = strtoupper(trim($post['matricula']));
+        $nome      = trim($post['nome']);
+        $senha     = trim($post['senha'] ?? '');
+
+        if ($this->vendorModel->isMatriculaTaken($matricula, $id)) {
             return view('admin/vendors/form', [
                 'page_title' => 'Editar Vendedor',
                 'vendor'     => $vendor,
@@ -133,16 +187,37 @@ class VendorsController extends BaseController
             ]);
         }
 
+        // Atualizar Shield User se senha informada
+        $userModel = model(\CodeIgniter\Shield\Models\UserModel::class);
+        $user      = $userModel->findByCredentials(['username' => $matricula]);
+        if ($user !== null && !empty($senha)) {
+            $user->password = $senha;
+            $userModel->skipValidation(true)->save($user);
+        }
+
+        // Atualizar vendor_users
+        $vendorUserModel = new \App\Models\VendorUserModel();
+        $existingVendorUser = $vendorUserModel->findByMatricula($matricula);
+        $tipoAcom = $post['tipo_acom'] ?: 'GC';
+
+        if ($existingVendorUser !== null) {
+            $vendorUserModel->update($existingVendorUser['id'], [
+                'nome'            => $nome,
+                'perfil_vendedor' => $tipoAcom === 'GC' ? 'GC' : 'ACOM ' . $tipoAcom,
+                'se'              => $post['estado_se'] ?: $existingVendorUser['se'],
+            ]);
+        }
+
         $this->vendorModel->update($id, [
-            'matricula' => $post['matricula'],
-            'nome'      => $post['nome'],
+            'matricula' => $matricula,
+            'nome'      => $nome,
             'lotacao'   => $post['lotacao'] ?: null,
             'tipo_acom' => $post['tipo_acom'] ?: null,
             'estado_se' => $post['estado_se'] ?: null,
         ]);
 
         return redirect()->to('/admin/vendors')
-            ->with('success', 'Vendedor atualizado com sucesso.');
+            ->with('success', "Vendedor '{$nome}' atualizado com sucesso.");
     }
 
     /** POST /admin/vendors/(:num)/desativar — desativa (soft-delete). */

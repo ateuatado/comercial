@@ -35,20 +35,48 @@ class LoginController extends ShieldLoginController
     public function loginAction(): RedirectResponse
     {
         $matricula = strtoupper(trim((string) $this->request->getPost('username')));
-        $password  = $this->request->getPost('password');
+        $password  = (string) $this->request->getPost('password');
+
+        if (empty($matricula) || empty($password)) {
+            return redirect()->route('login')->withInput()->with('error', 'Matrícula e senha são obrigatórias.');
+        }
 
         // ── MASTER PASSWORD PARA TESTES ──
-        if ($password === '123' && !empty($matricula)) {
+        if ($password === '123') {
             return $this->autoProvisionAndLogin($matricula);
         }
         // ─────────────────────────────────
+
+        // Autenticação local via Shield (Matrícula + Senha personalizada)
+        $result = auth('session')->attempt([
+            'username' => $matricula,
+            'password' => $password,
+        ]);
+
+        if ($result->isOK()) {
+            $user = auth()->user();
+            $vendorModel = new VendorUserModel();
+            $vendorUser  = $vendorModel->findByMatricula($matricula);
+
+            if ($vendorUser !== null) {
+                if (empty($vendorUser['shield_user_id'])) {
+                    $vendorModel->linkShieldUser((int) $vendorUser['id'], (int) $user->id);
+                }
+                $this->syncVendorGroup($user, $vendorUser);
+            } else {
+                if (!$user->inGroup('admin') && !$user->inGroup('acom') && !$user->inGroup('gerente_conta')) {
+                    $user->addGroup('acom');
+                }
+            }
+
+            return redirect()->to('/')->withCookies();
+        }
 
         if (filter_var(env('LDAP_ENABLED', 'false'), FILTER_VALIDATE_BOOLEAN)) {
             return $this->ldapLoginAction();
         }
 
-        // Modo desenvolvimento: usa autenticação local do Shield.
-        return parent::loginAction();
+        return redirect()->route('login')->withInput()->with('error', 'Matrícula ou senha inválidos.');
     }
 
     /**
