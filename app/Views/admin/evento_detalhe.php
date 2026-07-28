@@ -91,6 +91,7 @@
                         <th>Data / Hora</th>
                         <th>CNPJ / Razão Social</th>
                         <th>Vendedor</th>
+                        <th>Local do Registro (GPS)</th>
                         <th>Status / Contrato</th>
                         <th>Produtos de Interesse</th>
                         <th>Observação</th>
@@ -109,6 +110,7 @@
                         $st = $statusBadgeMap[$c['status']] ?? ['label' => $c['status'], 'class' => 'bg-secondary'];
                         $possuiContrato = !empty($c['possui_contrato']) && ($c['possui_contrato'] === true || $c['possui_contrato'] === 't' || $c['possui_contrato'] === 1 || $c['possui_contrato'] === '1');
                         $produtos = !empty($c['produtos_interesse']) ? array_filter(array_map('trim', explode(',', $c['produtos_interesse']))) : [];
+                        $hasGps = !empty($c['latitude']) && !empty($c['longitude']);
                     ?>
                     <tr>
                         <td>
@@ -126,6 +128,22 @@
                         <td>
                             <div class="fw-semibold"><?= esc($c['nome_vendedor']) ?></div>
                             <small class="text-muted" style="font-size:11px;"><?= esc($c['matricula_vendedor']) ?></small>
+                        </td>
+                        <td>
+                            <?php if ($hasGps): ?>
+                                <a href="https://www.google.com/maps?q=<?= esc($c['latitude']) ?>,<?= esc($c['longitude']) ?>"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-danger py-0 px-2"
+                                   style="font-size: 11px;"
+                                   title="Abrir no Google Maps">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>Ver Mapa
+                                </a>
+                                <div class="text-muted font-monospace mt-1" style="font-size: 10px;">
+                                    <?= round((float)$c['latitude'], 5) ?>, <?= round((float)$c['longitude'], 5) ?>
+                                </div>
+                            <?php else: ?>
+                                <span class="text-muted small">—</span>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <span class="badge <?= $st['class'] ?> mb-1 d-inline-block"><?= $st['label'] ?></span>

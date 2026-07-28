@@ -355,9 +355,21 @@ const btnSearchGo = document.getElementById('btnSearchGo');
 const resultsSection = document.getElementById('resultsSection');
 
 let meusContatosSet = new Map(); // cnpj => contatoObj
+let userLat = null;
+let userLng = null;
 
-// Carregar meus contatos prévios neste evento
+// Carregar meus contatos prévios neste evento e solicitar GPS
 document.addEventListener("DOMContentLoaded", async () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                userLat = pos.coords.latitude;
+                userLng = pos.coords.longitude;
+            },
+            (err) => {},
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    }
     await carregarMeusContatosEvento();
 });
 
@@ -552,6 +564,12 @@ document.getElementById('btnSalvarRegistro').addEventListener('click', async () 
         produtosSelecionados.forEach(p => {
             formData.append('produtos_interesse[]', p);
         });
+
+        if (userLat && userLng) {
+            formData.append('latitude', userLat);
+            formData.append('longitude', userLng);
+        }
+
         formData.append('<?= csrf_token() ?>', '<?= csrf_hash() ?>');
 
         const res = await fetch('<?= site_url('vendedor/eventos/registrar') ?>', {

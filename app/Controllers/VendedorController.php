@@ -2457,6 +2457,12 @@ class VendedorController extends BaseController
             $produtosInteresse = trim($produtosRaw);
         }
 
+        $lat = $this->request->getPost('latitude') ?: $this->request->getPost('lat');
+        $lng = $this->request->getPost('longitude') ?: $this->request->getPost('lng');
+
+        $latitude  = (is_numeric($lat) && (float)$lat != 0) ? (float)$lat : null;
+        $longitude = (is_numeric($lng) && (float)$lng != 0) ? (float)$lng : null;
+
         if (empty($eventoId) || strlen($cnpj) !== 14) {
             return $this->response->setJSON(['error' => 'Evento ou CNPJ inválido.'])->setStatusCode(422);
         }
@@ -2474,7 +2480,7 @@ class VendedorController extends BaseController
             return $this->response->setJSON(['error' => 'Evento não encontrado ou inativo.'])->setStatusCode(404);
         }
 
-        // Insere o registro de contato
+        // Insere o registro de contato com geolocalização do vendedor
         $now = date('Y-m-d H:i:s');
         $db->table('evento_contacts')->insert([
             'evento_id'          => $eventoId,
@@ -2485,6 +2491,8 @@ class VendedorController extends BaseController
             'observacao'         => $observacao ?: null,
             'possui_contrato'    => $possuiContrato,
             'produtos_interesse' => $produtosInteresse ?: null,
+            'latitude'           => $latitude,
+            'longitude'          => $longitude,
             'created_at'         => $now,
             'updated_at'         => $now,
         ]);
