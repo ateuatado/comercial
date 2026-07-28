@@ -418,7 +418,13 @@ class AdminController extends BaseController
     {
         $scriptPath = ROOTPATH . 'scratch/importar_cnae_postal.php';
         if (file_exists($scriptPath)) {
-            require $scriptPath;
+            // O require dentro de um método executa no escopo local da classe,
+            // impedindo que variáveis como $keywordBoosts entrem em $GLOBALS.
+            // Executamos via Closure no escopo global para contornar isso.
+            $runner = static function (string $path): void {
+                require $path;
+            };
+            $runner($scriptPath);
             session()->setFlashdata('cnae_postal_success', 'Reclassificação automática executada com sucesso para os registros não revisados.');
         } else {
             session()->setFlashdata('cnae_postal_error', 'Script de importação não encontrado.');
