@@ -242,6 +242,13 @@
 - [x] **2.10.8** — Registrar rotas admin `/admin/mensagens/*`. — 3 rotas: GET list, GET edit, POST update.
 - [x] **2.10.9** — Testar: admin edita mensagem → funcionário sem carteira vê conteúdo atualizado. — Fluxo: admin POST → update DB → SemCarteiraController::getBySlug() → view renderiza.
 
+### 2.11 Módulo de Eventos / Feiras
+
+- [x] **2.11.1** — Criar migrations para tabelas `eventos` e `evento_contacts`.
+- [x] **2.11.2** — Criar `Admin\EventosController` + views (`admin/eventos_index.php` e `admin/evento_detalhe.php`) para cadastro e acompanhamento de contatos por evento.
+- [x] **2.11.3** — Criar rotas e views do vendedor (`vendedor/eventos.php` e `vendedor/evento_busca.php`) com modal de registro de abordagem (status de interesse, observações e data/hora).
+- [x] **2.11.4** — Adicionar atalho "Eventos" no menu de navegação do admin e vendedor.
+
 ---
 
 ## FASE 2 — Critérios de Fechamento

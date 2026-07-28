@@ -76,6 +76,12 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     $routes->get('captacoes/(:num)',       '\App\Controllers\AdminController::captacaoDetalhe/$1');
     $routes->post('captacoes/decisao',     '\App\Controllers\AdminController::captacaoDecisao');
     $routes->get('captacoes/anexo/(:num)', '\App\Controllers\AdminController::captacaoAnexo/$1');
+
+    // Gestão de Eventos / Feiras
+    $routes->get('eventos',                '\App\Controllers\Admin\EventosController::index');
+    $routes->get('eventos/(:num)',         '\App\Controllers\Admin\EventosController::show/$1');
+    $routes->post('eventos/novo',          '\App\Controllers\Admin\EventosController::store');
+    $routes->post('eventos/(:num)/toggle', '\App\Controllers\Admin\EventosController::toggle/$1');
 });
 
 // Portal operacional — acom e gerente_conta (legado Fase 1)
@@ -121,6 +127,12 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('captacao/anexo/(:num)', 'VendedorController::captacaoAnexo/$1');
     $routes->get('minhas-captacoes', 'VendedorController::minhasCaptacoes');
     $routes->get('minhas-notas', 'VendedorController::minhasNotas');
+
+    // Eventos / Feiras
+    $routes->get('eventos',                      'VendedorController::eventosView');
+    $routes->get('eventos/(:num)/busca',         'VendedorController::eventoBuscaView/$1');
+    $routes->post('eventos/registrar',           'VendedorController::eventoRegistrarContato');
+    $routes->get('eventos/(:num)/meus-contatos', 'VendedorController::eventoContatosApi/$1');
 });
 
 // Coordenador — visão do time (Fase 2.9) + gestão avançada (Fase 3)

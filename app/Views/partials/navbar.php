@@ -56,12 +56,17 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= base_url('admin/cnae-postal') ?>">
+                            <a class="nav-link <?= str_contains(uri_string(), 'admin/cnae-postal') ? 'active' : '' ?>" href="<?= base_url('admin/cnae-postal') ?>">
                                 <i class="bi bi-tags me-1"></i>CNAE Postal
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= base_url('admin/busca') ?>">
+                            <a class="nav-link <?= str_contains(uri_string(), 'admin/eventos') ? 'active' : '' ?>" href="<?= base_url('admin/eventos') ?>">
+                                <i class="bi bi-calendar-event me-1"></i>Eventos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= str_contains(uri_string(), 'admin/busca') ? 'active' : '' ?>" href="<?= base_url('admin/busca') ?>">
                                 <i class="bi bi-search me-1"></i>Consulta RFB
                             </a>
                         </li>
@@ -76,6 +81,11 @@
                         <li class="nav-item">
                             <a class="nav-link" href="<?= base_url('vendedor/prospectar/pesquisa') ?>">
                                 <i class="bi bi-search me-1"></i>Prospecção
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= base_url('vendedor/eventos') ?>">
+                                <i class="bi bi-calendar-event me-1"></i>Eventos
                             </a>
                         </li>
                     <?php endif; ?>

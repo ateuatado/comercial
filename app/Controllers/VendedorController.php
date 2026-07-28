@@ -2390,4 +2390,127 @@ class VendedorController extends BaseController
 
         return $cnpjCnaes;
     }
+
+    // ─── Eventos / Feiras ──────────────────────────────────────────
+
+    /**
+     * GET /vendedor/eventos — Exibe a lista de eventos ativos disponíveis para o vendedor.
+     */
+    public function eventosView()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return redirect()->to('/sem-carteira');
+
+        $db = db_connect();
+        $eventos = $db->query("
+            SELECT e.*,
+                   COUNT(ec.id) AS meus_contatos
+            FROM eventos e
+            LEFT JOIN evento_contacts ec ON ec.evento_id = e.id AND ec.matricula_vendedor = ?
+            WHERE e.ativo = TRUE
+            GROUP BY e.id
+            ORDER BY COALESCE(e.data_inicio, e.created_at::date) DESC, e.created_at DESC
+        ", [$vendorUser['matricula']])->getResultArray();
+
+        return view('vendedor/eventos', compact('vendorUser', 'eventos'));
+    }
+
+    /**
+     * GET /vendedor/eventos/(:num)/busca — Tela de busca de prospecção vinculada a um evento.
+     */
+    public function eventoBuscaView(int $eventoId)
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) return redirect()->to('/sem-carteira');
+
+        $db = db_connect();
+        $evento = $db->table('eventos')->where('id', $eventoId)->where('ativo', true)->get()->getRowArray();
+
+        if (!$evento) {
+            return redirect()->to(site_url('vendedor/eventos'))->with('error', 'Evento não encontrado ou inativo.');
+        }
+
+        return view('vendedor/evento_busca', compact('vendorUser', 'evento'));
+    }
+
+    /**
+     * POST /vendedor/eventos/registrar — Registra um contato feito em um evento.
+     */
+    public function eventoRegistrarContato()
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+        }
+
+        $eventoId   = (int) $this->request->getPost('evento_id');
+        $cnpj       = preg_replace('/[^0-9]/', '', (string)$this->request->getPost('cnpj'));
+        $razaoSocial= trim((string)$this->request->getPost('razao_social'));
+        $status     = trim((string)$this->request->getPost('status'));
+        $observacao = trim((string)$this->request->getPost('observacao'));
+
+        if (empty($eventoId) || strlen($cnpj) !== 14) {
+            return $this->response->setJSON(['error' => 'Evento ou CNPJ inválido.'])->setStatusCode(422);
+        }
+
+        $allowedStatuses = ['ligar_depois', 'marcar_reuniao', 'interesse_limitado', 'sem_interesse'];
+        if (!in_array($status, $allowedStatuses, true)) {
+            return $this->response->setJSON(['error' => 'Status de interesse inválido.'])->setStatusCode(422);
+        }
+
+        $db = db_connect();
+
+        // Verifica se o evento existe e está ativo
+        $evento = $db->table('eventos')->where('id', $eventoId)->where('ativo', true)->get()->getRowArray();
+        if (!$evento) {
+            return $this->response->setJSON(['error' => 'Evento não encontrado ou inativo.'])->setStatusCode(404);
+        }
+
+        // Insere o registro de contato
+        $now = date('Y-m-d H:i:s');
+        $db->table('evento_contacts')->insert([
+            'evento_id'          => $eventoId,
+            'cnpj'               => $cnpj,
+            'razao_social'       => $razaoSocial ?: null,
+            'matricula_vendedor' => $vendorUser['matricula'],
+            'status'             => $status,
+            'observacao'         => $observacao ?: null,
+            'created_at'         => $now,
+            'updated_at'         => $now,
+        ]);
+
+        return $this->response->setJSON([
+            'success'    => true,
+            'message'    => 'Contato de evento registrado com sucesso!',
+            'created_at' => date('d/m/Y H:i', strtotime($now)),
+        ]);
+    }
+
+    /**
+     * GET /vendedor/eventos/(:num)/meus-contatos — Retorna CNPJs já registrados pelo vendedor no evento.
+     */
+    public function eventoContatosApi(int $eventoId)
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
+        }
+
+        $db = db_connect();
+        $contatos = $db->query("
+            SELECT cnpj, status, observacao, created_at
+            FROM evento_contacts
+            WHERE evento_id = ? AND matricula_vendedor = ?
+            ORDER BY created_at DESC
+        ", [$eventoId, $vendorUser['matricula']])->getResultArray();
+
+        foreach ($contatos as &$c) {
+            $c['created_at_fmt'] = date('d/m/Y H:i', strtotime($c['created_at']));
+        }
+
+        return $this->response->setJSON([
+            'success'  => true,
+            'contatos' => $contatos,
+        ]);
+    }
 }
