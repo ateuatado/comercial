@@ -186,9 +186,12 @@
                     <input type="text" id="searchInput" class="search-input" placeholder="Digite CNPJ, Nome ou Endereço..." autocomplete="off">
                     <button type="button" class="btn-search-go" id="btnSearchGo">Pesquisar</button>
                 </div>
-                <div class="text-muted mt-1 px-1" style="font-size: 10px;">
-                    <i class="bi bi-search me-1"></i>Digite pelo menos 3 caracteres.
+                <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                    <span class="text-muted" style="font-size: 10px;"><i class="bi bi-search me-1"></i>Digite pelo menos 3 caracteres.</span>
                 </div>
+                <button type="button" class="btn btn-outline-success btn-sm w-100 mt-2 fw-semibold py-2" id="btnManualDirect">
+                    <i class="bi bi-plus-circle me-1"></i>Empresa não encontrada? Cadastrar CNPJ Manualmente
+                </button>
             </div>
 
             <!-- Resultados -->
@@ -228,10 +231,26 @@
                     <input type="hidden" id="regCnpj" name="cnpj">
                     <input type="hidden" id="regRazaoSocial" name="razao_social">
 
-                    <!-- Empresa -->
-                    <div class="p-2 mb-3 rounded bg-light border">
+                    <!-- Bloco Empresa Automática (vinda da busca) -->
+                    <div id="blockEmpresaAuto" class="p-2 mb-3 rounded bg-light border">
                         <div class="fw-bold text-dark fs-6" id="displayEmpresaNome">—</div>
                         <small class="text-muted font-monospace" id="displayEmpresaCnpj">—</small>
+                    </div>
+
+                    <!-- Bloco Empresa Manual (Plano B) -->
+                    <div id="blockEmpresaManual" class="p-3 mb-3 rounded bg-light border border-primary-subtle" style="display: none;">
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small text-dark mb-1">
+                                CNPJ da Empresa <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="regCnpjManual" class="form-control form-control-sm font-monospace" placeholder="00.000.000/0001-00" maxlength="18">
+                        </div>
+                        <div>
+                            <label class="form-label fw-bold small text-dark mb-1">
+                                Razão Social / Nome da Empresa <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="regRazaoSocialManual" class="form-control form-control-sm" placeholder="Ex: Logística Express Ltda">
+                        </div>
                     </div>
 
                     <!-- Data/Hora Registro -->
@@ -324,12 +343,14 @@
 const EVENTO_ID = <?= (int)$evento['id'] ?>;
 const searchInput = document.getElementById('searchInput');
 const btnSearchGo = document.getElementById('btnSearchGo');
+const btnManualDirect = document.getElementById('btnManualDirect');
 const resultsSection = document.getElementById('resultsSection');
 
 let meusContatosList = [];
 let meusContatosSet = new Map(); // cnpj => contatoObj
 let userLat = null;
 let userLng = null;
+let lastSearchQuery = '';
 
 // Carregar meus contatos prévios neste evento e solicitar GPS
 document.addEventListener("DOMContentLoaded", async () => {
@@ -343,6 +364,32 @@ document.addEventListener("DOMContentLoaded", async () => {
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
     }
+
+    if (btnManualDirect) {
+        btnManualDirect.addEventListener('click', () => {
+            abrirModalManual(searchInput.value.trim());
+        });
+    }
+
+    // Máscara dinâmica no CNPJ Manual
+    const regCnpjManual = document.getElementById('regCnpjManual');
+    if (regCnpjManual) {
+        regCnpjManual.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length > 14) v = v.substring(0, 14);
+            if (v.length > 12) {
+                v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{1,2})$/, "$1.$2.$3/$4-$5");
+            } else if (v.length > 8) {
+                v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{1,4})$/, "$1.$2.$3/$4");
+            } else if (v.length > 5) {
+                v = v.replace(/^(\d{2})(\d{3})(\d{1,3})$/, "$1.$2.$3");
+            } else if (v.length > 2) {
+                v = v.replace(/^(\d{2})(\d{1,3})$/, "$1.$2");
+            }
+            e.target.value = v;
+        });
+    }
+
     await carregarMeusContatosEvento();
 });
 
@@ -460,6 +507,7 @@ async function performSearch() {
         return;
     }
 
+    lastSearchQuery = q;
     btnSearchGo.disabled = true;
     btnSearchGo.textContent = 'Buscando...';
     resultsSection.innerHTML = '<div class="text-center py-5 text-muted">Buscando na base de dados...</div>';
@@ -469,7 +517,7 @@ async function performSearch() {
         const data = await res.json();
 
         if (data.success) {
-            renderResults(data.resultados);
+            renderResults(data.resultados, q);
         } else {
             resultsSection.innerHTML = '<div class="text-center py-5 text-danger">Erro ao realizar busca.</div>';
         }
@@ -481,14 +529,21 @@ async function performSearch() {
     }
 }
 
-function renderResults(list) {
+function renderResults(list, queryStr) {
     if (!list || list.length === 0) {
         resultsSection.innerHTML = `
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-x-circle" style="font-size: 32px; color: #cbd5e1;"></i>
-                <p class="mt-2 small">Nenhum estabelecimento encontrado.</p>
+            <div class="text-center text-muted py-4 bg-white rounded-3 border p-4 shadow-sm">
+                <i class="bi bi-search-heart text-secondary" style="font-size: 42px;"></i>
+                <h6 class="fw-bold text-dark mt-2 mb-1">Empresa não encontrada na base local</h6>
+                <p class="small text-muted mb-3">Sua pesquisa por "<strong>${escHtml(queryStr)}</strong>" não retornou nenhum registro nos 100 mil cadastrados.</p>
+                <button type="button" class="btn btn-success btn-sm px-3 py-2 fw-bold shadow-sm" id="btnZeroResultManual">
+                    <i class="bi bi-plus-circle me-1"></i>Cadastrar "${escHtml(queryStr)}" Manualmente
+                </button>
             </div>
         `;
+        document.getElementById('btnZeroResultManual')?.addEventListener('click', () => {
+            abrirModalManual(queryStr);
+        });
         return;
     }
 
@@ -572,6 +627,10 @@ function abrirModalRegistro(cnpj, razao) {
 
     const modal = getBsModal();
 
+    // Ocultar bloco manual e mostrar automático
+    document.getElementById('blockEmpresaAuto').style.display = 'block';
+    document.getElementById('blockEmpresaManual').style.display = 'none';
+
     const formattedCnpj = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 
     document.getElementById('regContactId').value = '';
@@ -594,8 +653,48 @@ function abrirModalRegistro(cnpj, razao) {
     if (modal) modal.show();
 }
 
+function abrirModalManual(query = '') {
+    const modal = getBsModal();
+
+    document.getElementById('regContactId').value = '';
+    document.getElementById('regCnpj').value = '';
+    document.getElementById('regRazaoSocial').value = '';
+
+    // Mostrar bloco manual e ocultar automático
+    document.getElementById('blockEmpresaAuto').style.display = 'none';
+    document.getElementById('blockEmpresaManual').style.display = 'block';
+
+    const cleanDigits = query.replace(/\D/g, '');
+    if (cleanDigits.length === 14) {
+        const formatted = cleanDigits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+        document.getElementById('regCnpjManual').value = formatted;
+        document.getElementById('regRazaoSocialManual').value = '';
+    } else {
+        document.getElementById('regCnpjManual').value = '';
+        document.getElementById('regRazaoSocialManual').value = query || '';
+    }
+
+    document.getElementById('modalRegistroTitle').textContent = 'Cadastrar Novo CNPJ Manualmente';
+    document.getElementById('btnSalvarRegistro').innerHTML = '<i class="bi bi-check-lg me-1"></i>Cadastrar Registro';
+
+    const now = new Date();
+    const nowFmt = now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+    document.getElementById('displayDataHora').value = nowFmt;
+
+    document.getElementById('regStatus').value = '';
+    document.getElementById('regObservacao').value = '';
+    document.getElementById('regPossuiContrato').checked = false;
+    document.querySelectorAll('.chk-produto').forEach(c => c.checked = false);
+
+    if (modal) modal.show();
+}
+
 function abrirModalEditarRegistro(c) {
     const modal = getBsModal();
+
+    // Ocultar bloco manual e mostrar automático
+    document.getElementById('blockEmpresaAuto').style.display = 'block';
+    document.getElementById('blockEmpresaManual').style.display = 'none';
 
     const formattedCnpj = c.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 
@@ -623,8 +722,31 @@ function abrirModalEditarRegistro(c) {
 
 document.getElementById('btnSalvarRegistro').addEventListener('click', async () => {
     const contactId = document.getElementById('regContactId').value;
-    const cnpj = document.getElementById('regCnpj').value;
-    const razao = document.getElementById('regRazaoSocial').value;
+    const isManual = document.getElementById('blockEmpresaManual').style.display !== 'none';
+
+    let cnpj = '';
+    let razao = '';
+
+    if (isManual) {
+        const rawCnpj = document.getElementById('regCnpjManual').value;
+        cnpj = rawCnpj.replace(/\D/g, '');
+        razao = document.getElementById('regRazaoSocialManual').value.trim();
+
+        if (cnpj.length !== 14) {
+            alert('⚠️ Por favor, digite um CNPJ válido com 14 dígitos.');
+            document.getElementById('regCnpjManual').focus();
+            return;
+        }
+        if (!razao) {
+            alert('⚠️ Por favor, informe a Razão Social ou Nome da Empresa.');
+            document.getElementById('regRazaoSocialManual').focus();
+            return;
+        }
+    } else {
+        cnpj = document.getElementById('regCnpj').value;
+        razao = document.getElementById('regRazaoSocial').value;
+    }
+
     const status = document.getElementById('regStatus').value;
     const observacao = document.getElementById('regObservacao').value;
     const possuiContrato = document.getElementById('regPossuiContrato').checked ? '1' : '0';
