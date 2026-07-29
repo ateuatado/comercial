@@ -413,7 +413,7 @@ function renderMeusRegistrosList() {
                         <small class="text-muted" style="font-size:11px;">
                             <i class="bi bi-clock me-1"></i>${c.created_at_fmt || c.created_at}
                         </small>
-                        <button type="button" class="btn btn-sm btn-outline-primary btn-editar-meu-registro" data-id="${c.id}">
+                        <button type="button" class="btn btn-sm btn-primary btn-editar-meu-registro" data-id="${c.id}">
                             <i class="bi bi-pencil-square me-1"></i>Editar Registro
                         </button>
                     </div>
@@ -425,9 +425,10 @@ function renderMeusRegistrosList() {
     container.innerHTML = html;
 
     container.querySelectorAll('.btn-editar-meu-registro').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const contactId = parseInt(btn.dataset.id);
-            const contactObj = meusContatosList.find(item => item.id === contactId);
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const contactId = btn.dataset.id;
+            const contactObj = meusContatosList.find(item => String(item.id) === String(contactId));
             if (contactObj) {
                 abrirModalEditarRegistro(contactObj);
             }
@@ -551,7 +552,16 @@ function renderResults(list) {
     });
 }
 
-let bsModal = null;
+function getBsModal() {
+    const modalEl = document.getElementById('modalRegistroEvento');
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        if (bootstrap.Modal.getOrCreateInstance) {
+            return bootstrap.Modal.getOrCreateInstance(modalEl);
+        }
+        return bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    }
+    return null;
+}
 
 function abrirModalRegistro(cnpj, razao) {
     const existing = meusContatosList.find(c => c.cnpj === cnpj);
@@ -560,10 +570,7 @@ function abrirModalRegistro(cnpj, razao) {
         return;
     }
 
-    if (!bsModal) {
-        const modalEl = document.getElementById('modalRegistroEvento');
-        bsModal = new bootstrap.Modal(modalEl);
-    }
+    const modal = getBsModal();
 
     const formattedCnpj = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 
@@ -584,14 +591,11 @@ function abrirModalRegistro(cnpj, razao) {
     document.getElementById('regPossuiContrato').checked = false;
     document.querySelectorAll('.chk-produto').forEach(c => c.checked = false);
 
-    bsModal.show();
+    if (modal) modal.show();
 }
 
 function abrirModalEditarRegistro(c) {
-    if (!bsModal) {
-        const modalEl = document.getElementById('modalRegistroEvento');
-        bsModal = new bootstrap.Modal(modalEl);
-    }
+    const modal = getBsModal();
 
     const formattedCnpj = c.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 
@@ -614,7 +618,7 @@ function abrirModalEditarRegistro(c) {
         chk.checked = selectedProds.includes(chk.value.toLowerCase());
     });
 
-    bsModal.show();
+    if (modal) modal.show();
 }
 
 document.getElementById('btnSalvarRegistro').addEventListener('click', async () => {
@@ -669,7 +673,8 @@ document.getElementById('btnSalvarRegistro').addEventListener('click', async () 
         const data = await res.json();
 
         if (data.success) {
-            bsModal.hide();
+            const modal = getBsModal();
+            if (modal) modal.hide();
             showToast('✅ ' + data.message);
 
             await carregarMeusContatosEvento();
