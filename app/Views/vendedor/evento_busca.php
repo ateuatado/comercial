@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main_vendedor') ?>
+<?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
 <style>
