@@ -248,6 +248,7 @@
 - [x] **2.11.2** — Criar `Admin\EventosController` + views (`admin/eventos_index.php` e `admin/evento_detalhe.php`) para cadastro e acompanhamento de contatos por evento.
 - [x] **2.11.3** — Criar rotas e views do vendedor (`vendedor/eventos.php` e `vendedor/evento_busca.php`) com modal de registro de abordagem (status de interesse, observações e data/hora).
 - [x] **2.11.4** — Adicionar atalho "Eventos" no menu de navegação do admin e vendedor.
+- [x] **2.11.5** — Adicionar suporte a Plano B de cadastro manual de CNPJ + Razão Social, geolocalização GPS e edição de abordagens pelo vendedor.
 
 ---
 
