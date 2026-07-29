@@ -1,214 +1,156 @@
-<?= $this->extend('layouts/main') ?>
-
+<?= $this->extend('layouts/main_vendedor') ?>
 <?= $this->section('content') ?>
 
 <style>
-:root {
-    --primary: #1e3a8a;
-    --primary-light: #3b82f6;
-    --border-color: #e2e8f0;
-    --neutral-light: #f8fafc;
-}
-
-.event-search-container {
-    max-width: 540px;
+.search-container {
+    max-width: 720px;
     margin: 0 auto;
-    background: var(--neutral-light);
-    min-height: 100vh;
-    padding-bottom: 40px;
+    padding: 16px 12px 60px 12px;
 }
-
-.event-search-header {
-    background: #fff;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.event-search-header h1 {
-    font-size: 15px;
-    font-weight: 700;
-    margin: 0;
-    color: var(--primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 320px;
-}
-
-.back-btn {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: #f1f5f9;
-    border: none;
-    display: flex; align-items: center; justify-content: center;
-    color: #475569;
-    cursor: pointer;
-    text-decoration: none;
-}
-
 .banner-evento {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-    color: #fff;
-    padding: 14px 16px;
-    margin: 12px;
-    border-radius: 14px;
-    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
-
 .banner-evento h2 {
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 1.1rem;
+    font-weight: 700;
     margin: 0 0 4px 0;
 }
-
 .banner-evento p {
-    font-size: 11px;
+    font-size: 0.85rem;
     margin: 0;
     opacity: 0.9;
 }
-
 .search-box-wrap {
-    margin: 12px;
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 16px;
 }
-
 .search-box {
     display: flex;
     gap: 8px;
-    background: #fff;
-    padding: 6px;
-    border-radius: 12px;
-    border: 1.5px solid var(--border-color);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
 }
-
 .search-input {
     flex: 1;
-    border: none;
-    outline: none;
-    padding: 8px 10px;
-    font-size: 13px;
-    background: transparent;
-}
-
-.btn-search-go {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    padding: 8px 16px;
+    border: 1px solid #cbd5e1;
     border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
 }
-
+.search-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.btn-search-go {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 18px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
 .btn-search-go:hover {
-    background: var(--primary-light);
+    background: #1d4ed8;
 }
 
 .result-card {
-    background: #fff;
-    border-radius: 14px;
-    border: 1.5px solid var(--border-color);
+    background: white;
+    border-radius: 12px;
     padding: 14px;
-    margin: 0 12px 12px 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    border: 1px solid #e2e8f0;
 }
-
 .result-card h3 {
-    font-size: 14px;
+    font-size: 0.95rem;
     font-weight: 700;
-    color: #1e293b;
-    margin: 0 0 4px 0;
+    color: #0f172a;
+    margin: 0 0 2px 0;
 }
-
 .result-cnpj {
     font-family: monospace;
-    font-size: 11px;
+    font-size: 0.8rem;
     color: #64748b;
+    margin-bottom: 6px;
 }
-
 .result-address {
-    font-size: 11px;
-    color: #64748b;
-    margin-top: 6px;
-    line-height: 1.3;
+    font-size: 0.8rem;
+    color: #475569;
+    margin-bottom: 10px;
 }
-
 .action-bar-evento {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 8px;
-    margin-top: 10px;
-    padding-top: 10px;
+    padding-top: 8px;
     border-top: 1px solid #f1f5f9;
 }
-
 .btn-registrar-evento {
-    background: #2563eb;
-    color: #fff;
+    background: #10b981;
+    color: white;
     border: none;
-    padding: 7px 14px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.btn-registrar-evento:hover {
-    background: #1d4ed8;
-}
-
-.badge-registrado-evento {
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #86efac;
-    padding: 4px 10px;
-    border-radius: 99px;
-    font-size: 11px;
-    font-weight: 700;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    cursor: pointer;
 }
-
-/* Toast */
+.btn-registrar-evento:hover {
+    background: #059669;
+}
+.badge-registrado-evento {
+    background: #e0e7ff;
+    color: #3730a3;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
 .spiv-toast {
     position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: #1e293b;
-    color: #fff;
+    background: #0f172a;
+    color: white;
     padding: 10px 20px;
-    border-radius: 30px;
-    font-size: 12px;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
+    display: none;
 }
-.spiv-toast.show { opacity: 1; }
+.spiv-toast.show {
+    display: block;
+    animation: fadeIn 0.3s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
 </style>
 
-<div class="event-search-container">
-    <div class="event-search-header">
-        <a href="<?= site_url('vendedor/eventos') ?>" class="back-btn">
-            <i class="bi bi-arrow-left"></i>
+<div class="search-container">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <a href="<?= site_url('vendedor/eventos') ?>" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Eventos
         </a>
-        <h1><i class="bi bi-calendar-event me-1"></i><?= esc($evento['nome']) ?></h1>
+        <h1 class="h6 mb-0 text-truncate px-2"><i class="bi bi-calendar-event me-1 text-primary"></i><?= esc($evento['nome']) ?></h1>
         <div style="width: 36px;"></div>
     </div>
 
@@ -218,41 +160,71 @@
             <?php if (!empty($evento['local'])): ?>
                 <i class="bi bi-geo-alt me-1"></i><?= esc($evento['local']) ?> · 
             <?php endif; ?>
-            Busque o CNPJ da empresa e registre a abordagem.
+            Busque o CNPJ ou gerencie suas abordagens.
         </p>
     </div>
 
-    <div class="search-box-wrap">
-        <div class="search-box">
-            <input type="text" id="searchInput" class="search-input" placeholder="Digite CNPJ, Nome ou Endereço..." autocomplete="off">
-            <button type="button" class="btn-search-go" id="btnSearchGo">Pesquisar</button>
-        </div>
-        <div class="text-muted mt-1 px-1" style="font-size: 10px;">
-            <i class="bi bi-search me-1"></i>Digite pelo menos 3 caracteres.
-        </div>
-    </div>
+    <!-- Navegação em Abas -->
+    <ul class="nav nav-pills mb-3 nav-justified bg-white p-1 rounded-3 shadow-sm border" id="eventoTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold py-2" id="tabBusca-tab" data-bs-toggle="pill" data-bs-target="#tabBusca" type="button" role="tab" style="font-size: 0.85rem;">
+                <i class="bi bi-search me-1"></i>Buscar Empresas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold py-2" id="tabMeusRegistros-tab" data-bs-toggle="pill" data-bs-target="#tabMeusRegistros" type="button" role="tab" style="font-size: 0.85rem;">
+                <i class="bi bi-journal-check me-1"></i>Meus Registros <span class="badge bg-primary rounded-pill ms-1" id="myCountBadge">0</span>
+            </button>
+        </li>
+    </ul>
 
-    <!-- Resultados -->
-    <div id="resultsSection">
-        <div class="text-center text-muted py-5" id="initialMsg">
-            <i class="bi bi-building-add" style="font-size: 36px; color: #cbd5e1;"></i>
-            <p class="mt-2 small">Digite o CNPJ ou Nome da empresa acima para buscar.</p>
+    <div class="tab-content" id="eventoTabContent">
+        <!-- ABA 1: BUSCAR EMPRESAS -->
+        <div class="tab-pane fade show active" id="tabBusca" role="tabpanel">
+            <div class="search-box-wrap">
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Digite CNPJ, Nome ou Endereço..." autocomplete="off">
+                    <button type="button" class="btn-search-go" id="btnSearchGo">Pesquisar</button>
+                </div>
+                <div class="text-muted mt-1 px-1" style="font-size: 10px;">
+                    <i class="bi bi-search me-1"></i>Digite pelo menos 3 caracteres.
+                </div>
+            </div>
+
+            <!-- Resultados -->
+            <div id="resultsSection">
+                <div class="text-center text-muted py-5" id="initialMsg">
+                    <i class="bi bi-building-add" style="font-size: 36px; color: #cbd5e1;"></i>
+                    <p class="mt-2 small">Digite o CNPJ ou Nome da empresa acima para buscar.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 2: MEUS REGISTROS -->
+        <div class="tab-pane fade" id="tabMeusRegistros" role="tabpanel">
+            <div id="myRecordsList">
+                <div class="text-center text-muted py-5 bg-white rounded-3 border">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <p class="mt-2 small mb-0">Carregando seus registros...</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Registro de Contato de Evento -->
+<!-- Modal Registro / Edição de Contato de Evento -->
 <div class="modal fade" id="modalRegistroEvento" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fs-6 fw-bold">
-                    <i class="bi bi-card-checklist me-2"></i>Registrar Abordagem no Evento
+                    <i class="bi bi-card-checklist me-2"></i><span id="modalRegistroTitle">Registrar Abordagem no Evento</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="formRegistroEvento">
+                    <input type="hidden" id="regContactId" name="contact_id">
                     <input type="hidden" id="regCnpj" name="cnpj">
                     <input type="hidden" id="regRazaoSocial" name="razao_social">
 
@@ -329,7 +301,7 @@
                     <!-- Observações -->
                     <div class="mb-2">
                         <label class="form-label fw-semibold small">
-                            Observações do Contato
+                            Observações do Contato / Serviços
                         </label>
                         <textarea id="regObservacao" class="form-control form-control-sm" rows="3" placeholder="Ex: Falei com o diretor de logística, pediu para enviar proposta no e-mail..."></textarea>
                     </div>
@@ -354,6 +326,7 @@ const searchInput = document.getElementById('searchInput');
 const btnSearchGo = document.getElementById('btnSearchGo');
 const resultsSection = document.getElementById('resultsSection');
 
+let meusContatosList = [];
 let meusContatosSet = new Map(); // cnpj => contatoObj
 let userLat = null;
 let userLng = null;
@@ -378,12 +351,88 @@ async function carregarMeusContatosEvento() {
         const res = await fetch(`<?= site_url('vendedor/eventos/') ?>${EVENTO_ID}/meus-contatos`);
         const data = await res.json();
         if (data.success && data.contatos) {
+            meusContatosList = data.contatos;
             meusContatosSet.clear();
             data.contatos.forEach(c => {
                 meusContatosSet.set(c.cnpj, c);
             });
+            const badge = document.getElementById('myCountBadge');
+            if (badge) badge.textContent = data.contatos.length;
+            renderMeusRegistrosList();
         }
     } catch(e) {}
+}
+
+function renderMeusRegistrosList() {
+    const container = document.getElementById('myRecordsList');
+    if (!container) return;
+
+    if (!meusContatosList || meusContatosList.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-5 bg-white rounded-3 border">
+                <i class="bi bi-journal-x" style="font-size: 36px; color: #cbd5e1;"></i>
+                <p class="mt-2 small mb-0">Você ainda não registrou abordagens neste evento.</p>
+                <small class="text-secondary">Use a aba <strong>Buscar Empresas</strong> para pesquisar e cadastrar.</small>
+            </div>
+        `;
+        return;
+    }
+
+    const statusBadgeMap = {
+        'marcar_reuniao':     { label: '📅 Marcar Reunião',     class: 'bg-success' },
+        'ligar_depois':       { label: '📞 Ligar Depois',        class: 'bg-primary' },
+        'interesse_limitado': { label: '⚡ Interesse Limitado',  class: 'bg-warning text-dark' },
+        'sem_interesse':      { label: '❌ Sem Interesse',       class: 'bg-danger' }
+    };
+
+    let html = '';
+    meusContatosList.forEach(c => {
+        const cnpjFmt = c.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+        const st = statusBadgeMap[c.status] || { label: c.status, class: 'bg-secondary' };
+        const prods = c.produtos_interesse ? c.produtos_interesse.split(',').map(p=>p.trim()).filter(Boolean) : [];
+
+        html += `
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">${escHtml(c.razao_social || 'Razão Social Indisponível')}</h6>
+                            <small class="text-muted font-monospace">${cnpjFmt}</small>
+                        </div>
+                        <span class="badge ${st.class}">${st.label}</span>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        ${c.possui_contrato ? '<span class="badge bg-info-subtle text-info border border-info-subtle"><i class="bi bi-file-earmark-check me-1"></i>Com Contrato</span>' : '<span class="badge bg-light text-muted border">Sem Contrato</span>'}
+                        ${prods.map(p => `<span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:10px;">${escHtml(p)}</span>`).join('')}
+                    </div>
+
+                    ${c.observacao ? `<div class="p-2 rounded bg-light text-dark small mb-2" style="font-style:italic;">"${escHtml(c.observacao)}"</div>` : ''}
+
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <small class="text-muted" style="font-size:11px;">
+                            <i class="bi bi-clock me-1"></i>${c.created_at_fmt || c.created_at}
+                        </small>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-editar-meu-registro" data-id="${c.id}">
+                            <i class="bi bi-pencil-square me-1"></i>Editar Registro
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+
+    container.querySelectorAll('.btn-editar-meu-registro').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const contactId = parseInt(btn.dataset.id);
+            const contactObj = meusContatosList.find(item => item.id === contactId);
+            if (contactObj) {
+                abrirModalEditarRegistro(contactObj);
+            }
+        });
+    });
 }
 
 function escHtml(s) {
@@ -465,18 +514,18 @@ function renderResults(list) {
             const label = stLabelMap[jaRegistrado.status] || jaRegistrado.status;
             actionHtml = `
                 <span class="badge-registrado-evento">
-                    <i class="bi bi-check-circle-fill"></i> Registrado (${escHtml(label)})
+                    <i class="bi bi-check-circle-fill me-1"></i>Registrado (${escHtml(label)})
                 </span>
                 <button type="button" class="btn btn-sm btn-outline-primary btn-abrir-modal-reg"
                         data-cnpj="${cleanCnpj}" data-razao="${escHtml(razao)}">
-                    <i class="bi bi-plus-lg"></i> Adicionar Outro
+                    <i class="bi bi-pencil-square me-1"></i>Editar Registro
                 </button>
             `;
         } else {
             actionHtml = `
                 <button type="button" class="btn-registrar-evento btn-abrir-modal-reg"
                         data-cnpj="${cleanCnpj}" data-razao="${escHtml(razao)}">
-                    <i class="bi bi-card-checklist"></i> Registrar no Evento
+                    <i class="bi bi-card-checklist me-1"></i>Registrar no Evento
                 </button>
             `;
         }
@@ -495,7 +544,6 @@ function renderResults(list) {
         resultsSection.appendChild(card);
     });
 
-    // Bind botões do modal
     resultsSection.querySelectorAll('.btn-abrir-modal-reg').forEach(btn => {
         btn.addEventListener('click', () => {
             abrirModalRegistro(btn.dataset.cnpj, btn.dataset.razao);
@@ -506,6 +554,12 @@ function renderResults(list) {
 let bsModal = null;
 
 function abrirModalRegistro(cnpj, razao) {
+    const existing = meusContatosList.find(c => c.cnpj === cnpj);
+    if (existing) {
+        abrirModalEditarRegistro(existing);
+        return;
+    }
+
     if (!bsModal) {
         const modalEl = document.getElementById('modalRegistroEvento');
         bsModal = new bootstrap.Modal(modalEl);
@@ -513,17 +567,18 @@ function abrirModalRegistro(cnpj, razao) {
 
     const formattedCnpj = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 
+    document.getElementById('regContactId').value = '';
     document.getElementById('regCnpj').value = cnpj;
     document.getElementById('regRazaoSocial').value = razao;
     document.getElementById('displayEmpresaNome').textContent = razao;
     document.getElementById('displayEmpresaCnpj').textContent = formattedCnpj;
+    document.getElementById('modalRegistroTitle').textContent = 'Registrar Abordagem no Evento';
+    document.getElementById('btnSalvarRegistro').innerHTML = '<i class="bi bi-check-lg me-1"></i>Salvar Registro';
 
-    // Data / Hora atual
     const now = new Date();
     const nowFmt = now.toLocaleDateString('pt-BR') + ' às ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
     document.getElementById('displayDataHora').value = nowFmt;
 
-    // Reset campos
     document.getElementById('regStatus').value = '';
     document.getElementById('regObservacao').value = '';
     document.getElementById('regPossuiContrato').checked = false;
@@ -532,7 +587,38 @@ function abrirModalRegistro(cnpj, razao) {
     bsModal.show();
 }
 
+function abrirModalEditarRegistro(c) {
+    if (!bsModal) {
+        const modalEl = document.getElementById('modalRegistroEvento');
+        bsModal = new bootstrap.Modal(modalEl);
+    }
+
+    const formattedCnpj = c.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+
+    document.getElementById('regContactId').value = c.id;
+    document.getElementById('regCnpj').value = c.cnpj;
+    document.getElementById('regRazaoSocial').value = c.razao_social || '';
+    document.getElementById('displayEmpresaNome').textContent = c.razao_social || 'Razão Social Indisponível';
+    document.getElementById('displayEmpresaCnpj').textContent = formattedCnpj;
+    document.getElementById('modalRegistroTitle').textContent = 'Editar Abordagem no Evento';
+    document.getElementById('btnSalvarRegistro').innerHTML = '<i class="bi bi-check-lg me-1"></i>Atualizar Registro';
+
+    document.getElementById('displayDataHora').value = c.created_at_fmt || c.created_at;
+
+    document.getElementById('regStatus').value = c.status || '';
+    document.getElementById('regObservacao').value = c.observacao || '';
+    document.getElementById('regPossuiContrato').checked = !!c.possui_contrato;
+
+    const selectedProds = c.produtos_interesse ? c.produtos_interesse.split(',').map(p=>p.trim().toLowerCase()) : [];
+    document.querySelectorAll('.chk-produto').forEach(chk => {
+        chk.checked = selectedProds.includes(chk.value.toLowerCase());
+    });
+
+    bsModal.show();
+}
+
 document.getElementById('btnSalvarRegistro').addEventListener('click', async () => {
+    const contactId = document.getElementById('regContactId').value;
     const cnpj = document.getElementById('regCnpj').value;
     const razao = document.getElementById('regRazaoSocial').value;
     const status = document.getElementById('regStatus').value;
@@ -555,6 +641,9 @@ document.getElementById('btnSalvarRegistro').addEventListener('click', async () 
 
     try {
         const formData = new FormData();
+        if (contactId) {
+            formData.append('contact_id', contactId);
+        }
         formData.append('evento_id', EVENTO_ID);
         formData.append('cnpj', cnpj);
         formData.append('razao_social', razao);
@@ -583,31 +672,32 @@ document.getElementById('btnSalvarRegistro').addEventListener('click', async () 
             bsModal.hide();
             showToast('✅ ' + data.message);
 
-            // Atualizar mapa local
-            meusContatosSet.set(cnpj, { cnpj: cnpj, status: status, observacao: observacao, created_at: data.created_at });
+            await carregarMeusContatosEvento();
 
-            // Atualizar action bar do card
-            const actionBar = document.getElementById(`actionBar_${cnpj}`);
-            if (actionBar) {
-                const stLabelMap = {
-                    'marcar_reuniao': '📅 Marcar Reunião',
-                    'ligar_depois': '📞 Ligar Depois',
-                    'interesse_limitado': '⚡ Interesse Limitado',
-                    'sem_interesse': '❌ Sem Interesse'
-                };
-                const label = stLabelMap[status] || status;
-                actionBar.innerHTML = `
-                    <span class="badge-registrado-evento">
-                        <i class="bi bi-check-circle-fill"></i> Registrado (${escHtml(label)})
-                    </span>
-                    <button type="button" class="btn btn-sm btn-outline-primary btn-abrir-modal-reg"
-                            data-cnpj="${cnpj}" data-razao="${escHtml(razao)}">
-                        <i class="bi bi-plus-lg"></i> Adicionar Outro
-                    </button>
-                `;
-                actionBar.querySelector('.btn-abrir-modal-reg').addEventListener('click', () => {
-                    abrirModalRegistro(cnpj, razao);
-                });
+            const card = document.querySelector(`.result-card[data-cnpj="${cnpj}"]`);
+            if (card) {
+                const actionBar = card.querySelector('.action-bar-evento');
+                if (actionBar) {
+                    const stLabelMap = {
+                        'marcar_reuniao': '📅 Marcar Reunião',
+                        'ligar_depois': '📞 Ligar Depois',
+                        'interesse_limitado': '⚡ Interesse Limitado',
+                        'sem_interesse': '❌ Sem Interesse'
+                    };
+                    const label = stLabelMap[status] || status;
+                    actionBar.innerHTML = `
+                        <span class="badge-registrado-evento">
+                            <i class="bi bi-check-circle-fill me-1"></i>Registrado (${escHtml(label)})
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-abrir-modal-reg"
+                                data-cnpj="${cnpj}" data-razao="${escHtml(razao)}">
+                            <i class="bi bi-pencil-square me-1"></i>Editar Registro
+                        </button>
+                    `;
+                    actionBar.querySelector('.btn-abrir-modal-reg').addEventListener('click', () => {
+                        abrirModalRegistro(cnpj, razao);
+                    });
+                }
             }
         } else {
             alert('❌ ' + (data.error || 'Erro ao registrar contato.'));

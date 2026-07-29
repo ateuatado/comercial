@@ -2443,6 +2443,7 @@ class VendedorController extends BaseController
             return $this->response->setJSON(['error' => 'Não autorizado'])->setStatusCode(403);
         }
 
+        $contactId         = (int) $this->request->getPost('contact_id');
         $eventoId          = (int) $this->request->getPost('evento_id');
         $cnpj              = preg_replace('/[^0-9]/', '', (string)$this->request->getPost('cnpj'));
         $razaoSocial       = trim((string)$this->request->getPost('razao_social'));
@@ -2480,8 +2481,46 @@ class VendedorController extends BaseController
             return $this->response->setJSON(['error' => 'Evento não encontrado ou inativo.'])->setStatusCode(404);
         }
 
-        // Insere o registro de contato com geolocalização do vendedor
         $now = date('Y-m-d H:i:s');
+
+        // Edição de registro existente
+        if ($contactId > 0) {
+            $existing = $db->table('evento_contacts')
+                           ->where('id', $contactId)
+                           ->where('matricula_vendedor', $vendorUser['matricula'])
+                           ->get()->getRowArray();
+
+            if (!$existing) {
+                return $this->response->setJSON(['error' => 'Registro não encontrado ou não pertence a você.'])->setStatusCode(404);
+            }
+
+            $updateData = [
+                'status'             => $status,
+                'observacao'         => $observacao ?: null,
+                'possui_contrato'    => $possuiContrato,
+                'produtos_interesse' => $produtosInteresse ?: null,
+                'updated_at'         => $now,
+            ];
+
+            if (!empty($razaoSocial)) {
+                $updateData['razao_social'] = $razaoSocial;
+            }
+            if ($latitude !== null && $longitude !== null) {
+                $updateData['latitude']  = $latitude;
+                $updateData['longitude'] = $longitude;
+            }
+
+            $db->table('evento_contacts')->where('id', $contactId)->update($updateData);
+
+            return $this->response->setJSON([
+                'success'    => true,
+                'message'    => 'Registro de abordagem atualizado com sucesso!',
+                'contact_id' => $contactId,
+                'updated_at' => date('d/m/Y H:i', strtotime($now)),
+            ]);
+        }
+
+        // Insere novo registro de contato com geolocalização do vendedor
         $db->table('evento_contacts')->insert([
             'evento_id'          => $eventoId,
             'cnpj'               => $cnpj,
@@ -2497,9 +2536,12 @@ class VendedorController extends BaseController
             'updated_at'         => $now,
         ]);
 
+        $newId = (int)$db->insertID();
+
         return $this->response->setJSON([
             'success'    => true,
             'message'    => 'Contato de evento registrado com sucesso!',
+            'contact_id' => $newId,
             'created_at' => date('d/m/Y H:i', strtotime($now)),
         ]);
     }
@@ -2516,7 +2558,7 @@ class VendedorController extends BaseController
 
         $db = db_connect();
         $contatos = $db->query("
-            SELECT cnpj, status, observacao, possui_contrato, produtos_interesse, created_at
+            SELECT id, cnpj, razao_social, status, observacao, possui_contrato, produtos_interesse, latitude, longitude, created_at
             FROM evento_contacts
             WHERE evento_id = ? AND matricula_vendedor = ?
             ORDER BY created_at DESC
@@ -2524,6 +2566,7 @@ class VendedorController extends BaseController
 
         foreach ($contatos as &$c) {
             $c['created_at_fmt'] = date('d/m/Y H:i', strtotime($c['created_at']));
+            $c['possui_contrato'] = !empty($c['possui_contrato']) && ($c['possui_contrato'] === true || $c['possui_contrato'] === 't' || $c['possui_contrato'] === 1 || $c['possui_contrato'] === '1');
         }
 
         return $this->response->setJSON([
