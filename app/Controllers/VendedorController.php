@@ -2574,4 +2574,83 @@ class VendedorController extends BaseController
             'contatos' => $contatos,
         ]);
     }
+
+    /**
+     * GET /vendedor/eventos/(:num)/exportar-csv — Exporta em CSV os registros captados pelo próprio vendedor no evento.
+     */
+    public function eventoExportarCsv(int $eventoId)
+    {
+        $vendorUser = $this->getVendorUser();
+        if (!$vendorUser) {
+            return redirect()->to('/sem-carteira');
+        }
+
+        $db = db_connect();
+        $evento = $db->table('eventos')->where('id', $eventoId)->get()->getRowArray();
+        if (!$evento) {
+            return redirect()->to(site_url('vendedor/eventos'))->with('error', 'Evento não encontrado.');
+        }
+
+        $contatos = $db->query("
+            SELECT id, cnpj, razao_social, status, observacao, possui_contrato, produtos_interesse, latitude, longitude, created_at
+            FROM evento_contacts
+            WHERE evento_id = ? AND matricula_vendedor = ?
+            ORDER BY created_at DESC
+        ", [$eventoId, $vendorUser['matricula']])->getResultArray();
+
+        $statusMap = [
+            'marcar_reuniao'     => 'Marcar Reunião',
+            'ligar_depois'       => 'Ligar Depois',
+            'interesse_limitado' => 'Interesse Limitado',
+            'sem_interesse'      => 'Sem Interesse',
+        ];
+
+        $slugEvento = preg_replace('/[^a-zA-Z0-9]/', '_', strtolower($evento['nome']));
+        $filename   = "meus_registros_evento_{$eventoId}_{$slugEvento}_" . date('Ymd_His') . ".csv";
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        $output = fopen('php://output', 'w');
+
+        // BOM UTF-8 para compatibilidade perfeita com Excel no Windows
+        fwrite($output, "\xEF\xBB\xBF");
+
+        // Cabeçalho do CSV
+        fputcsv($output, [
+            'Data/Hora',
+            'CNPJ',
+            'Razão Social',
+            'Status da Abordagem',
+            'Possui Contrato?',
+            'Produtos de Interesse',
+            'Observações',
+            'Latitude',
+            'Longitude'
+        ], ';');
+
+        foreach ($contatos as $c) {
+            $cnpjFmt = preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $c['cnpj']);
+            $statusFmt = $statusMap[$c['status']] ?? $c['status'];
+            $possuiContrato = !empty($c['possui_contrato']) && ($c['possui_contrato'] === true || $c['possui_contrato'] === 't' || $c['possui_contrato'] === 1 || $c['possui_contrato'] === '1') ? 'Sim' : 'Não';
+            $dataFmt = !empty($c['created_at']) ? date('d/m/Y H:i:s', strtotime($c['created_at'])) : '';
+
+            fputcsv($output, [
+                $dataFmt,
+                $cnpjFmt,
+                $c['razao_social'] ?: 'Razão Social Indisponível',
+                $statusFmt,
+                $possuiContrato,
+                $c['produtos_interesse'] ?: '',
+                $c['observacao'] ?: '',
+                $c['latitude'] ?: '',
+                $c['longitude'] ?: '',
+            ], ';');
+        }
+
+        fclose($output);
+        exit;
+    }
 }

@@ -134,6 +134,7 @@ $routes->group('vendedor', ['filter' => 'session'], static function ($routes): v
     $routes->get('eventos/(:num)/busca',         'VendedorController::eventoBuscaView/$1');
     $routes->post('eventos/registrar',           'VendedorController::eventoRegistrarContato');
     $routes->get('eventos/(:num)/meus-contatos', 'VendedorController::eventoContatosApi/$1');
+    $routes->get('eventos/(:num)/exportar-csv',   'VendedorController::eventoExportarCsv/$1');
 });
 
 // Coordenador — visão do time (Fase 2.9) + gestão avançada (Fase 3)

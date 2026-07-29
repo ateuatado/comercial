@@ -164,19 +164,26 @@
         </p>
     </div>
 
-    <!-- Navegação em Abas -->
-    <ul class="nav nav-pills mb-3 nav-justified bg-white p-1 rounded-3 shadow-sm border" id="eventoTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold py-2" id="tabBusca-tab" data-bs-toggle="pill" data-bs-target="#tabBusca" type="button" role="tab" style="font-size: 0.85rem;">
-                <i class="bi bi-search me-1"></i>Buscar Empresas
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold py-2" id="tabMeusRegistros-tab" data-bs-toggle="pill" data-bs-target="#tabMeusRegistros" type="button" role="tab" style="font-size: 0.85rem;">
-                <i class="bi bi-journal-check me-1"></i>Meus Registros <span class="badge bg-primary rounded-pill ms-1" id="myCountBadge">0</span>
-            </button>
-        </li>
-    </ul>
+    <!-- Navegação em Abas e Botão Baixar CSV -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <ul class="nav nav-pills flex-grow-1 nav-justified bg-white p-1 rounded-3 shadow-sm border mb-0" id="eventoTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold py-2" id="tabBusca-tab" data-bs-toggle="pill" data-bs-target="#tabBusca" type="button" role="tab" style="font-size: 0.85rem;">
+                    <i class="bi bi-search me-1"></i>Buscar Empresas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold py-2" id="tabMeusRegistros-tab" data-bs-toggle="pill" data-bs-target="#tabMeusRegistros" type="button" role="tab" style="font-size: 0.85rem;">
+                    <i class="bi bi-journal-check me-1"></i>Meus Registros <span class="badge bg-primary rounded-pill ms-1" id="myCountBadge">0</span>
+                </button>
+            </li>
+        </ul>
+        <a href="<?= site_url('vendedor/eventos/' . $evento['id'] . '/exportar-csv') ?>" class="btn btn-outline-success fw-bold d-inline-flex align-items-center gap-1 shadow-sm py-2 px-3 border-2" style="white-space: nowrap; height: 42px; font-size: 0.82rem;" title="Baixar CSV dos Meus Registros">
+            <i class="bi bi-file-earmark-arrow-down-fill text-success fs-6"></i>
+            <span class="d-none d-sm-inline">Baixar CSV</span>
+            <span class="d-inline d-sm-none">CSV</span>
+        </a>
+    </div>
 
     <div class="tab-content" id="eventoTabContent">
         <!-- ABA 1: BUSCAR EMPRESAS -->
@@ -439,7 +446,16 @@ function renderMeusRegistrosList() {
         'sem_interesse':      { label: '❌ Sem Interesse',       class: 'bg-danger' }
     };
 
-    let html = '';
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-white rounded-3 border shadow-sm">
+            <small class="text-dark fw-bold">
+                <i class="bi bi-person-check-fill text-primary me-1"></i>${meusContatosList.length} registro(s) seu(s)
+            </small>
+            <a href="<?= site_url('vendedor/eventos/' . $evento['id'] . '/exportar-csv') ?>" class="btn btn-sm btn-success fw-bold d-inline-flex align-items-center gap-1">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Baixar CSV
+            </a>
+        </div>
+    `;
     meusContatosList.forEach(c => {
         const cnpjFmt = c.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
         const st = statusBadgeMap[c.status] || { label: c.status, class: 'bg-secondary' };
