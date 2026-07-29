@@ -229,12 +229,19 @@
                 <form id="formRegistroEvento">
                     <input type="hidden" id="regContactId" name="contact_id">
                     <input type="hidden" id="regCnpj" name="cnpj">
-                    <input type="hidden" id="regRazaoSocial" name="razao_social">
 
-                    <!-- Bloco Empresa Automática (vinda da busca) -->
+                    <!-- Bloco Empresa Automática (vinda da busca ou edição) -->
                     <div id="blockEmpresaAuto" class="p-2 mb-3 rounded bg-light border">
-                        <div class="fw-bold text-dark fs-6" id="displayEmpresaNome">—</div>
-                        <small class="text-muted font-monospace" id="displayEmpresaCnpj">—</small>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small text-dark mb-1">
+                                <i class="bi bi-building me-1"></i>Razão Social / Nome da Empresa <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="regRazaoSocial" name="razao_social" class="form-control form-control-sm fw-semibold" placeholder="Digite a Razão Social ou Nome Fantasia">
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <small class="text-muted fw-semibold" style="font-size: 11px;">CNPJ:</small>
+                            <small class="text-dark font-monospace fw-bold" id="displayEmpresaCnpj" style="font-size: 11px;">—</small>
+                        </div>
                     </div>
 
                     <!-- Bloco Empresa Manual (Plano B) -->
@@ -635,8 +642,7 @@ function abrirModalRegistro(cnpj, razao) {
 
     document.getElementById('regContactId').value = '';
     document.getElementById('regCnpj').value = cnpj;
-    document.getElementById('regRazaoSocial').value = razao;
-    document.getElementById('displayEmpresaNome').textContent = razao;
+    document.getElementById('regRazaoSocial').value = razao || '';
     document.getElementById('displayEmpresaCnpj').textContent = formattedCnpj;
     document.getElementById('modalRegistroTitle').textContent = 'Registrar Abordagem no Evento';
     document.getElementById('btnSalvarRegistro').innerHTML = '<i class="bi bi-check-lg me-1"></i>Salvar Registro';
@@ -701,7 +707,6 @@ function abrirModalEditarRegistro(c) {
     document.getElementById('regContactId').value = c.id;
     document.getElementById('regCnpj').value = c.cnpj;
     document.getElementById('regRazaoSocial').value = c.razao_social || '';
-    document.getElementById('displayEmpresaNome').textContent = c.razao_social || 'Razão Social Indisponível';
     document.getElementById('displayEmpresaCnpj').textContent = formattedCnpj;
     document.getElementById('modalRegistroTitle').textContent = 'Editar Abordagem no Evento';
     document.getElementById('btnSalvarRegistro').innerHTML = '<i class="bi bi-check-lg me-1"></i>Atualizar Registro';
@@ -744,7 +749,13 @@ document.getElementById('btnSalvarRegistro').addEventListener('click', async () 
         }
     } else {
         cnpj = document.getElementById('regCnpj').value;
-        razao = document.getElementById('regRazaoSocial').value;
+        razao = document.getElementById('regRazaoSocial').value.trim();
+
+        if (!razao) {
+            alert('⚠️ Por favor, informe a Razão Social ou Nome da Empresa.');
+            document.getElementById('regRazaoSocial').focus();
+            return;
+        }
     }
 
     const status = document.getElementById('regStatus').value;
