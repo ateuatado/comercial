@@ -21,12 +21,54 @@
                 <?php endif; ?>
             </div>
         </div>
-        <div>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarEventoDetalhe">
+                <i class="bi bi-pencil-square me-1"></i>Editar Evento
+            </button>
             <?php if (!empty($evento['ativo'])): ?>
                 <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>Evento Ativo</span>
             <?php else: ?>
                 <span class="badge bg-secondary fs-6"><i class="bi bi-pause-circle me-1"></i>Evento Inativo</span>
             <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Evento -->
+<div class="modal fade" id="modalEditarEventoDetalhe" tabindex="-1" aria-labelledby="modalEditarEventoDetalheLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?= site_url('admin/eventos/' . $evento['id'] . '/editar') ?>" method="POST">
+                <?= csrf_field() ?>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEditarEventoDetalheLabel"><i class="bi bi-pencil-square me-2"></i>Editar Evento / Feira</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nome do Evento <span class="text-danger">*</span></label>
+                        <input type="text" name="nome" class="form-control" value="<?= esc($evento['nome']) ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Local / Cidade</label>
+                        <input type="text" name="local" class="form-control" value="<?= esc($evento['local'] ?? '') ?>" placeholder="Ex: Anhembi - São Paulo/SP">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Data de Início</label>
+                            <input type="date" name="data_inicio" class="form-control" value="<?= esc($evento['data_inicio'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Data de Término</label>
+                            <input type="date" name="data_fim" class="form-control" value="<?= esc($evento['data_fim'] ?? '') ?>">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar Alterações</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -64,6 +64,37 @@ class EventosController extends BaseController
             ->with('success', "Evento '{$nome}' cadastrado com sucesso!");
     }
 
+    /** POST /admin/eventos/(:num)/editar — atualiza um evento existente. */
+    public function update(int $id): RedirectResponse
+    {
+        $db = db_connect();
+        $evento = $db->table('eventos')->where('id', $id)->get()->getRowArray();
+
+        if (!$evento) {
+            return redirect()->to(site_url('admin/eventos'))->with('error', 'Evento não encontrado.');
+        }
+
+        $nome       = trim($this->request->getPost('nome') ?? '');
+        $local      = trim($this->request->getPost('local') ?? '');
+        $dataInicio = $this->request->getPost('data_inicio') ?: null;
+        $dataFim    = $this->request->getPost('data_fim') ?: null;
+
+        if (empty($nome)) {
+            return redirect()->back()->with('error', 'O nome do evento é obrigatório.')->withInput();
+        }
+
+        $db->table('eventos')->where('id', $id)->update([
+            'nome'        => $nome,
+            'local'       => $local ?: null,
+            'data_inicio' => $dataInicio,
+            'data_fim'    => $dataFim,
+            'updated_at'  => date('Y-m-d H:i:s'),
+        ]);
+
+        return redirect()->to(site_url('admin/eventos'))
+            ->with('success', "Evento '{$nome}' atualizado com sucesso!");
+    }
+
     /** POST /admin/eventos/(:num)/toggle — altera o status (ativo/inativo). */
     public function toggle(int $id): RedirectResponse
     {

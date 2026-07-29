@@ -81,6 +81,7 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     $routes->get('eventos',                '\App\Controllers\Admin\EventosController::index');
     $routes->get('eventos/(:num)',         '\App\Controllers\Admin\EventosController::show/$1');
     $routes->post('eventos/novo',          '\App\Controllers\Admin\EventosController::store');
+    $routes->post('eventos/(:num)/editar', '\App\Controllers\Admin\EventosController::update/$1');
     $routes->post('eventos/(:num)/toggle', '\App\Controllers\Admin\EventosController::toggle/$1');
 });
 

@@ -71,6 +71,9 @@
                                     <i class="bi bi-people-fill me-1"></i><?= (int)$ev['total_contatos'] ?> contatos
                                 </span>
                                 <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEditarEvento<?= $ev['id'] ?>" title="Editar Evento">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
                                     <form action="<?= site_url('admin/eventos/' . $ev['id'] . '/toggle') ?>" method="POST" class="d-inline">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-sm <?= $ev['ativo'] ? 'btn-outline-warning' : 'btn-outline-success' ?>" title="<?= $ev['ativo'] ? 'Desativar' : 'Ativar' ?>">
@@ -83,6 +86,45 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Editar Evento -->
+            <div class="modal fade" id="modalEditarEvento<?= $ev['id'] ?>" tabindex="-1" aria-labelledby="modalEditarEventoLabel<?= $ev['id'] ?>" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="<?= site_url('admin/eventos/' . $ev['id'] . '/editar') ?>" method="POST">
+                            <?= csrf_field() ?>
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalEditarEventoLabel<?= $ev['id'] ?>"><i class="bi bi-pencil-square me-2"></i>Editar Evento / Feira</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-start">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Nome do Evento <span class="text-danger">*</span></label>
+                                    <input type="text" name="nome" class="form-control" value="<?= esc($ev['nome']) ?>" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Local / Cidade</label>
+                                    <input type="text" name="local" class="form-control" value="<?= esc($ev['local'] ?? '') ?>" placeholder="Ex: Anhembi - São Paulo/SP">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Data de Início</label>
+                                        <input type="date" name="data_inicio" class="form-control" value="<?= esc($ev['data_inicio'] ?? '') ?>">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Data de Término</label>
+                                        <input type="date" name="data_fim" class="form-control" value="<?= esc($ev['data_fim'] ?? '') ?>">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar Alterações</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
