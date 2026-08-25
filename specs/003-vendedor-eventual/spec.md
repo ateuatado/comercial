@@ -74,6 +74,29 @@ ativação e primeiro uso, conforme integração disponível.
   permanece desabilitada por padrão.
 - O cadastro público por CNPJ é sugestão e precisa de confirmação do cliente.
 
+### 5.1 Decisões da fundação de identidade e acesso
+
+- Autenticação e autorização são dimensões separadas: qualquer empregado ativo
+  reconhecido pelo provedor configurado pode autenticar, mas isso não concede
+  acesso automático às aplicações do SPIV.
+- Perfis Shield existentes continuam representando funções estáveis. Acesso
+  temporário ou condicionado a campanha é concedido por capacidades com escopo,
+  origem, início, término e trilha de auditoria.
+- Uma concessão pode ser administrativa ou originada por campanha. Concessões de
+  campanha deixam de ser efetivas quando a campanha termina, é suspensa ou sai
+  de sua vigência, sem apagar o histórico.
+- Suspensão administrativa e situação funcional inativa prevalecem sobre qualquer
+  concessão. Uma concessão administrativa não prolonga silenciosamente uma
+  campanha encerrada.
+- O piloto fora da rede corporativa usa somente identidades fictícias, marcadas
+  com origem `demo`. O modo demonstrativo e sua senha compartilhada precisam ser
+  habilitados explicitamente por configuração e ficam desabilitados por padrão.
+- Na rede corporativa, o LDAP será o provedor de identidade funcional. Ambos os
+  modos alimentam o mesmo cadastro de empregados e as mesmas regras de
+  autorização; nenhum dado real é necessário no piloto externo.
+- A feature Vendedor Eventual permanece desabilitada por padrão até a validação
+  integral das migrations, autorização, isolamento e implantação.
+
 ## 6. Jornadas
 
 ### J1 — Adesão

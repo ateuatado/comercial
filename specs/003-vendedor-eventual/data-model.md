@@ -17,6 +17,27 @@ Identidade funcional fornecida pelo diretório corporativo.
 Campos essenciais: `employee_id`, nome, lotação, situação funcional, perfis de
 acesso e instante da última sincronização.
 
+No piloto externo, a origem pode ser `demo` e os dados devem ser exclusivamente
+fictícios. O vínculo com o usuário de autenticação não transforma o empregado em
+vendedor da carteira existente.
+
+### Application
+
+Capacidade funcional disponibilizável no SPIV, identificada por código estável,
+como `vendedor_eventual`. Possui estado próprio e não equivale a grupo de perfil.
+
+### EmployeeEntitlement
+
+Concessão de acesso de um empregado a uma aplicação ou capacidade.
+
+Campos essenciais: empregado, aplicação, capacidade, origem (`administrador`,
+`campanha` ou `sistema`), campanha opcional, início, término, estado, concedente,
+justificativa, revogação e timestamps.
+
+Concessões originadas por campanha exigem campanha e término. A efetividade é
+calculada no servidor e depende também da situação funcional, feature flag,
+estado e vigência da campanha e ausência de suspensão administrativa.
+
 ### Campaign
 
 Define uma edição do piloto ou programa.
@@ -196,3 +217,8 @@ decisão de carteira, reconciliação e exportação.
 8. Sincronização offline é idempotente por identificador local de operação.
 9. Documento e consentimento não podem ser reutilizados para finalidade distinta
    sem base válida.
+10. Autenticação bem-sucedida não concede aplicação sem autorização efetiva.
+11. Encerramento, suspensão ou fim da vigência da campanha cessa imediatamente
+    suas concessões, preservando registros históricos.
+12. Identidades `demo` não podem autenticar quando o modo demonstrativo estiver
+    desabilitado.

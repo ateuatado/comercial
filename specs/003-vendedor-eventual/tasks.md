@@ -10,8 +10,15 @@
 
 ## Fase 1 — Fundação
 
-- [ ] T006 Implementar campanhas, versões e publicação.
-- [ ] T007 Integrar identidade funcional e restrição de rede.
+- [~] T006 Implementar campanhas, versões e publicação.
+  - [~] T006.1 Criar campanha demonstrativa, vigência e estados fundamentais.
+  - [ ] T006.2 Implementar versões e publicação após validar os conteúdos.
+- [~] T007 Integrar identidade funcional e restrição de rede.
+  - [~] T007.1 Separar empregado autenticável de vendedor da carteira.
+  - [~] T007.2 Implementar provedor `demo` explícito com identidades fictícias.
+  - [ ] T007.3 Conectar o provedor LDAP e validar restrição de rede no ambiente corporativo.
+- [~] T007A Implementar catálogo de aplicações e concessões temporárias auditáveis.
+- [~] T007B Implementar cálculo central de autorização por empregado, aplicação e campanha.
 - [ ] T008 Implementar adesão, treinamento, avaliação e termos.
 - [ ] T009 Implementar catálogo e questionário versionados.
 - [ ] T010 Implementar oportunidade, correlação e linha do tempo imutável.
