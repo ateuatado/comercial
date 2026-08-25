@@ -83,6 +83,18 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     $routes->post('eventos/novo',          '\App\Controllers\Admin\EventosController::store');
     $routes->post('eventos/(:num)/editar', '\App\Controllers\Admin\EventosController::update/$1');
     $routes->post('eventos/(:num)/toggle', '\App\Controllers\Admin\EventosController::toggle/$1');
+
+    // Fundação do Vendedor Eventual — autorização administrativa explícita.
+    $routes->group('vendedor-eventual', ['filter' => 'permission:campaign.manage'], static function ($routes): void {
+        $routes->get('/', '\App\Controllers\Admin\VendedorEventualController::index');
+        $routes->post('campanhas', '\App\Controllers\Admin\VendedorEventualController::createCampaign', ['filter' => 'csrf']);
+        $routes->post('campanhas/(:num)/estado', '\App\Controllers\Admin\VendedorEventualController::changeCampaignStatus/$1', ['filter' => 'csrf']);
+        $routes->post('aplicacoes/(:num)/estado', '\App\Controllers\Admin\VendedorEventualController::toggleApplication/$1', ['filter' => 'csrf']);
+    });
+    $routes->group('vendedor-eventual', ['filter' => 'permission:entitlements.manage'], static function ($routes): void {
+        $routes->post('concessoes', '\App\Controllers\Admin\VendedorEventualController::grant', ['filter' => 'csrf']);
+        $routes->post('concessoes/(:num)/revogar', '\App\Controllers\Admin\VendedorEventualController::revoke/$1', ['filter' => 'csrf']);
+    });
 });
 
 // Portal operacional — acom e gerente_conta (legado Fase 1)
@@ -170,6 +182,12 @@ $routes->group('coordenador', ['filter' => 'session'], static function ($routes)
 
 // Sem carteira — tela informativa
 $routes->get('sem-carteira', 'SemCarteiraController::index', ['filter' => 'session']);
+
+// Hub de aplicações e fundação do Vendedor Eventual.
+$routes->get('aplicacoes', 'ApplicationsController::index', ['filter' => 'session']);
+$routes->group('vendedor-eventual', ['filter' => 'applicationAccess:vendedor_eventual,access'], static function ($routes): void {
+    $routes->get('/', '\App\Controllers\VendedorEventual\HomeController::index');
+});
 
 // Override das rotas de login — registrado ANTES do Shield (CI4 usa first-match).
 // Suporta switch LDAP_ENABLED via .env sem alterar código.
