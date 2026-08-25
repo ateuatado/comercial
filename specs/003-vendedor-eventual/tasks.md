@@ -19,7 +19,10 @@
   - [ ] T007.3 Conectar o provedor LDAP e validar restrição de rede no ambiente corporativo.
 - [x] T007A Implementar catálogo de aplicações e concessões temporárias auditáveis.
 - [x] T007B Implementar cálculo central de autorização por empregado, aplicação e campanha.
-- [ ] T008 Implementar adesão, treinamento, avaliação e termos.
+- [~] T008 Implementar adesão, treinamento, avaliação e termos.
+  - [x] T008.1 Modelar adesão voluntária, estados e evidências versionadas.
+  - [x] T008.2 Implementar regras de início e habilitação no domínio.
+  - [ ] T008.3 Disponibilizar a jornada ao empregado após validar conteúdos e UX.
 - [ ] T009 Implementar catálogo e questionário versionados.
 - [ ] T010 Implementar oportunidade, correlação e linha do tempo imutável.
 
