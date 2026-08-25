@@ -1,0 +1,68 @@
+# Plano de implementação
+
+## Fase 0 — Descoberta e validações
+
+- [ ] T001 Validar catálogo, nomes e regras dos três produtos.
+- [ ] T002 Mapear APIs, SSO e campos de correlação dos sistemas corporativos.
+- [ ] T003 Validar consentimentos, termos, retenção e tratamento documental.
+- [ ] T004 Identificar fontes oficiais de ativação e primeiro uso.
+- [ ] T005 Definir redes autorizadas, política offline e dispositivos pessoais.
+
+## Fase 1 — Fundação
+
+- [ ] T006 Implementar campanhas, versões e publicação.
+- [ ] T007 Integrar identidade funcional e restrição de rede.
+- [ ] T008 Implementar adesão, treinamento, avaliação e termos.
+- [ ] T009 Implementar catálogo e questionário versionados.
+- [ ] T010 Implementar oportunidade, correlação e linha do tempo imutável.
+
+## Fase 2 — Prospecção sem atrito
+
+- [ ] T011 Implementar registro rápido online e offline.
+- [ ] T012 Consultar CNPJ e permitir confirmação de dados.
+- [ ] T013 Implementar diagnóstico, regras explicáveis e recomendações.
+- [ ] T014 Criar solicitação e reserva provisória de carteira.
+- [ ] T015 Detectar duplicidades sem bloquear a jornada.
+
+## Fase 3 — Cliente e contratação
+
+- [ ] T016 Implementar consentimento progressivo e QR Code.
+- [ ] T017 Implementar portal externo com token temporário.
+- [ ] T018 Implementar checklist e envio protegido de documentos.
+- [ ] T019 Integrar ou assistir cadastro, contrato e assinatura oficiais.
+- [ ] T020 Implementar correlação e fila de reconciliação.
+
+## Fase 4 — Colaboração e pós-venda
+
+- [ ] T021 Implementar pedido de orientação, colaboração e transferência.
+- [ ] T022 Implementar estados de ativação e primeiro uso.
+- [ ] T023 Gerar tarefas de pós-venda e encaminhamento de suporte.
+- [ ] T024 Implementar pesquisa de satisfação e nova oportunidade.
+
+## Fase 5 — Demonstração e aprendizado
+
+- [ ] T025 Implementar painel individual.
+- [ ] T026 Implementar funil e painel gerencial.
+- [ ] T027 Implementar avaliação demonstrativa de reconhecimento com aviso.
+- [ ] T028 Instrumentar abandono, erros e desempenho das recomendações.
+- [ ] T029 Executar testes de segurança, offline, idempotência e acessibilidade.
+- [ ] T030 Preparar relatório e roteiro de demonstração aos decisores.
+
+## Dependências críticas
+
+- T002 condiciona o nível de automação de T019 e T020.
+- T003 condiciona a publicação de T016 a T018.
+- T007 e T010 são pré-requisitos para qualquer dado real.
+- O piloto pode usar fluxo assistido se APIs não estiverem disponíveis, desde que
+  correlação, auditoria e limitações estejam explícitas.
+
+## Definição de pronto do piloto
+
+- Empregado ativo adere e conclui capacitação.
+- Oportunidade pode ser criada em até um minuto, inclusive offline.
+- Cliente com CNPJ recebe recomendação e link seguro.
+- Contratação oficial pode ser conduzida ou assistida sem perda de autoria.
+- Conflito de carteira não bloqueia o cliente.
+- Ativação e primeiro uso alimentam pós-venda e painel.
+- Resultados demonstrativos não exibem promessa financeira.
+- Logs permitem reconstruir integralmente uma jornada.
