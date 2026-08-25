@@ -1,6 +1,6 @@
 # Especificação — Vendedor Eventual
 
-**Feature:** 001-vendedor-eventual  
+**Feature:** 003-vendedor-eventual  
 **Status:** especificação inicial  
 **Data:** 2026-08-25
 

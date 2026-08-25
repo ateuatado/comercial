@@ -10,3 +10,10 @@ Recommended structure for each feature:
 - optional supporting files such as `research.md`, `data-model.md`, `contracts/`, and `quickstart.md`
 
 Prefer one directory per feature so work stays auditable and the repository remains cohesive over time.
+
+## Features
+
+- `001-carteira-clientes` - carteira, perfis, distribuição e operação comercial.
+- `002-inteligencia-prospeccao` - enriquecimento e priorização de prospects.
+- `003-vendedor-eventual` - adesão voluntária de qualquer empregado e jornada
+  comercial ponta a ponta, da prospecção ao pós-venda.
