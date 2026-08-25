@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
+use CodeIgniter\Shield\Entities\User;
+use CodeIgniter\Shield\Models\UserModel;
 
 class VendedorEventualDemoSeeder extends Seeder
 {
@@ -32,15 +34,53 @@ class VendedorEventualDemoSeeder extends Seeder
         ];
 
         foreach ($employees as $employee) {
-            if ($this->db->table('employees')->where('employee_id', $employee['employee_id'])->countAllResults() > 0) {
-                continue;
+            $existing = $this->db->table('employees')
+                ->where('employee_id', $employee['employee_id'])
+                ->get()->getRowArray();
+
+            if ($existing === null) {
+                $this->db->table('employees')->insert($employee + [
+                    'identity_source' => 'demo',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $existing = $this->db->table('employees')
+                    ->where('employee_id', $employee['employee_id'])
+                    ->get()->getRowArray();
             }
 
-            $this->db->table('employees')->insert($employee + [
-                'identity_source' => 'demo',
-                'created_at' => $now,
-                'updated_at' => $now,
+            $this->provisionShieldUser($existing, $employee['employee_id'] === 'GESTOR01');
+        }
+    }
+
+    private function provisionShieldUser(array $employee, bool $administrator): void
+    {
+        /** @var UserModel $userModel */
+        $userModel = model(UserModel::class);
+        $user = $userModel->findByCredentials(['username' => $employee['employee_id']]);
+
+        if ($user === null) {
+            $userModel->skipValidation(true)->save(new User([
+                'username' => $employee['employee_id'],
+                'email' => strtolower($employee['employee_id']) . '@demo.invalid',
+                'active' => 1,
+            ]));
+            $user = $userModel->findById($userModel->getInsertID());
+        }
+
+        if ($user === null) {
+            throw new \RuntimeException('Não foi possível provisionar o usuário demo ' . $employee['employee_id']);
+        }
+
+        if (empty($employee['shield_user_id'])) {
+            $this->db->table('employees')->where('id', $employee['id'])->update([
+                'shield_user_id' => (int) $user->id,
+                'updated_at' => date('Y-m-d H:i:s'),
             ]);
+        }
+
+        if ($administrator && ! $user->inGroup('admin')) {
+            $user->addGroup('admin');
         }
     }
 }
