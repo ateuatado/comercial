@@ -40,8 +40,8 @@ class CatalogVersionService
         $campaignId = (int) ($data['campaign_id'] ?? 0);
         $version = trim((string) ($data['version'] ?? ''));
         $title = trim((string) ($data['title'] ?? ''));
-        $questions = $this->validatedJson((string) ($data['questions'] ?? ''), 'perguntas');
-        $rules = $this->validatedJson((string) ($data['recommendation_rules'] ?? ''), 'regras de recomendação');
+        $questions = $this->questionnaireJson($data);
+        $rules = $this->recommendationRulesJson($data);
         if ($campaignId < 1 || $version === '' || $title === '') {
             throw new DomainException('Informe campanha, versão e título do questionário.');
         }
@@ -92,5 +92,47 @@ class CatalogVersionService
         try { $decoded = json_decode(trim($value), true, 512, JSON_THROW_ON_ERROR); } catch (\JsonException) { throw new DomainException('Informe ' . $label . ' em JSON válido.'); }
         if (! is_array($decoded) || $decoded === []) { throw new DomainException('Informe ao menos um item em ' . $label . '.'); }
         return json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    }
+
+    private function questionnaireJson(array $data): string
+    {
+        if (isset($data['question_text'])) {
+            $questions = [];
+            foreach ((array) $data['question_text'] as $index => $text) {
+                $text = trim((string) $text);
+                $options = array_values(array_filter(array_map('trim', explode(',', (string) (($data['question_options'][$index] ?? ''))))));
+                if ($text === '' || count($options) < 2) {
+                    throw new DomainException('Cada pergunta deve possuir texto e ao menos duas alternativas separadas por vírgula.');
+                }
+                $questions[] = ['id' => 'q' . ($index + 1), 'text' => $text, 'options' => $options];
+            }
+            if ($questions === []) {
+                throw new DomainException('Informe ao menos uma pergunta.');
+            }
+            return json_encode($questions, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        }
+        return $this->validatedJson((string) ($data['questions'] ?? ''), 'perguntas');
+    }
+
+    private function recommendationRulesJson(array $data): string
+    {
+        if (isset($data['rule_question'])) {
+            $rules = [];
+            foreach ((array) $data['rule_question'] as $index => $question) {
+                $question = trim((string) $question);
+                $answer = trim((string) ($data['rule_answer'][$index] ?? ''));
+                $products = array_values(array_filter(array_map('trim', explode(',', (string) ($data['rule_products'][$index] ?? '')))));
+                $reason = trim((string) ($data['rule_reason'][$index] ?? ''));
+                if ($question === '' || $answer === '' || $products === [] || $reason === '') {
+                    throw new DomainException('Preencha pergunta, resposta, produtos e justificativa de cada regra.');
+                }
+                $rules[] = ['when' => [$question => $answer], 'products' => $products, 'reason' => $reason];
+            }
+            if ($rules === []) {
+                throw new DomainException('Informe ao menos uma regra de recomendação.');
+            }
+            return json_encode($rules, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        }
+        return $this->validatedJson((string) ($data['recommendation_rules'] ?? ''), 'regras de recomendação');
     }
 }

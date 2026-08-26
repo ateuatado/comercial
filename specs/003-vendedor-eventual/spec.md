@@ -120,6 +120,9 @@ ativação e primeiro uso, conforme integração disponível.
   sistema nem publicado automaticamente.
 - O catálogo publicado é apenas informativo nesta etapa. O cálculo explicável de
   recomendações e seu vínculo com oportunidades pertencem às tarefas T010 e T013.
+- A interface administrativa apresenta perguntas, alternativas e regras em
+  campos orientados à tarefa; a representação JSON permanece interna e não é
+  exigida do gestor.
 
 ## 6. Jornadas
 

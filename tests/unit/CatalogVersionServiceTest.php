@@ -34,4 +34,17 @@ final class CatalogVersionServiceTest extends CIUnitTestCase
         $this->assertSame('published', $db->table('ve_questionnaire_versions')->where('id', $questionnaireId)->get()->getRow('status'));
         $catalog->down(); $enrollments->down(); $foundation->down();
     }
+
+    public function testFriendlyQuestionnaireFieldsAreConvertedToVersionedJson(): void
+    {
+        $db = Database::connect('tests');
+        $foundation = new CreateVendedorEventualFoundation(Database::forge('tests')); $enrollments = new CreateVendedorEventualEnrollments(Database::forge('tests')); $catalog = new CreateVendedorEventualCatalogVersions(Database::forge('tests'));
+        $catalog->down(); $enrollments->down(); $foundation->down(); $foundation->up(); $enrollments->up(); $catalog->up();
+        $db->table('ve_campaigns')->insert(['code' => 'FORM-1', 'name' => 'Formulário', 'mode' => 'demonstrative', 'status' => 'active']); $campaignId = (int) $db->insertID();
+        $id = (new CatalogVersionService())->createQuestionnaire(['campaign_id' => $campaignId, 'version' => 'v1', 'title' => 'Diagnóstico humano', 'question_text' => ['A empresa envia produtos?'], 'question_options' => ['Sim, Não'], 'rule_question' => ['q1'], 'rule_answer' => ['Sim'], 'rule_products' => ['Encomendas, Coleta'], 'rule_reason' => ['A empresa declarou necessidade de envio.']], 1);
+        $row = $db->table('ve_questionnaire_versions')->where('id', $id)->get()->getRowArray();
+        $this->assertSame('A empresa envia produtos?', json_decode($row['questions'], true)[0]['text']);
+        $this->assertSame(['Encomendas', 'Coleta'], json_decode($row['recommendation_rules'], true)[0]['products']);
+        $catalog->down(); $enrollments->down(); $foundation->down();
+    }
 }
