@@ -97,6 +97,15 @@ ativação e primeiro uso, conforme integração disponível.
 - A feature Vendedor Eventual permanece desabilitada por padrão até a validação
   integral das migrations, autorização, isolamento e implantação.
 
+### 5.2 Decisão da primeira entrega da jornada de adesão
+
+- O empregado com concessão efetiva pode iniciar voluntariamente sua adesão a
+  uma campanha ativa e vigente.
+- Enquanto treinamento, avaliação e termos não tiverem conteúdo oficialmente
+  validado e versionado, a adesão permanece no estado inicial e a interface
+  informa a pendência; o sistema não simula aceite nem habilita atuação
+  comercial automaticamente.
+
 ## 6. Jornadas
 
 ### J1 — Adesão

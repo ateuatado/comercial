@@ -187,6 +187,7 @@ $routes->get('sem-carteira', 'SemCarteiraController::index', ['filter' => 'sessi
 $routes->get('aplicacoes', 'ApplicationsController::index', ['filter' => 'session']);
 $routes->group('vendedor-eventual', ['filter' => 'applicationAccess:vendedor_eventual,access'], static function ($routes): void {
     $routes->get('/', '\App\Controllers\VendedorEventual\HomeController::index');
+    $routes->post('campanhas/(:num)/aderir', '\App\Controllers\VendedorEventual\HomeController::startEnrollment/$1', ['filter' => 'csrf']);
 });
 
 // Override das rotas de login — registrado ANTES do Shield (CI4 usa first-match).

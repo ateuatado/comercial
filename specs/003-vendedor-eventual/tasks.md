@@ -24,7 +24,10 @@
 - [~] T008 Implementar adesão, treinamento, avaliação e termos.
   - [x] T008.1 Modelar adesão voluntária, estados e evidências versionadas.
   - [x] T008.2 Implementar regras de início e habilitação no domínio.
-  - [ ] T008.3 Disponibilizar a jornada ao empregado após validar conteúdos e UX.
+  - [~] T008.3 Disponibilizar a jornada ao empregado após validar conteúdos e UX.
+    - [x] T008.3.1 Exibir campanhas elegíveis e registrar adesão voluntária.
+    - [x] T008.3.2 Sinalizar capacitação pendente sem publicar conteúdo não validado.
+    - [ ] T008.3.3 Publicar termos, capacitação e avaliação após validação de conteúdo e UX.
 - [ ] T009 Implementar catálogo e questionário versionados.
 - [ ] T010 Implementar oportunidade, correlação e linha do tempo imutável.
 
@@ -78,4 +81,5 @@
 - Ativação e primeiro uso alimentam pós-venda e painel.
 - Resultados demonstrativos não exibem promessa financeira.
 - Logs permitem reconstruir integralmente uma jornada.
+
 
