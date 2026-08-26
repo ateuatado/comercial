@@ -37,7 +37,7 @@
 
 - [ ] T011 Implementar registro rápido online e offline.
 - [ ] T012 Consultar CNPJ e permitir confirmação de dados.
-- [ ] T013 Implementar diagnóstico, regras explicáveis e recomendações.
+- [x] T013 Implementar diagnóstico, regras explicáveis e recomendações.
 - [ ] T014 Criar solicitação e reserva provisória de carteira.
 - [ ] T015 Detectar duplicidades sem bloquear a jornada.
 

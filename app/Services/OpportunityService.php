@@ -64,7 +64,35 @@ class OpportunityService
         if ($opportunity === null) { throw new DomainException('Oportunidade não encontrada para este empregado.'); }
         $opportunity['events'] = db_connect()->table('ve_opportunity_events')->where('opportunity_id', $opportunityId)->orderBy('occurred_at', 'ASC')->get()->getResultArray();
         $opportunity['portfolio'] = (new PortfolioVisibilityService())->statusForCnpj((string) $opportunity['cnpj']);
+        $diagnostic = db_connect()->tableExists('ve_opportunity_diagnostics') ? db_connect()->table('ve_opportunity_diagnostics')->where('opportunity_id', $opportunityId)->get()->getRowArray() : null;
+        if ($diagnostic !== null) { $diagnostic['answers'] = json_decode($diagnostic['answers'], true); $diagnostic['recommendations'] = json_decode($diagnostic['recommendations'], true); }
+        $opportunity['diagnostic'] = $diagnostic;
         return $opportunity;
+    }
+
+    public function diagnosticFormFor(int $shieldUserId, int $opportunityId): array
+    {
+        $opportunity = $this->detailFor($shieldUserId, $opportunityId);
+        if ($opportunity['diagnostic'] !== null) { throw new DomainException('O diagnóstico desta oportunidade já foi concluído.'); }
+        if ($opportunity['questionnaire_version_id'] === null) { throw new DomainException('A oportunidade não possui questionário versionado vinculado.'); }
+        $questionnaire = db_connect()->table('ve_questionnaire_versions')->where('id', $opportunity['questionnaire_version_id'])->get()->getRowArray();
+        if ($questionnaire === null) { throw new DomainException('Questionário não localizado.'); }
+        $questionnaire['questions'] = json_decode($questionnaire['questions'], true, 512, JSON_THROW_ON_ERROR);
+        return ['opportunity' => $opportunity, 'questionnaire' => $questionnaire];
+    }
+
+    public function completeDiagnostic(int $shieldUserId, int $opportunityId, array $submittedAnswers): void
+    {
+        $form = $this->diagnosticFormFor($shieldUserId, $opportunityId); $questions = $form['questionnaire']['questions']; $answers = [];
+        foreach ($questions as $question) { $id=(string)$question['id']; $answer=(string)($submittedAnswers[$id]??''); if (!in_array($answer,(array)$question['options'],true)) { throw new DomainException('Responda todas as perguntas usando as alternativas disponíveis.'); } $answers[$id]=$answer; }
+        $rules=json_decode($form['questionnaire']['recommendation_rules'],true,512,JSON_THROW_ON_ERROR); $recommendations=[];
+        $publishedNames=array_column(db_connect()->table('ve_product_versions')->select('name')->where(['campaign_id'=>$form['opportunity']['campaign_id'],'status'=>'published'])->get()->getResultArray(),'name');
+        foreach ($rules as $rule) { $matches=true; foreach ((array)($rule['when']??[]) as $question=>$expected) { if (($answers[$question]??null)!==$expected) {$matches=false; break;} } if(!$matches)continue; foreach((array)($rule['products']??[]) as $product){ if(in_array($product,$publishedNames,true)&&!isset($recommendations[$product])){$recommendations[$product]=['product'=>$product,'reason'=>(string)($rule['reason']??'Regra publicada do questionário.')];} if(count($recommendations)>=3)break 2;} }
+        $employee=(new EmployeeModel())->findByShieldUserId($shieldUserId); $now=new DateTimeImmutable(); $db=db_connect(); $db->transStart();
+        $db->table('ve_opportunity_diagnostics')->insert(['opportunity_id'=>$opportunityId,'questionnaire_version_id'=>$form['questionnaire']['id'],'answers'=>json_encode($answers,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),'recommendations'=>json_encode(array_values($recommendations),JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),'completed_by_employee_id'=>$employee['id'],'created_at'=>$now->format('Y-m-d H:i:s')]);
+        $db->table('ve_opportunities')->where('id',$opportunityId)->update(['status'=>'diagnosis','updated_at'=>$now->format('Y-m-d H:i:s')]);
+        $this->appendEvent($db,$opportunityId,'diagnostic_completed',(int)$employee['id'],$shieldUserId,'system',$now,$form['questionnaire']['version'],['recommendation_count'=>count($recommendations)]); $db->transComplete();
+        if(!$db->transStatus()){throw new DomainException('Não foi possível concluir o diagnóstico.');}
     }
 
     private function appendEvent($db, int $opportunityId, string $type, int $employeeId, int $userId, string $channel, DateTimeInterface $at, ?string $version, array $metadata): void

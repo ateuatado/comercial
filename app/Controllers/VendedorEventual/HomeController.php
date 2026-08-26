@@ -128,4 +128,16 @@ class HomeController extends BaseController
             return redirect()->to('/vendedor-eventual')->with('error', $exception->getMessage());
         }
     }
+
+    public function diagnostic(int $id): string|RedirectResponse
+    {
+        try { $diagnostic = (new OpportunityService())->diagnosticFormFor((int) auth()->user()->id, $id); return view('vendedor_eventual/diagnostic', compact('diagnostic')); }
+        catch (DomainException $exception) { return redirect()->to('/vendedor-eventual/oportunidades/' . $id)->with('error', $exception->getMessage()); }
+    }
+
+    public function completeDiagnostic(int $id): RedirectResponse
+    {
+        try { (new OpportunityService())->completeDiagnostic((int) auth()->user()->id, $id, (array) $this->request->getPost('answers')); return redirect()->to('/vendedor-eventual/oportunidades/' . $id)->with('success', 'Diagnóstico concluído e recomendações calculadas.'); }
+        catch (DomainException $exception) { return redirect()->back()->withInput()->with('error', $exception->getMessage()); }
+    }
 }

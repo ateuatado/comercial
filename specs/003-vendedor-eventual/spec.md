@@ -136,6 +136,9 @@ ativação e primeiro uso, conforme integração disponível.
   atendimento. A interface pode informar responsável, unidade e estado
   operacional necessários à colaboração, mas não expõe a listagem integral nem
   notas e estratégias comerciais de carteiras alheias.
+- O diagnóstico é respondido dentro da oportunidade, preserva a versão e as
+  respostas utilizadas e limita a recomendação a três produtos publicados, com
+  justificativas provenientes exclusivamente das regras aprovadas pelo gestor.
 
 ## 6. Jornadas
 
