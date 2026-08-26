@@ -1,14 +1,20 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
-<div class="container-fluid py-4">
+<div class="container py-4">
     <h1 class="h3 mb-3">Fundação do Vendedor Eventual</h1>
 
     <?php if (session('success')): ?><div class="alert alert-success"><?= esc(session('success')) ?></div><?php endif ?>
     <?php if (session('error')): ?><div class="alert alert-danger"><?= esc(session('error')) ?></div><?php endif ?>
 
-    <div class="alert alert-warning">
-        A liberação efetiva também depende de <code>VENDOR_EVENTUAL_ENABLED</code>. A configuração permanece desligada por padrão.
+    <div class="alert <?= $featureEnabled ? 'alert-success' : 'alert-warning' ?> d-flex align-items-center gap-2" role="status">
+        <i class="bi <?= $featureEnabled ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' ?>" aria-hidden="true"></i>
+        <div>
+            <strong>Trava global:</strong>
+            <code>VENDOR_EVENTUAL_ENABLED</code> está
+            <strong><?= $featureEnabled ? 'ligada' : 'desligada' ?></strong> neste ambiente.
+            <?php if (! $featureEnabled): ?>A habilitação da aplicação no quadro abaixo não libera o acesso enquanto essa configuração estiver desligada.<?php endif ?>
+        </div>
     </div>
 
     <div class="row g-4">

@@ -7,6 +7,7 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Services\AccessAdministrationService;
 use CodeIgniter\HTTP\RedirectResponse;
+use Config\VendedorEventual;
 use DomainException;
 
 class VendedorEventualController extends BaseController
@@ -26,7 +27,16 @@ class VendedorEventualController extends BaseController
             ->limit(100)
             ->get()->getResultArray();
 
-        return view('admin/vendedor_eventual/index', compact('applications', 'campaigns', 'employees', 'entitlements'));
+        /** @var VendedorEventual $featureConfig */
+        $featureConfig = config(VendedorEventual::class);
+
+        return view('admin/vendedor_eventual/index', [
+            'applications' => $applications,
+            'campaigns' => $campaigns,
+            'employees' => $employees,
+            'entitlements' => $entitlements,
+            'featureEnabled' => $featureConfig->enabled,
+        ]);
     }
 
     public function createCampaign(): RedirectResponse
