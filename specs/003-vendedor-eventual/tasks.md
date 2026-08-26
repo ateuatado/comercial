@@ -18,6 +18,8 @@
   - [x] T007.2 Implementar provedor `demo` explícito com identidades fictícias.
   - [ ] T007.3 Conectar o provedor LDAP e validar restrição de rede no ambiente corporativo.
 - [x] T007A Implementar catálogo de aplicações e concessões temporárias auditáveis.
+  - [x] T007A.1 Exibir o estado efetivo da trava global na administração e manter o conteúdo da página em container responsivo centralizado.
+  - [x] T007A.2 Normalizar booleanos retornados pelo PostgreSQL no controle administrativo de aplicações.
 - [x] T007B Implementar cálculo central de autorização por empregado, aplicação e campanha.
 - [~] T008 Implementar adesão, treinamento, avaliação e termos.
   - [x] T008.1 Modelar adesão voluntária, estados e evidências versionadas.
@@ -76,3 +78,4 @@
 - Ativação e primeiro uso alimentam pós-venda e painel.
 - Resultados demonstrativos não exibem promessa financeira.
 - Logs permitem reconstruir integralmente uma jornada.
+

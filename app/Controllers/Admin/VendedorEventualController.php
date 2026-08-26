@@ -15,7 +15,20 @@ class VendedorEventualController extends BaseController
     public function index(): string
     {
         $db = db_connect();
-        $applications = $db->table('ve_applications')->orderBy('name')->get()->getResultArray();
+        $applications = array_map(
+            static function (array $application): array {
+                // PostgreSQL returns booleans as the strings "t"/"f" in result arrays.
+                // The string "f" is truthy in PHP, so normalize it before rendering.
+                $application['enabled'] = in_array(
+                    $application['enabled'],
+                    [true, 1, '1', 't', 'true'],
+                    true
+                );
+
+                return $application;
+            },
+            $db->table('ve_applications')->orderBy('name')->get()->getResultArray()
+        );
         $campaigns = $db->table('ve_campaigns')->orderBy('created_at', 'DESC')->get()->getResultArray();
         $employees = $db->table('employees')->orderBy('display_name')->get()->getResultArray();
         $entitlements = $db->table('ve_employee_entitlements ent')
