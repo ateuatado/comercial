@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Services\AccessAdministrationService;
+use App\Services\LearningJourneyService;
 use CodeIgniter\HTTP\RedirectResponse;
 use Config\VendedorEventual;
 use DomainException;
@@ -39,6 +40,10 @@ class VendedorEventualController extends BaseController
             ->orderBy('ent.created_at', 'DESC')
             ->limit(100)
             ->get()->getResultArray();
+        $learningVersions = $db->table('ve_learning_versions learning')
+            ->select('learning.*, campaign.name AS campaign_name')
+            ->join('ve_campaigns campaign', 'campaign.id = learning.campaign_id')
+            ->orderBy('learning.created_at', 'DESC')->get()->getResultArray();
 
         /** @var VendedorEventual $featureConfig */
         $featureConfig = config(VendedorEventual::class);
@@ -49,6 +54,7 @@ class VendedorEventualController extends BaseController
             'employees' => $employees,
             'entitlements' => $entitlements,
             'featureEnabled' => $featureConfig->enabled,
+            'learningVersions' => $learningVersions,
         ]);
     }
 
@@ -129,6 +135,37 @@ class VendedorEventualController extends BaseController
                 (string) $this->request->getPost('reason')
             );
             return redirect()->back()->with('success', 'Acesso revogado.');
+        } catch (DomainException $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
+        }
+    }
+
+    public function createLearningVersion(): RedirectResponse
+    {
+        try {
+            (new LearningJourneyService())->createVersion([
+                'campaign_id' => $this->request->getPost('campaign_id'),
+                'version' => $this->request->getPost('version'),
+                'title' => $this->request->getPost('title'),
+                'training_content' => $this->request->getPost('training_content'),
+                'terms_content' => $this->request->getPost('terms_content'),
+                'assessment_question' => $this->request->getPost('assessment_question'),
+                'assessment_options' => $this->request->getPost('assessment_options'),
+                'correct_option' => $this->request->getPost('correct_option'),
+            ], (int) auth()->user()->id);
+
+            return redirect()->back()->with('success', 'Versão criada como rascunho.');
+        } catch (DomainException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
+    }
+
+    public function publishLearningVersion(int $versionId): RedirectResponse
+    {
+        try {
+            (new LearningJourneyService())->publish($versionId);
+
+            return redirect()->back()->with('success', 'Capacitação, avaliação e termos publicados.');
         } catch (DomainException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }

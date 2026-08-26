@@ -41,10 +41,13 @@
                                     <button class="btn btn-primary">Quero ser Vendedor Eventual</button>
                                 </form>
                             <?php else: ?>
-                                <div class="alert alert-warning mt-auto mb-0" role="status">
-                                    <strong>Próxima etapa: capacitação.</strong><br>
-                                    O conteúdo, a avaliação e os termos ainda aguardam validação para publicação. Sua adesão foi preservada e nenhuma habilitação comercial foi concedida automaticamente.
-                                </div>
+                                <?php if ($campaign['enrollment_status'] === 'qualified'): ?>
+                                    <div class="alert alert-success mt-auto mb-0"><strong>Participação habilitada.</strong><br>Capacitação, avaliação e aceite registrados.</div>
+                                <?php elseif (! empty($campaign['learning_version_id'])): ?>
+                                    <a class="btn btn-primary mt-auto align-self-start" href="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/capacitacao') ?>">Iniciar capacitação</a>
+                                <?php else: ?>
+                                    <div class="alert alert-warning mt-auto mb-0" role="status"><strong>Próxima etapa: capacitação.</strong><br>O conteúdo, a avaliação e os termos aguardam publicação pelo gestor.</div>
+                                <?php endif ?>
                             <?php endif ?>
                         </div>
                     </article>

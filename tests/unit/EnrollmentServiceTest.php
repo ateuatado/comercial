@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Database\Migrations\CreateVendedorEventualEnrollments;
 use App\Database\Migrations\CreateVendedorEventualFoundation;
+use App\Database\Migrations\CreateVendedorEventualLearningVersions;
 use App\Services\EnrollmentService;
 use App\Services\EnrollmentJourneyService;
 use CodeIgniter\Database\BaseConnection;
@@ -13,12 +14,14 @@ use Config\VendedorEventual;
 
 require_once APPPATH . 'Database/Migrations/2026-08-25-100001_CreateVendedorEventualFoundation.php';
 require_once APPPATH . 'Database/Migrations/2026-08-25-110001_CreateVendedorEventualEnrollments.php';
+require_once APPPATH . 'Database/Migrations/2026-08-26-100001_CreateVendedorEventualLearningVersions.php';
 
 final class EnrollmentServiceTest extends CIUnitTestCase
 {
     private BaseConnection $testDb;
     private CreateVendedorEventualFoundation $foundation;
     private CreateVendedorEventualEnrollments $enrollments;
+    private CreateVendedorEventualLearningVersions $learningVersions;
     private EnrollmentService $service;
     private int $employeeId;
     private int $campaignId;
@@ -30,10 +33,13 @@ final class EnrollmentServiceTest extends CIUnitTestCase
         $this->testDb = Database::connect('tests');
         $this->foundation = new CreateVendedorEventualFoundation(Database::forge('tests'));
         $this->enrollments = new CreateVendedorEventualEnrollments(Database::forge('tests'));
+        $this->learningVersions = new CreateVendedorEventualLearningVersions(Database::forge('tests'));
+        $this->learningVersions->down();
         $this->enrollments->down();
         $this->foundation->down();
         $this->foundation->up();
         $this->enrollments->up();
+        $this->learningVersions->up();
         $this->service = new EnrollmentService();
 
         $this->testDb->table('employees')->insert([
@@ -62,6 +68,7 @@ final class EnrollmentServiceTest extends CIUnitTestCase
     protected function tearDown(): void
     {
         config(VendedorEventual::class)->enabled = false;
+        $this->learningVersions->down();
         $this->enrollments->down();
         $this->foundation->down();
         parent::tearDown();

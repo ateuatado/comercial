@@ -105,6 +105,11 @@ ativação e primeiro uso, conforme integração disponível.
   validado e versionado, a adesão permanece no estado inicial e a interface
   informa a pendência; o sistema não simula aceite nem habilita atuação
   comercial automaticamente.
+- O gestor publica uma única versão vigente por campanha contendo capacitação,
+  avaliação objetiva e termos. Uma nova publicação arquiva a anterior, sem
+  apagar as evidências já registradas nas adesões.
+- A habilitação exige resposta correta calculada no servidor e aceite explícito
+  dos termos; o navegador não informa qual alternativa é correta.
 
 ## 6. Jornadas
 

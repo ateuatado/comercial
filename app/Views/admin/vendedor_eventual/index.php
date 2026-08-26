@@ -119,5 +119,44 @@
             </table>
         </div>
     </div>
+
+    <div class="row g-4 mt-1">
+        <div class="col-12 col-xl-7">
+            <div class="card">
+                <div class="card-header">Nova versão de capacitação e termos</div>
+                <div class="card-body">
+                    <div class="alert alert-info small">O conteúdo só fica disponível ao empregado depois de publicado.</div>
+                    <form method="post" action="<?= site_url('admin/vendedor-eventual/capacitacoes') ?>" class="row g-3">
+                        <?= csrf_field() ?>
+                        <div class="col-md-8"><label class="form-label">Campanha</label><select class="form-select" name="campaign_id" required><?php foreach ($campaigns as $campaign): ?><option value="<?= $campaign['id'] ?>"><?= esc($campaign['name']) ?></option><?php endforeach ?></select></div>
+                        <div class="col-md-4"><label class="form-label">Versão</label><input class="form-control" name="version" placeholder="v1" required maxlength="60"></div>
+                        <div class="col-12"><label class="form-label">Título</label><input class="form-control" name="title" required maxlength="180"></div>
+                        <div class="col-12"><label class="form-label">Conteúdo da capacitação</label><textarea class="form-control" name="training_content" rows="6" required></textarea></div>
+                        <div class="col-12"><label class="form-label">Termos de participação</label><textarea class="form-control" name="terms_content" rows="6" required></textarea></div>
+                        <div class="col-12"><label class="form-label">Pergunta da avaliação</label><input class="form-control" name="assessment_question" required></div>
+                        <div class="col-md-6"><label class="form-label">Alternativa A</label><input class="form-control" name="assessment_options[]" required></div>
+                        <div class="col-md-6"><label class="form-label">Alternativa B</label><input class="form-control" name="assessment_options[]" required></div>
+                        <div class="col-md-6"><label class="form-label">Alternativa C (opcional)</label><input class="form-control" name="assessment_options[]"></div>
+                        <div class="col-md-6"><label class="form-label">Resposta correta</label><select class="form-select" name="correct_option" required><option value="0">Alternativa A</option><option value="1">Alternativa B</option><option value="2">Alternativa C</option></select></div>
+                        <div class="col-12"><button class="btn btn-primary">Salvar rascunho</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-5">
+            <div class="card">
+                <div class="card-header">Versões cadastradas</div>
+                <div class="list-group list-group-flush">
+                    <?php if ($learningVersions === []): ?><div class="list-group-item text-muted">Nenhuma versão cadastrada.</div><?php endif ?>
+                    <?php foreach ($learningVersions as $version): ?>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between gap-3"><div><strong><?= esc($version['title']) ?></strong><br><small><?= esc($version['campaign_name'] . ' · ' . $version['version']) ?></small></div><span class="badge text-bg-<?= $version['status'] === 'published' ? 'success' : 'secondary' ?>"><?= esc($version['status']) ?></span></div>
+                            <?php if ($version['status'] === 'draft'): ?><form method="post" action="<?= site_url('admin/vendedor-eventual/capacitacoes/' . $version['id'] . '/publicar') ?>" class="mt-2"><?= csrf_field() ?><button class="btn btn-sm btn-success">Publicar versão</button></form><?php endif ?>
+                        </div>
+                    <?php endforeach ?>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <?= $this->endSection() ?>

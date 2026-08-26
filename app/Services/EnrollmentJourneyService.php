@@ -33,13 +33,23 @@ class EnrollmentJourneyService
             ->get()->getResultArray();
 
         $access = new ApplicationAccessService();
-        return array_values(array_filter($campaigns, static fn (array $campaign): bool => $access->hasAccess(
+        $campaigns = array_values(array_filter($campaigns, static fn (array $campaign): bool => $access->hasAccess(
             $shieldUserId,
             'vendedor_eventual',
             'access',
             (int) $campaign['id'],
             $at
         )));
+
+        foreach ($campaigns as &$campaign) {
+            $learningVersion = db_connect()->table('ve_learning_versions')
+                ->select('id')->where(['campaign_id' => $campaign['id'], 'status' => 'published'])
+                ->orderBy('published_at', 'DESC')->get()->getRowArray();
+            $campaign['learning_version_id'] = $learningVersion['id'] ?? null;
+        }
+        unset($campaign);
+
+        return $campaigns;
     }
 
     public function start(int $shieldUserId, int $campaignId, ?DateTimeInterface $at = null): int
