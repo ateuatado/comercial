@@ -7,6 +7,7 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Services\AccessAdministrationService;
 use App\Services\LearningJourneyService;
+use App\Services\EnrollmentService;
 use CodeIgniter\HTTP\RedirectResponse;
 use Config\VendedorEventual;
 use DomainException;
@@ -44,6 +45,11 @@ class VendedorEventualController extends BaseController
             ->select('learning.*, campaign.name AS campaign_name')
             ->join('ve_campaigns campaign', 'campaign.id = learning.campaign_id')
             ->orderBy('learning.created_at', 'DESC')->get()->getResultArray();
+        $enrollments = $db->table('ve_enrollments enrollment')
+            ->select('enrollment.*, emp.employee_id AS employee_code, emp.display_name, campaign.name AS campaign_name')
+            ->join('employees emp', 'emp.id = enrollment.employee_id')
+            ->join('ve_campaigns campaign', 'campaign.id = enrollment.campaign_id')
+            ->orderBy('enrollment.updated_at', 'DESC')->limit(100)->get()->getResultArray();
 
         /** @var VendedorEventual $featureConfig */
         $featureConfig = config(VendedorEventual::class);
@@ -55,6 +61,7 @@ class VendedorEventualController extends BaseController
             'entitlements' => $entitlements,
             'featureEnabled' => $featureConfig->enabled,
             'learningVersions' => $learningVersions,
+            'enrollments' => $enrollments,
         ]);
     }
 
@@ -168,6 +175,21 @@ class VendedorEventualController extends BaseController
             return redirect()->back()->with('success', 'Capacitação, avaliação e termos publicados.');
         } catch (DomainException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
+        }
+    }
+
+    public function suspendEnrollment(int $enrollmentId): RedirectResponse
+    {
+        try {
+            (new EnrollmentService())->suspend(
+                $enrollmentId,
+                (int) auth()->user()->id,
+                (string) $this->request->getPost('reason')
+            );
+
+            return redirect()->back()->with('success', 'Participação suspensa.');
+        } catch (DomainException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
     }
 

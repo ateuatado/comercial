@@ -42,9 +42,23 @@
                                 </form>
                             <?php else: ?>
                                 <?php if ($campaign['enrollment_status'] === 'qualified'): ?>
-                                    <div class="alert alert-success mt-auto mb-0"><strong>Participação habilitada.</strong><br>Capacitação, avaliação e aceite registrados.</div>
+                                    <div class="alert alert-success mt-auto"><strong>Participação habilitada.</strong><br>Capacitação, avaliação e aceite registrados.</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/participacao/pausar') ?>"><?= csrf_field() ?><button class="btn btn-outline-warning">Pausar participação</button></form>
+                                        <form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/participacao/encerrar') ?>" onsubmit="return confirm('Deseja encerrar definitivamente esta participação?')"><?= csrf_field() ?><button class="btn btn-outline-danger">Encerrar participação</button></form>
+                                    </div>
+                                <?php elseif ($campaign['enrollment_status'] === 'paused'): ?>
+                                    <div class="alert alert-warning mt-auto"><strong>Participação pausada.</strong><br>Você pode retomá-la enquanto a campanha estiver vigente.</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/participacao/retomar') ?>"><?= csrf_field() ?><button class="btn btn-primary">Retomar participação</button></form>
+                                        <form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/participacao/encerrar') ?>" onsubmit="return confirm('Deseja encerrar definitivamente esta participação?')"><?= csrf_field() ?><button class="btn btn-outline-danger">Encerrar participação</button></form>
+                                    </div>
+                                <?php elseif ($campaign['enrollment_status'] === 'suspended'): ?>
+                                    <div class="alert alert-danger mt-auto mb-0"><strong>Participação suspensa administrativamente.</strong><br><?= esc($campaign['enrollment_status_reason'] ?: 'Consulte o gestor responsável.') ?></div>
+                                <?php elseif ($campaign['enrollment_status'] === 'closed'): ?>
+                                    <div class="alert alert-secondary mt-auto mb-0"><strong>Participação encerrada.</strong><br>Esta adesão não pode ser reaberta.</div>
                                 <?php elseif (! empty($campaign['learning_version_id'])): ?>
-                                    <a class="btn btn-primary mt-auto align-self-start" href="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/capacitacao') ?>">Iniciar capacitação</a>
+                                    <div class="d-flex flex-wrap gap-2 mt-auto"><a class="btn btn-primary" href="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/capacitacao') ?>">Iniciar capacitação</a><form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/participacao/encerrar') ?>" onsubmit="return confirm('Deseja encerrar esta participação?')"><?= csrf_field() ?><button class="btn btn-outline-danger">Encerrar participação</button></form></div>
                                 <?php else: ?>
                                     <div class="alert alert-warning mt-auto mb-0" role="status"><strong>Próxima etapa: capacitação.</strong><br>O conteúdo, a avaliação e os termos aguardam publicação pelo gestor.</div>
                                 <?php endif ?>

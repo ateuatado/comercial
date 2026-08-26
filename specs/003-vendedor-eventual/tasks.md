@@ -22,13 +22,14 @@
   - [x] T007A.1 Exibir o estado efetivo da trava global na administração e manter o conteúdo da página em container responsivo centralizado.
   - [x] T007A.2 Normalizar booleanos retornados pelo PostgreSQL no controle administrativo de aplicações.
 - [x] T007B Implementar cálculo central de autorização por empregado, aplicação e campanha.
-- [~] T008 Implementar adesão, treinamento, avaliação e termos.
+- [x] T008 Implementar adesão, treinamento, avaliação e termos.
   - [x] T008.1 Modelar adesão voluntária, estados e evidências versionadas.
   - [x] T008.2 Implementar regras de início e habilitação no domínio.
-  - [~] T008.3 Disponibilizar a jornada ao empregado após validar conteúdos e UX.
+  - [x] T008.3 Disponibilizar a jornada ao empregado após validar conteúdos e UX.
     - [x] T008.3.1 Exibir campanhas elegíveis e registrar adesão voluntária.
     - [x] T008.3.2 Sinalizar capacitação pendente sem publicar conteúdo não validado.
     - [x] T008.3.3 Publicar termos, capacitação e avaliação versionados após validação do gestor.
+  - [x] T008.4 Implementar pausa, retomada, encerramento voluntário e suspensão administrativa auditáveis.
 - [ ] T009 Implementar catálogo e questionário versionados.
 - [ ] T010 Implementar oportunidade, correlação e linha do tempo imutável.
 

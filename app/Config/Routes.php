@@ -96,6 +96,7 @@ $routes->group('admin', ['filter' => 'session'], static function ($routes): void
     $routes->group('vendedor-eventual', ['filter' => 'permission:entitlements.manage'], static function ($routes): void {
         $routes->post('concessoes', '\App\Controllers\Admin\VendedorEventualController::grant', ['filter' => 'csrf']);
         $routes->post('concessoes/(:num)/revogar', '\App\Controllers\Admin\VendedorEventualController::revoke/$1', ['filter' => 'csrf']);
+        $routes->post('adesoes/(:num)/suspender', '\App\Controllers\Admin\VendedorEventualController::suspendEnrollment/$1', ['filter' => 'csrf']);
     });
 });
 
@@ -192,6 +193,7 @@ $routes->group('vendedor-eventual', ['filter' => 'applicationAccess:vendedor_eve
     $routes->post('campanhas/(:num)/aderir', '\App\Controllers\VendedorEventual\HomeController::startEnrollment/$1', ['filter' => 'csrf']);
     $routes->get('campanhas/(:num)/capacitacao', '\App\Controllers\VendedorEventual\HomeController::training/$1');
     $routes->post('campanhas/(:num)/capacitacao', '\App\Controllers\VendedorEventual\HomeController::completeTraining/$1', ['filter' => 'csrf']);
+    $routes->post('campanhas/(:num)/participacao/(:segment)', '\App\Controllers\VendedorEventual\HomeController::changeEnrollmentStatus/$1/$2', ['filter' => 'csrf']);
 });
 
 // Override das rotas de login — registrado ANTES do Shield (CI4 usa first-match).

@@ -117,6 +117,35 @@ final class EnrollmentServiceTest extends CIUnitTestCase
         ], new DateTimeImmutable('2026-08-25 11:00:00'));
     }
 
+    public function testQualifiedParticipationCanBePausedResumedAndClosedWithAudit(): void
+    {
+        $id = $this->qualifiedEnrollment();
+        $this->service->pause($id, 900, new DateTimeImmutable('2026-08-25 12:00:00'));
+        $this->assertSame('paused', $this->enrollmentStatus($id));
+        $this->service->resume($id, 900, new DateTimeImmutable('2026-08-25 13:00:00'));
+        $this->assertSame('qualified', $this->enrollmentStatus($id));
+        $this->service->close($id, 900, new DateTimeImmutable('2026-08-25 14:00:00'));
+        $this->assertSame('closed', $this->enrollmentStatus($id));
+        $this->assertSame(3, $this->testDb->table('ve_access_events')->where('employee_id', $this->employeeId)->countAllResults());
+    }
+
+    public function testAdministrativeSuspensionRequiresReason(): void
+    {
+        $id = $this->qualifiedEnrollment();
+        $this->expectException(DomainException::class);
+        $this->service->suspend($id, 900, '   ', new DateTimeImmutable('2026-08-25 12:00:00'));
+    }
+
+    public function testAdministrativeSuspensionStoresReasonAndAudit(): void
+    {
+        $id = $this->qualifiedEnrollment();
+        $this->service->suspend($id, 900, 'Apuração administrativa.', new DateTimeImmutable('2026-08-25 12:00:00'));
+        $row = $this->testDb->table('ve_enrollments')->where('id', $id)->get()->getRowArray();
+        $this->assertSame('suspended', $row['status']);
+        $this->assertSame('Apuração administrativa.', $row['status_reason']);
+        $this->assertSame(1, $this->testDb->table('ve_access_events')->where('event_type', 'enrollment_suspended')->countAllResults());
+    }
+
     public function testJourneyListsOnlyCampaignWithEffectiveGrant(): void
     {
         $this->insertCampaignEntitlement();
@@ -165,5 +194,17 @@ final class EnrollmentServiceTest extends CIUnitTestCase
             'valid_from' => '2026-08-01 00:00:00',
             'valid_until' => '2026-09-01 00:00:00',
         ]);
+    }
+
+    private function qualifiedEnrollment(): int
+    {
+        $id = $this->service->start($this->employeeId, $this->campaignId, new DateTimeImmutable('2026-08-25 10:00:00'));
+        $this->service->qualify($id, ['terms_version' => 'v1', 'training_version' => 'v1', 'assessment_score' => 100, 'assessment_passed' => true], new DateTimeImmutable('2026-08-25 11:00:00'));
+        return $id;
+    }
+
+    private function enrollmentStatus(int $id): string
+    {
+        return (string) $this->testDb->table('ve_enrollments')->select('status')->where('id', $id)->get()->getRow('status');
     }
 }

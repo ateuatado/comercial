@@ -73,6 +73,9 @@ class LearningJourneyService
         if ($employee === null || $enrollment === null || $version === null) {
             throw new DomainException('Inicie a adesão e aguarde a publicação da capacitação.');
         }
+        if (! in_array($enrollment['status'], ['started', 'in_training'], true)) {
+            throw new DomainException('A capacitação não está disponível no estado atual da participação.');
+        }
         $version['assessment_options'] = json_decode((string) $version['assessment_options'], true, 512, JSON_THROW_ON_ERROR);
         $version['enrollment_id'] = $enrollment['id'];
         $version['enrollment_status'] = $enrollment['status'];

@@ -73,6 +73,70 @@ class EnrollmentService
         ]);
     }
 
+    public function pause(int $enrollmentId, int $actorUserId, ?DateTimeInterface $at = null): void
+    {
+        $this->transition($enrollmentId, ['qualified'], 'paused', $actorUserId, 'Pausa voluntária.', $at);
+    }
+
+    public function resume(int $enrollmentId, int $actorUserId, ?DateTimeInterface $at = null): void
+    {
+        $enrollment = $this->findEnrollment($enrollmentId);
+        $this->assertEligibleEmployee((int) $enrollment['employee_id']);
+        $this->assertOpenCampaign((int) $enrollment['campaign_id'], $at ?? new DateTimeImmutable());
+        $this->transition($enrollmentId, ['paused'], 'qualified', $actorUserId, null, $at);
+    }
+
+    public function close(int $enrollmentId, int $actorUserId, ?DateTimeInterface $at = null): void
+    {
+        $this->transition($enrollmentId, ['started', 'in_training', 'qualified', 'paused'], 'closed', $actorUserId, 'Encerramento voluntário.', $at);
+    }
+
+    public function suspend(int $enrollmentId, int $actorUserId, string $reason, ?DateTimeInterface $at = null): void
+    {
+        $reason = trim($reason);
+        if ($reason === '') {
+            throw new DomainException('Informe o motivo da suspensão administrativa.');
+        }
+        $this->transition($enrollmentId, ['started', 'in_training', 'qualified', 'paused'], 'suspended', $actorUserId, $reason, $at);
+    }
+
+    private function transition(int $enrollmentId, array $allowedFrom, string $to, int $actorUserId, ?string $reason, ?DateTimeInterface $at): void
+    {
+        $enrollment = $this->findEnrollment($enrollmentId);
+        if (! in_array($enrollment['status'], $allowedFrom, true)) {
+            throw new DomainException('Transição indisponível para o estado atual da adesão.');
+        }
+        $instant = $at ?? new DateTimeImmutable();
+        $db = db_connect();
+        $db->transStart();
+        $db->table('ve_enrollments')->where('id', $enrollmentId)->update([
+            'status' => $to,
+            'status_reason' => $reason,
+            'updated_at' => $instant->format('Y-m-d H:i:s'),
+        ]);
+        $db->table('ve_access_events')->insert([
+            'employee_id' => $enrollment['employee_id'],
+            'campaign_id' => $enrollment['campaign_id'],
+            'event_type' => 'enrollment_' . $to,
+            'actor_user_id' => $actorUserId,
+            'metadata' => json_encode(['enrollment_id' => $enrollmentId, 'from' => $enrollment['status'], 'to' => $to, 'reason' => $reason], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+            'created_at' => $instant->format('Y-m-d H:i:s'),
+        ]);
+        $db->transComplete();
+        if (! $db->transStatus()) {
+            throw new DomainException('Não foi possível alterar a participação.');
+        }
+    }
+
+    private function findEnrollment(int $enrollmentId): array
+    {
+        $enrollment = db_connect()->table('ve_enrollments')->where('id', $enrollmentId)->get()->getRowArray();
+        if ($enrollment === null) {
+            throw new DomainException('Adesão não encontrada.');
+        }
+        return $enrollment;
+    }
+
     private function assertEligibleEmployee(int $employeeId): void
     {
         $employee = db_connect()->table('employees')->where('id', $employeeId)->get()->getRowArray();

@@ -120,6 +120,33 @@
         </div>
     </div>
 
+    <div class="card mt-4">
+        <div class="card-header">Participações dos empregados</div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Empregado</th><th>Campanha</th><th>Estado</th><th>Motivo</th><th>Ação administrativa</th></tr></thead>
+                <tbody>
+                <?php if ($enrollments === []): ?><tr><td colspan="5" class="text-muted">Nenhuma participação registrada.</td></tr><?php endif ?>
+                <?php foreach ($enrollments as $enrollment): ?>
+                    <tr>
+                        <td><?= esc($enrollment['employee_code'] . ' — ' . $enrollment['display_name']) ?></td>
+                        <td><?= esc($enrollment['campaign_name']) ?></td>
+                        <td><span class="badge text-bg-<?= $enrollment['status'] === 'qualified' ? 'success' : ($enrollment['status'] === 'suspended' ? 'danger' : 'secondary') ?>"><?= esc($enrollment['status']) ?></span></td>
+                        <td><?= esc($enrollment['status_reason'] ?? '—') ?></td>
+                        <td>
+                            <?php if (! in_array($enrollment['status'], ['suspended', 'closed'], true)): ?>
+                                <form method="post" action="<?= site_url('admin/vendedor-eventual/adesoes/' . $enrollment['id'] . '/suspender') ?>" class="d-flex gap-2">
+                                    <?= csrf_field() ?><input class="form-control form-control-sm" name="reason" required maxlength="500" placeholder="Motivo obrigatório"><button class="btn btn-sm btn-outline-danger">Suspender</button>
+                                </form>
+                            <?php endif ?>
+                        </td>
+                    </tr>
+                <?php endforeach ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="row g-4 mt-1">
         <div class="col-12 col-xl-7">
             <div class="card">

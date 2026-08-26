@@ -20,7 +20,7 @@ class EnrollmentJourneyService
         }
 
         $campaigns = db_connect()->table('ve_employee_entitlements ent')
-            ->select('campaign.id, campaign.code, campaign.name, campaign.mode, campaign.starts_at, campaign.ends_at, enrollment.id AS enrollment_id, enrollment.status AS enrollment_status, enrollment.created_at AS enrollment_started_at')
+            ->select('campaign.id, campaign.code, campaign.name, campaign.mode, campaign.starts_at, campaign.ends_at, enrollment.id AS enrollment_id, enrollment.status AS enrollment_status, enrollment.status_reason AS enrollment_status_reason, enrollment.created_at AS enrollment_started_at')
             ->join('ve_campaigns campaign', 'campaign.id = ent.campaign_id')
             ->join('ve_enrollments enrollment', 'enrollment.campaign_id = campaign.id AND enrollment.employee_id = ent.employee_id', 'left')
             ->join('ve_applications application', 'application.id = ent.application_id')
@@ -28,7 +28,7 @@ class EnrollmentJourneyService
             ->where('application.code', 'vendedor_eventual')
             ->where('ent.capability', 'access')
             ->where('ent.source', 'campaign')
-            ->groupBy('campaign.id, campaign.code, campaign.name, campaign.mode, campaign.starts_at, campaign.ends_at, enrollment.id, enrollment.status, enrollment.created_at')
+            ->groupBy('campaign.id, campaign.code, campaign.name, campaign.mode, campaign.starts_at, campaign.ends_at, enrollment.id, enrollment.status, enrollment.status_reason, enrollment.created_at')
             ->orderBy('campaign.starts_at', 'ASC')
             ->get()->getResultArray();
 
