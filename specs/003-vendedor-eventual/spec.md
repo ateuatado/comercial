@@ -111,6 +111,16 @@ ativação e primeiro uso, conforme integração disponível.
 - A habilitação exige resposta correta calculada no servidor e aceite explícito
   dos termos; o navegador não informa qual alternativa é correta.
 
+### 5.3 Decisão da primeira entrega do catálogo e diagnóstico
+
+- Produtos e questionários são criados como rascunhos imutáveis por versão e só
+  aparecem ao empregado habilitado após publicação explícita do gestor.
+- A publicação de nova versão arquiva a versão anteriormente publicada, sem
+  excluir o histórico. Conteúdo comercial não validado não será preenchido pelo
+  sistema nem publicado automaticamente.
+- O catálogo publicado é apenas informativo nesta etapa. O cálculo explicável de
+  recomendações e seu vínculo com oportunidades pertencem às tarefas T010 e T013.
+
 ## 6. Jornadas
 
 ### J1 — Adesão

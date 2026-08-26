@@ -44,6 +44,7 @@
                                 <?php if ($campaign['enrollment_status'] === 'qualified'): ?>
                                     <div class="alert alert-success mt-auto"><strong>Participação habilitada.</strong><br>Capacitação, avaliação e aceite registrados.</div>
                                     <div class="d-flex flex-wrap gap-2">
+                                        <a class="btn btn-primary" href="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/catalogo') ?>">Consultar catálogo</a>
                                         <form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/participacao/pausar') ?>"><?= csrf_field() ?><button class="btn btn-outline-warning">Pausar participação</button></form>
                                         <form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/participacao/encerrar') ?>" onsubmit="return confirm('Deseja encerrar definitivamente esta participação?')"><?= csrf_field() ?><button class="btn btn-outline-danger">Encerrar participação</button></form>
                                     </div>

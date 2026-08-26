@@ -1,0 +1,11 @@
+<?= $this->extend('layouts/main') ?>
+<?= $this->section('content') ?>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-4"><div><h1 class="h3 mb-1">Catálogo da campanha</h1><p class="text-muted mb-0">Use somente as informações publicadas e validadas abaixo.</p></div><a class="btn btn-outline-secondary" href="<?= site_url('vendedor-eventual') ?>">Voltar</a></div>
+    <?php if ($catalog['products'] === []): ?><div class="alert alert-warning">O gestor ainda não publicou produtos para esta campanha.</div><?php endif ?>
+    <div class="row g-3">
+        <?php foreach ($catalog['products'] as $product): ?><div class="col-12 col-lg-6"><article class="card h-100"><div class="card-body"><span class="badge text-bg-primary mb-2"><?= esc($product['version']) ?></span><h2 class="h5"><?= esc($product['name']) ?></h2><?php if ($product['official_name']): ?><p class="text-muted small"><?= esc($product['official_name']) ?></p><?php endif ?><dl><dt>Problema resolvido</dt><dd><?= nl2br(esc($product['problem_solved'])) ?></dd><dt>Perfil indicado</dt><dd><?= nl2br(esc($product['target_profile'])) ?></dd><dt>Benefícios</dt><dd><?= nl2br(esc($product['benefits'])) ?></dd><dt>Restrições</dt><dd><?= nl2br(esc($product['restrictions'])) ?></dd><dt>Requisitos e documentos</dt><dd><?= nl2br(esc($product['requirements'] . "\n" . $product['documents'])) ?></dd><dt>Roteiro aprovado</dt><dd><?= nl2br(esc($product['sales_script'])) ?></dd><dt>Perguntas frequentes</dt><dd class="mb-0"><?= nl2br(esc($product['faq'])) ?></dd></dl></div></article></div><?php endforeach ?>
+    </div>
+    <div class="card mt-4"><div class="card-header">Questionário de diagnóstico</div><div class="card-body"><?php if ($catalog['questionnaire'] === null): ?><p class="text-muted mb-0">Nenhum questionário publicado.</p><?php else: ?><h2 class="h5"><?= esc($catalog['questionnaire']['title']) ?> <small class="text-muted"><?= esc($catalog['questionnaire']['version']) ?></small></h2><p class="small text-muted mb-0">O preenchimento e as recomendações serão ativados na próxima etapa da jornada.</p><?php endif ?></div></div>
+</div>
+<?= $this->endSection() ?>

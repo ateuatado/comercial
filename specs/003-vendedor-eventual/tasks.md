@@ -30,7 +30,7 @@
     - [x] T008.3.2 Sinalizar capacitação pendente sem publicar conteúdo não validado.
     - [x] T008.3.3 Publicar termos, capacitação e avaliação versionados após validação do gestor.
   - [x] T008.4 Implementar pausa, retomada, encerramento voluntário e suspensão administrativa auditáveis.
-- [ ] T009 Implementar catálogo e questionário versionados.
+- [x] T009 Implementar catálogo e questionário versionados.
 - [ ] T010 Implementar oportunidade, correlação e linha do tempo imutável.
 
 ## Fase 2 — Prospecção sem atrito
@@ -83,7 +83,3 @@
 - Ativação e primeiro uso alimentam pós-venda e painel.
 - Resultados demonstrativos não exibem promessa financeira.
 - Logs permitem reconstruir integralmente uma jornada.
-
-
-
-

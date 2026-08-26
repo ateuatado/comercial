@@ -9,6 +9,7 @@ use App\Models\EmployeeModel;
 use App\Services\EnrollmentJourneyService;
 use App\Services\EnrollmentService;
 use App\Services\LearningJourneyService;
+use App\Services\CatalogVersionService;
 use CodeIgniter\HTTP\RedirectResponse;
 use DomainException;
 
@@ -80,6 +81,16 @@ class HomeController extends BaseController
             };
 
             return redirect()->to('/vendedor-eventual')->with('success', 'Estado da participação atualizado.');
+        } catch (DomainException $exception) {
+            return redirect()->to('/vendedor-eventual')->with('error', $exception->getMessage());
+        }
+    }
+
+    public function catalog(int $campaignId): string|RedirectResponse
+    {
+        try {
+            $catalog = (new CatalogVersionService())->publishedFor((int) auth()->user()->id, $campaignId);
+            return view('vendedor_eventual/catalog', compact('catalog', 'campaignId'));
         } catch (DomainException $exception) {
             return redirect()->to('/vendedor-eventual')->with('error', $exception->getMessage());
         }

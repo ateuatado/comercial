@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Services\AccessAdministrationService;
+use App\Services\CatalogVersionService;
 use App\Services\LearningJourneyService;
 use App\Services\EnrollmentService;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -50,6 +51,8 @@ class VendedorEventualController extends BaseController
             ->join('employees emp', 'emp.id = enrollment.employee_id')
             ->join('ve_campaigns campaign', 'campaign.id = enrollment.campaign_id')
             ->orderBy('enrollment.updated_at', 'DESC')->limit(100)->get()->getResultArray();
+        $productVersions = $db->table('ve_product_versions product')->select('product.*, campaign.name AS campaign_name')->join('ve_campaigns campaign', 'campaign.id = product.campaign_id')->orderBy('product.created_at', 'DESC')->get()->getResultArray();
+        $questionnaireVersions = $db->table('ve_questionnaire_versions questionnaire')->select('questionnaire.*, campaign.name AS campaign_name')->join('ve_campaigns campaign', 'campaign.id = questionnaire.campaign_id')->orderBy('questionnaire.created_at', 'DESC')->get()->getResultArray();
 
         /** @var VendedorEventual $featureConfig */
         $featureConfig = config(VendedorEventual::class);
@@ -62,6 +65,8 @@ class VendedorEventualController extends BaseController
             'featureEnabled' => $featureConfig->enabled,
             'learningVersions' => $learningVersions,
             'enrollments' => $enrollments,
+            'productVersions' => $productVersions,
+            'questionnaireVersions' => $questionnaireVersions,
         ]);
     }
 
@@ -190,6 +195,36 @@ class VendedorEventualController extends BaseController
             return redirect()->back()->with('success', 'Participação suspensa.');
         } catch (DomainException $exception) {
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
+    }
+
+    public function createProductVersion(): RedirectResponse
+    {
+        try {
+            (new CatalogVersionService())->createProduct($this->request->getPost(), (int) auth()->user()->id);
+            return redirect()->back()->with('success', 'Produto salvo como rascunho versionado.');
+        } catch (DomainException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
+    }
+
+    public function createQuestionnaireVersion(): RedirectResponse
+    {
+        try {
+            (new CatalogVersionService())->createQuestionnaire($this->request->getPost(), (int) auth()->user()->id);
+            return redirect()->back()->with('success', 'Questionário salvo como rascunho versionado.');
+        } catch (DomainException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
+    }
+
+    public function publishCatalogVersion(string $type, int $id): RedirectResponse
+    {
+        try {
+            (new CatalogVersionService())->publish($type, $id);
+            return redirect()->back()->with('success', 'Conteúdo publicado. A versão anterior foi arquivada.');
+        } catch (DomainException $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
         }
     }
 
