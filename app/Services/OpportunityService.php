@@ -63,6 +63,7 @@ class OpportunityService
         $opportunity = $employee === null ? null : db_connect()->table('ve_opportunities opportunity')->select('opportunity.*, campaign.name AS campaign_name, questionnaire.version AS questionnaire_version')->join('ve_campaigns campaign', 'campaign.id = opportunity.campaign_id')->join('ve_questionnaire_versions questionnaire', 'questionnaire.id = opportunity.questionnaire_version_id', 'left')->where(['opportunity.id' => $opportunityId, 'opportunity.originator_employee_id' => $employee['id']])->get()->getRowArray();
         if ($opportunity === null) { throw new DomainException('Oportunidade não encontrada para este empregado.'); }
         $opportunity['events'] = db_connect()->table('ve_opportunity_events')->where('opportunity_id', $opportunityId)->orderBy('occurred_at', 'ASC')->get()->getResultArray();
+        $opportunity['portfolio'] = (new PortfolioVisibilityService())->statusForCnpj((string) $opportunity['cnpj']);
         return $opportunity;
     }
 

@@ -132,6 +132,10 @@ ativação e primeiro uso, conforme integração disponível.
   do fato, instante de recebimento, canal, versão de conteúdo e metadados.
 - Nesta etapa o CNPJ é somente normalizado e validado quanto ao formato. Consulta
   à fonte pública, diagnóstico e recomendações pertencem às tarefas seguintes.
+- O Vendedor Eventual consulta a situação de carteira no contexto do CNPJ em
+  atendimento. A interface pode informar responsável, unidade e estado
+  operacional necessários à colaboração, mas não expõe a listagem integral nem
+  notas e estratégias comerciais de carteiras alheias.
 
 ## 6. Jornadas
 
