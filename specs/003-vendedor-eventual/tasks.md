@@ -16,6 +16,7 @@
 - [~] T007 Integrar identidade funcional e restrição de rede.
   - [x] T007.1 Separar empregado autenticável de vendedor da carteira.
   - [x] T007.2 Implementar provedor `demo` explícito com identidades fictícias.
+  - [x] T007.2.1 Impedir nova autenticação sobre sessão Shield já ativa.
   - [ ] T007.3 Conectar o provedor LDAP e validar restrição de rede no ambiente corporativo.
 - [x] T007A Implementar catálogo de aplicações e concessões temporárias auditáveis.
   - [x] T007A.1 Exibir o estado efetivo da trava global na administração e manter o conteúdo da página em container responsivo centralizado.
@@ -81,6 +82,7 @@
 - Ativação e primeiro uso alimentam pós-venda e painel.
 - Resultados demonstrativos não exibem promessa financeira.
 - Logs permitem reconstruir integralmente uma jornada.
+
 
 
 

@@ -37,6 +37,13 @@ class LoginController extends ShieldLoginController
      */
     public function loginAction(): RedirectResponse
     {
+        // Shield não permite iniciar outra autenticação sobre uma sessão ativa.
+        // Além de evitar a exceção, esta guarda impede troca silenciosa de conta.
+        if (auth('session')->loggedIn()) {
+            return redirect()->to('/')
+                ->with('message', 'Você já está conectado. Saia da conta atual antes de entrar com outra matrícula.');
+        }
+
         $matricula = strtoupper(trim((string) $this->request->getPost('username')));
         $password  = (string) $this->request->getPost('password');
 
