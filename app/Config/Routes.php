@@ -198,6 +198,9 @@ $routes->group('vendedor-eventual', ['filter' => 'applicationAccess:vendedor_eve
     $routes->post('campanhas/(:num)/capacitacao', '\App\Controllers\VendedorEventual\HomeController::completeTraining/$1', ['filter' => 'csrf']);
     $routes->post('campanhas/(:num)/participacao/(:segment)', '\App\Controllers\VendedorEventual\HomeController::changeEnrollmentStatus/$1/$2', ['filter' => 'csrf']);
     $routes->get('campanhas/(:num)/catalogo', '\App\Controllers\VendedorEventual\HomeController::catalog/$1');
+    $routes->get('campanhas/(:num)/oportunidades/nova', '\App\Controllers\VendedorEventual\HomeController::newOpportunity/$1');
+    $routes->post('campanhas/(:num)/oportunidades', '\App\Controllers\VendedorEventual\HomeController::createOpportunity/$1', ['filter' => 'csrf']);
+    $routes->get('oportunidades/(:num)', '\App\Controllers\VendedorEventual\HomeController::opportunity/$1');
 });
 
 // Override das rotas de login — registrado ANTES do Shield (CI4 usa first-match).

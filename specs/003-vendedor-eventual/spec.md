@@ -124,6 +124,15 @@ ativação e primeiro uso, conforme integração disponível.
   campos orientados à tarefa; a representação JSON permanece interna e não é
   exigida do gestor.
 
+### 5.4 Decisão da fundação de oportunidades
+
+- O primeiro registro gera UUID de correlação único e imutável, preservando
+  campanha, originador, condutor inicial, canal, CNPJ e versão do questionário.
+- A linha do tempo é acrescentável: eventos possuem UUID próprio, autor, instante
+  do fato, instante de recebimento, canal, versão de conteúdo e metadados.
+- Nesta etapa o CNPJ é somente normalizado e validado quanto ao formato. Consulta
+  à fonte pública, diagnóstico e recomendações pertencem às tarefas seguintes.
+
 ## 6. Jornadas
 
 ### J1 — Adesão

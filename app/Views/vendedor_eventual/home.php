@@ -45,6 +45,7 @@
                                     <div class="alert alert-success mt-auto"><strong>Participação habilitada.</strong><br>Capacitação, avaliação e aceite registrados.</div>
                                     <div class="d-flex flex-wrap gap-2">
                                         <a class="btn btn-primary" href="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/catalogo') ?>">Consultar catálogo</a>
+                                        <a class="btn btn-success" href="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/oportunidades/nova') ?>">Registrar oportunidade</a>
                                         <form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/participacao/pausar') ?>"><?= csrf_field() ?><button class="btn btn-outline-warning">Pausar participação</button></form>
                                         <form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaign['id'] . '/participacao/encerrar') ?>" onsubmit="return confirm('Deseja encerrar definitivamente esta participação?')"><?= csrf_field() ?><button class="btn btn-outline-danger">Encerrar participação</button></form>
                                     </div>
@@ -70,5 +71,7 @@
             <?php endforeach ?>
         </div>
     <?php endif ?>
+
+    <section class="mt-5"><h2 class="h4 mb-3">Minhas oportunidades</h2><?php if ($opportunities === []): ?><div class="alert alert-light border">Nenhuma oportunidade registrada.</div><?php else: ?><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Registro</th><th>CNPJ</th><th>Campanha</th><th>Estado</th><th></th></tr></thead><tbody><?php foreach ($opportunities as $opportunity): ?><tr><td><code><?= esc($opportunity['correlation_id']) ?></code></td><td><?= esc(substr($opportunity['cnpj'],0,2).'.'.substr($opportunity['cnpj'],2,3).'.'.substr($opportunity['cnpj'],5,3).'/'.substr($opportunity['cnpj'],8,4).'-'.substr($opportunity['cnpj'],12,2)) ?></td><td><?= esc($opportunity['campaign_name']) ?></td><td><?= esc($opportunity['status']) ?></td><td><a class="btn btn-sm btn-outline-primary" href="<?= site_url('vendedor-eventual/oportunidades/' . $opportunity['id']) ?>">Abrir</a></td></tr><?php endforeach ?></tbody></table></div><?php endif ?></section>
 </div>
 <?= $this->endSection() ?>

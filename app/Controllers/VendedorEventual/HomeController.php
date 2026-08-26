@@ -10,6 +10,7 @@ use App\Services\EnrollmentJourneyService;
 use App\Services\EnrollmentService;
 use App\Services\LearningJourneyService;
 use App\Services\CatalogVersionService;
+use App\Services\OpportunityService;
 use CodeIgniter\HTTP\RedirectResponse;
 use DomainException;
 
@@ -18,8 +19,9 @@ class HomeController extends BaseController
     public function index(): string
     {
         $campaigns = (new EnrollmentJourneyService())->campaignsFor((int) auth()->user()->id);
+        $opportunities = (new OpportunityService())->mine((int) auth()->user()->id);
 
-        return view('vendedor_eventual/home', compact('campaigns'));
+        return view('vendedor_eventual/home', compact('campaigns', 'opportunities'));
     }
 
     public function startEnrollment(int $campaignId): RedirectResponse
@@ -91,6 +93,37 @@ class HomeController extends BaseController
         try {
             $catalog = (new CatalogVersionService())->publishedFor((int) auth()->user()->id, $campaignId);
             return view('vendedor_eventual/catalog', compact('catalog', 'campaignId'));
+        } catch (DomainException $exception) {
+            return redirect()->to('/vendedor-eventual')->with('error', $exception->getMessage());
+        }
+    }
+
+    public function newOpportunity(int $campaignId): string|RedirectResponse
+    {
+        try {
+            (new CatalogVersionService())->publishedFor((int) auth()->user()->id, $campaignId);
+            return view('vendedor_eventual/opportunity_form', compact('campaignId'));
+        } catch (DomainException $exception) {
+            return redirect()->to('/vendedor-eventual')->with('error', $exception->getMessage());
+        }
+    }
+
+    public function createOpportunity(int $campaignId): RedirectResponse
+    {
+        try {
+            $data = $this->request->getPost(); $data['campaign_id'] = $campaignId;
+            $id = (new OpportunityService())->create((int) auth()->user()->id, $data);
+            return redirect()->to('/vendedor-eventual/oportunidades/' . $id)->with('success', 'Oportunidade registrada com identificação imutável.');
+        } catch (DomainException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
+    }
+
+    public function opportunity(int $id): string|RedirectResponse
+    {
+        try {
+            $opportunity = (new OpportunityService())->detailFor((int) auth()->user()->id, $id);
+            return view('vendedor_eventual/opportunity', compact('opportunity'));
         } catch (DomainException $exception) {
             return redirect()->to('/vendedor-eventual')->with('error', $exception->getMessage());
         }
