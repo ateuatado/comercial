@@ -11,6 +11,7 @@ use App\Services\EnrollmentService;
 use App\Services\LearningJourneyService;
 use App\Services\CatalogVersionService;
 use App\Services\OpportunityService;
+use App\Services\PortfolioRequestService;
 use CodeIgniter\HTTP\RedirectResponse;
 use DomainException;
 
@@ -126,6 +127,19 @@ class HomeController extends BaseController
             return view('vendedor_eventual/opportunity', compact('opportunity'));
         } catch (DomainException $exception) {
             return redirect()->to('/vendedor-eventual')->with('error', $exception->getMessage());
+        }
+    }
+
+    public function requestPortfolio(int $id): RedirectResponse
+    {
+        try {
+            (new PortfolioRequestService())->requestForOpportunity((int) auth()->user()->id, $id);
+
+            return redirect()->to('/vendedor-eventual/oportunidades/' . $id)
+                ->with('success', 'Solicitação provisória registrada para análise. A carteira existente não foi alterada.');
+        } catch (DomainException $exception) {
+            return redirect()->to('/vendedor-eventual/oportunidades/' . $id)
+                ->with('error', $exception->getMessage());
         }
     }
 

@@ -201,6 +201,7 @@ $routes->group('vendedor-eventual', ['filter' => 'applicationAccess:vendedor_eve
     $routes->get('campanhas/(:num)/oportunidades/nova', '\App\Controllers\VendedorEventual\HomeController::newOpportunity/$1');
     $routes->post('campanhas/(:num)/oportunidades', '\App\Controllers\VendedorEventual\HomeController::createOpportunity/$1', ['filter' => 'csrf']);
     $routes->get('oportunidades/(:num)', '\App\Controllers\VendedorEventual\HomeController::opportunity/$1');
+    $routes->post('oportunidades/(:num)/solicitacao-carteira', '\App\Controllers\VendedorEventual\HomeController::requestPortfolio/$1', ['filter' => 'csrf']);
     $routes->get('oportunidades/(:num)/diagnostico', '\App\Controllers\VendedorEventual\HomeController::diagnostic/$1');
     $routes->post('oportunidades/(:num)/diagnostico', '\App\Controllers\VendedorEventual\HomeController::completeDiagnostic/$1', ['filter' => 'csrf']);
 });

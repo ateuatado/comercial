@@ -38,7 +38,7 @@
 - [ ] T011 Implementar registro rápido online e offline.
 - [ ] T012 Consultar CNPJ e permitir confirmação de dados.
 - [x] T013 Implementar diagnóstico, regras explicáveis e recomendações.
-- [ ] T014 Criar solicitação e reserva provisória de carteira.
+- [x] T014 Criar solicitação e reserva provisória de carteira. — Solicitação por oportunidade, reserva técnica por CNPJ e evento auditável, sem escrita no domínio de carteira.
 - [ ] T015 Detectar duplicidades sem bloquear a jornada.
 
 ## Fase 3 — Cliente e contratação

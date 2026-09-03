@@ -140,6 +140,19 @@ ativação e primeiro uso, conforme integração disponível.
   respostas utilizadas e limita a recomendação a três produtos publicados, com
   justificativas provenientes exclusivamente das regras aprovadas pelo gestor.
 
+### 5.5 Decisão da solicitação provisória de carteira
+
+- Uma oportunidade válida pode gerar uma solicitação provisória vinculada ao
+  seu UUID de correlação e ao empregado originador, sem inserir, atualizar ou
+  remover registros de `client_wallets`, `carteira_raw` ou distribuição.
+- A primeira solicitação para um CNPJ cria apenas uma reserva técnica de análise.
+  Solicitações posteriores permanecem registradas e referenciam a mesma reserva;
+  elas não bloqueiam o atendimento, não definem titularidade e não resolvem
+  conflitos automaticamente.
+- Autoria da oportunidade, condução comercial e propriedade futura de carteira
+  permanecem estados independentes. Qualquer atribuição efetiva exige decisão
+  operacional posterior e a trilha de auditoria própria do domínio de carteira.
+
 ## 6. Jornadas
 
 ### J1 — Adesão

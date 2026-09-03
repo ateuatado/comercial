@@ -64,6 +64,14 @@ class OpportunityService
         if ($opportunity === null) { throw new DomainException('Oportunidade não encontrada para este empregado.'); }
         $opportunity['events'] = db_connect()->table('ve_opportunity_events')->where('opportunity_id', $opportunityId)->orderBy('occurred_at', 'ASC')->get()->getResultArray();
         $opportunity['portfolio'] = (new PortfolioVisibilityService())->statusForCnpj((string) $opportunity['cnpj']);
+        $opportunity['portfolio_request'] = db_connect()->tableExists('ve_portfolio_requests')
+            ? db_connect()->table('ve_portfolio_requests request')
+                ->select('request.*, reservation.reservation_id AS reservation_reference, reservation.status AS reservation_status')
+                ->join('ve_portfolio_reservations reservation', 'reservation.id = request.reservation_id', 'left')
+                ->where('request.opportunity_id', $opportunityId)
+                ->get()
+                ->getRowArray()
+            : null;
         $diagnostic = db_connect()->tableExists('ve_opportunity_diagnostics') ? db_connect()->table('ve_opportunity_diagnostics')->where('opportunity_id', $opportunityId)->get()->getRowArray() : null;
         if ($diagnostic !== null) { $diagnostic['answers'] = json_decode($diagnostic['answers'], true); $diagnostic['recommendations'] = json_decode($diagnostic['recommendations'], true); }
         $opportunity['diagnostic'] = $diagnostic;
