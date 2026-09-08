@@ -206,6 +206,7 @@ $routes->group('vendedor-eventual', ['filter' => 'applicationAccess:vendedor_eve
     $routes->post('oportunidades/(:num)/solicitacao-carteira', '\App\Controllers\VendedorEventual\HomeController::requestPortfolio/$1');
     $routes->get('oportunidades/(:num)/diagnostico', '\App\Controllers\VendedorEventual\HomeController::diagnostic/$1');
     $routes->post('oportunidades/(:num)/diagnostico', '\App\Controllers\VendedorEventual\HomeController::completeDiagnostic/$1');
+    $routes->get('cnpj/(:segment)', '\App\Controllers\VendedorEventual\HomeController::lookupCnpj/$1');
 });
 
 // Override das rotas de login — registrado ANTES do Shield (CI4 usa first-match).

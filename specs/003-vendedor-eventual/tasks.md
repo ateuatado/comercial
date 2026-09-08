@@ -37,10 +37,10 @@
 ## Fase 2 — Prospecção sem atrito
 
 - [ ] T011 Implementar registro rápido online e offline.
-- [ ] T012 Consultar CNPJ e permitir confirmação de dados.
+- [x] T012 Consultar CNPJ e permitir confirmação de dados. — Consulta nas fontes locais reais (`carteira_raw` e Receita Federal), confirmação obrigatória após conferência com o cliente e evidência imutável com fonte, instante e snapshot no evento inicial.
 - [x] T013 Implementar diagnóstico, regras explicáveis e recomendações.
 - [x] T014 Criar solicitação e reserva provisória de carteira. — Solicitação por oportunidade, reserva técnica por CNPJ e evento auditável, sem escrita no domínio de carteira.
-- [ ] T015 Detectar duplicidades sem bloquear a jornada.
+- [x] T015 Detectar duplicidades sem bloquear a jornada. — Alertas de carteira atribuída, oportunidade ativa na campanha e reserva técnica pendente são registrados no evento inicial e exibidos internamente, sem impedir a criação nem as próximas etapas.
 
 ## Fase 3 — Cliente e contratação
 

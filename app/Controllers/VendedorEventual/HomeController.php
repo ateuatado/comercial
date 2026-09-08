@@ -6,6 +6,7 @@ namespace App\Controllers\VendedorEventual;
 
 use App\Controllers\BaseController;
 use App\Models\EmployeeModel;
+use App\Services\CnpjLookupService;
 use App\Services\EnrollmentJourneyService;
 use App\Services\EnrollmentService;
 use App\Services\LearningJourneyService;
@@ -13,6 +14,7 @@ use App\Services\CatalogVersionService;
 use App\Services\OpportunityService;
 use App\Services\PortfolioRequestService;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 use DomainException;
 
 class HomeController extends BaseController
@@ -107,6 +109,19 @@ class HomeController extends BaseController
         } catch (DomainException $exception) {
             return redirect()->to('/vendedor-eventual')->with('error', $exception->getMessage());
         }
+    }
+
+    /**
+     * T012 — Consulta CNPJ na base local.
+     * GET vendedor-eventual/cnpj/(:segment) → JSON
+     */
+    public function lookupCnpj(string $cnpj): ResponseInterface
+    {
+        $result = (new CnpjLookupService())->lookup($cnpj);
+
+        return $this->response
+            ->setContentType('application/json')
+            ->setJSON($result);
     }
 
     public function createOpportunity(int $campaignId): RedirectResponse

@@ -135,6 +135,13 @@ ativação e primeiro uso, conforme integração disponível.
   do fato, instante de recebimento, canal, versão de conteúdo e metadados.
 - Nesta etapa o CNPJ é somente normalizado e validado quanto ao formato. Consulta
   à fonte pública, diagnóstico e recomendações pertencem às tarefas seguintes.
+- A consulta de T012 usa somente as bases locais `carteira_raw` e
+  `receita.estabelecimentos`, sem chamada externa. O evento inicial preserva o
+  resultado consultado, a fonte, o instante e a confirmação feita pelo empregado
+  após conferência com o cliente.
+- A detecção de T015 registra no mesmo evento alertas de carteira atribuída,
+  oportunidade ativa na campanha e reserva técnica pendente. Esses alertas são
+  internos e informativos: não impedem o registro nem a continuidade da jornada.
 - O Vendedor Eventual consulta a situação de carteira no contexto do CNPJ em
   atendimento. A interface pode informar responsável, unidade e estado
   operacional necessários à colaboração, mas não expõe a listagem integral nem

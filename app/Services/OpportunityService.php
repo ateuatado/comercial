@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\EmployeeModel;
+use App\Services\CnpjLookupService;
+use App\Services\DuplicityAlertService;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DomainException;
@@ -27,6 +29,9 @@ class OpportunityService
         if ($context === '' || ! in_array($channel, ['presencial', 'telefone', 'email', 'evento', 'outro'], true)) {
             throw new DomainException('Informe o contexto do contato e um canal válido.');
         }
+        if (! in_array($data['cnpj_confirmed'] ?? null, ['1', 1, true], true)) {
+            throw new DomainException('Confirme com o cliente os dados do CNPJ antes de registrar a oportunidade.');
+        }
         $enrollment = db_connect()->table('ve_enrollments')->where(['employee_id' => $employee['id'], 'campaign_id' => $campaignId, 'status' => 'qualified'])->get()->getRowArray();
         $instant = $at ?? new DateTimeImmutable();
         if ($enrollment === null || ! (new ApplicationAccessService())->hasAccess($shieldUserId, 'vendedor_eventual', 'access', $campaignId, $instant)) {
@@ -34,6 +39,10 @@ class OpportunityService
         }
         $questionnaire = db_connect()->table('ve_questionnaire_versions')->where(['campaign_id' => $campaignId, 'status' => 'published'])->orderBy('published_at', 'DESC')->get()->getRowArray();
         $correlationId = $this->uuid();
+        // T015: verificação de duplicidade fora da transação — usa conexão própria
+        // para não contaminar o estado transacional em caso de tabela ausente.
+        $cnpjLookup = (new CnpjLookupService())->lookup($cnpj);
+        $alerts = (new DuplicityAlertService())->check($cnpj, $campaignId);
         $db = db_connect();
         $db->transStart();
         $db->table('ve_opportunities')->insert([
@@ -44,7 +53,17 @@ class OpportunityService
             'contacted_at' => $instant->format('Y-m-d H:i:s'), 'created_at' => $instant->format('Y-m-d H:i:s'), 'updated_at' => $instant->format('Y-m-d H:i:s'),
         ]);
         $id = (int) $db->insertID();
-        $this->appendEvent($db, $id, 'opportunity_registered', (int) $employee['id'], $shieldUserId, $channel, $instant, $questionnaire['version'] ?? null, ['correlation_id' => $correlationId, 'cnpj' => $cnpj]);
+        $this->appendEvent($db, $id, 'opportunity_registered', (int) $employee['id'], $shieldUserId, $channel, $instant, $questionnaire['version'] ?? null, [
+            'correlation_id' => $correlationId,
+            'cnpj'           => $cnpj,
+            'cnpj_lookup'    => $cnpjLookup,
+            'cnpj_confirmation' => [
+                'confirmed' => true,
+                'confirmed_at' => $instant->format(DATE_ATOM),
+                'confirmed_by_employee_id' => (int) $employee['id'],
+            ],
+            'alerts'         => $alerts,
+        ]);
         $db->transComplete();
         if (! $db->transStatus()) { throw new DomainException('Não foi possível registrar a oportunidade.'); }
         return $id;
@@ -64,6 +83,8 @@ class OpportunityService
         if ($opportunity === null) { throw new DomainException('Oportunidade não encontrada para este empregado.'); }
         $opportunity['events'] = db_connect()->table('ve_opportunity_events')->where('opportunity_id', $opportunityId)->orderBy('occurred_at', 'ASC')->get()->getResultArray();
         $opportunity['portfolio'] = (new PortfolioVisibilityService())->statusForCnpj((string) $opportunity['cnpj']);
+        $opportunity['cnpj_data'] = (new CnpjLookupService())->lookup((string) $opportunity['cnpj']);
+        $opportunity['duplicity_alerts'] = $this->extractAlertsFromEvents($opportunity['events']);
         $opportunity['portfolio_request'] = db_connect()->tableExists('ve_portfolio_requests')
             ? db_connect()->table('ve_portfolio_requests request')
                 ->select('request.*, reservation.reservation_id AS reservation_reference, reservation.status AS reservation_status')
@@ -101,6 +122,24 @@ class OpportunityService
         $db->table('ve_opportunities')->where('id',$opportunityId)->update(['status'=>'diagnosis','updated_at'=>$now->format('Y-m-d H:i:s')]);
         $this->appendEvent($db,$opportunityId,'diagnostic_completed',(int)$employee['id'],$shieldUserId,'system',$now,$form['questionnaire']['version'],['recommendation_count'=>count($recommendations)]); $db->transComplete();
         if(!$db->transStatus()){throw new DomainException('Não foi possível concluir o diagnóstico.');}
+    }
+
+    /** Extrai os alertas de duplicidade gravados no evento opportunity_registered. */
+    private function extractAlertsFromEvents(array $events): array
+    {
+        foreach ($events as $event) {
+            if ($event['event_type'] !== 'opportunity_registered') {
+                continue;
+            }
+            try {
+                $meta = json_decode((string) $event['metadata'], true, 512, JSON_THROW_ON_ERROR);
+                return (array) ($meta['alerts'] ?? []);
+            } catch (\JsonException) {
+                return [];
+            }
+        }
+
+        return [];
     }
 
     private function appendEvent($db, int $opportunityId, string $type, int $employeeId, int $userId, string $channel, DateTimeInterface $at, ?string $version, array $metadata): void

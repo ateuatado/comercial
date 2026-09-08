@@ -38,6 +38,25 @@
                 </div>
             </div>
 
+            <?php if (!empty($opportunity['cnpj_data']['found'])): ?>
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center gap-2">
+                    Dados do CNPJ
+                    <span class="badge bg-secondary ms-auto"><?= esc($opportunity['cnpj_data']['source']) ?></span>
+                </div>
+                <div class="card-body">
+                    <?php $d = $opportunity['cnpj_data']['data']; ?>
+                    <dl class="mb-0">
+                        <?php if ($d['razao_social']):  ?><dt>Razão social</dt><dd><?= esc($d['razao_social'])  ?></dd><?php endif ?>
+                        <?php if ($d['nome_fantasia']): ?><dt>Nome fantasia</dt><dd><?= esc($d['nome_fantasia']) ?></dd><?php endif ?>
+                        <?php if ($d['situacao']):      ?><dt>Situação</dt><dd><?= esc($d['situacao'])      ?></dd><?php endif ?>
+                        <?php if ($d['cnae_principal']):?><dt>CNAE principal</dt><dd><?= esc($d['cnae_principal'])?></dd><?php endif ?>
+                        <?php if ($d['municipio'] && $d['uf']): ?><dt>Localidade</dt><dd><?= esc($d['municipio']) ?> / <?= esc($d['uf']) ?></dd><?php endif ?>
+                    </dl>
+                </div>
+            </div>
+            <?php endif ?>
+
             <div class="card">
                 <div class="card-header">Situação na carteira</div>
                 <div class="card-body">
@@ -82,6 +101,29 @@
         </div>
 
         <div class="col-12 col-lg-7">
+            <?php if (!empty($opportunity['duplicity_alerts'])): ?>
+            <div class="card mb-4 border-warning">
+                <div class="card-header bg-warning bg-opacity-10 d-flex align-items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-warning" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg>
+                    Alertas de duplicidade
+                    <span class="badge bg-warning text-dark ms-auto"><?= count($opportunity['duplicity_alerts']) ?></span>
+                </div>
+                <div class="list-group list-group-flush">
+                    <?php foreach ($opportunity['duplicity_alerts'] as $alert): ?>
+                    <div class="list-group-item">
+                        <strong><?= esc($alert['label']) ?></strong>
+                        <?php if ($alert['detail']): ?>
+                            <div class="small text-muted"><?= esc($alert['detail']) ?></div>
+                        <?php endif ?>
+                    </div>
+                    <?php endforeach ?>
+                </div>
+                <div class="card-footer small text-muted">
+                    Alertas são informativos — a oportunidade permanece registrada e a jornada pode continuar normalmente.
+                </div>
+            </div>
+            <?php endif ?>
+
             <div class="card mb-4">
                 <div class="card-header">Próximas ações comerciais</div>
                 <div class="card-body">

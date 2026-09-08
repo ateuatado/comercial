@@ -27,10 +27,19 @@ final class OpportunityServiceTest extends CIUnitTestCase
         $application=$db->table('ve_applications')->where('code','vendedor_eventual')->get()->getRowArray(); $db->table('ve_applications')->where('id',$application['id'])->update(['enabled'=>true]); config(VendedorEventual::class)->enabled=true;
         $db->table('ve_employee_entitlements')->insert(['employee_id'=>$employeeId,'application_id'=>$application['id'],'campaign_id'=>$campaignId,'capability'=>'access','source'=>'campaign','status'=>'active','valid_from'=>'2026-08-01 00:00:00','valid_until'=>'2026-09-01 00:00:00']);
         $db->table('ve_enrollments')->insert(['employee_id'=>$employeeId,'campaign_id'=>$campaignId,'status'=>'qualified','created_at'=>'2026-08-25 09:00:00','updated_at'=>'2026-08-25 09:00:00']);
-        $id=(new OpportunityService())->create(700,['campaign_id'=>$campaignId,'cnpj'=>'12.345.678/0001-90','contact_context'=>'Necessidade percebida em visita.','channel'=>'presencial'],new DateTimeImmutable('2026-08-25 10:00:00'));
+        $service=new OpportunityService();
+        try {
+            $service->create(700,['campaign_id'=>$campaignId,'cnpj'=>'12.345.678/0001-90','contact_context'=>'Necessidade percebida em visita.','channel'=>'presencial'],new DateTimeImmutable('2026-08-25 10:00:00'));
+            $this->fail('Oportunidade sem confirmação do CNPJ deveria ser rejeitada.');
+        } catch (DomainException $exception) {
+            $this->assertStringContainsString('Confirme com o cliente', $exception->getMessage());
+        }
+        $id=$service->create(700,['campaign_id'=>$campaignId,'cnpj'=>'12.345.678/0001-90','contact_context'=>'Necessidade percebida em visita.','channel'=>'presencial','cnpj_confirmed'=>'1'],new DateTimeImmutable('2026-08-25 10:00:00'));
         $row=$db->table('ve_opportunities')->where('id',$id)->get()->getRowArray();
         $this->assertMatchesRegularExpression('/^[0-9a-f-]{36}$/',$row['correlation_id']); $this->assertSame('12345678000190',$row['cnpj']); $this->assertSame($employeeId,(int)$row['originator_employee_id']);
         $this->assertSame(1,$db->table('ve_opportunity_events')->where('opportunity_id',$id)->countAllResults());
+        $event=$db->table('ve_opportunity_events')->where('opportunity_id',$id)->get()->getRowArray(); $metadata=json_decode($event['metadata'],true,512,JSON_THROW_ON_ERROR);
+        $this->assertTrue($metadata['cnpj_confirmation']['confirmed']); $this->assertArrayHasKey('consulted_at',$metadata['cnpj_lookup']);
         $detail=(new OpportunityService())->detailFor(700,$id); $this->assertCount(1,$detail['events']);
         config(VendedorEventual::class)->enabled=false; $opportunities->down(); $catalog->down(); $enrollments->down(); $foundation->down();
     }
