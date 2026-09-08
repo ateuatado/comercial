@@ -10,9 +10,9 @@
 
 ## Fase 1 — Fundação
 
-- [~] T006 Implementar campanhas, versões e publicação.
+- [x] T006 Implementar campanhas, versões e publicação.
   - [x] T006.1 Criar campanha demonstrativa, vigência e estados fundamentais.
-  - [ ] T006.2 Implementar versões e publicação após validar os conteúdos.
+  - [x] T006.2 Implementar versões e publicação após validar os conteúdos. — Publicação e ativação exigem pacote coerente de capacitação, questionário e até três produtos, validado no servidor.
 - [~] T007 Integrar identidade funcional e restrição de rede.
   - [x] T007.1 Separar empregado autenticável de vendedor da carteira.
   - [x] T007.2 Implementar provedor `demo` explícito com identidades fictícias.

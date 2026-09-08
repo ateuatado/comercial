@@ -28,11 +28,11 @@ class OpportunityService
             throw new DomainException('Informe o contexto do contato e um canal válido.');
         }
         $enrollment = db_connect()->table('ve_enrollments')->where(['employee_id' => $employee['id'], 'campaign_id' => $campaignId, 'status' => 'qualified'])->get()->getRowArray();
-        if ($enrollment === null || ! (new ApplicationAccessService())->hasAccess($shieldUserId, 'vendedor_eventual', 'access', $campaignId)) {
+        $instant = $at ?? new DateTimeImmutable();
+        if ($enrollment === null || ! (new ApplicationAccessService())->hasAccess($shieldUserId, 'vendedor_eventual', 'access', $campaignId, $instant)) {
             throw new DomainException('Somente participação habilitada pode registrar oportunidade.');
         }
         $questionnaire = db_connect()->table('ve_questionnaire_versions')->where(['campaign_id' => $campaignId, 'status' => 'published'])->orderBy('published_at', 'DESC')->get()->getRowArray();
-        $instant = $at ?? new DateTimeImmutable();
         $correlationId = $this->uuid();
         $db = db_connect();
         $db->transStart();

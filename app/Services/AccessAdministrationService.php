@@ -98,6 +98,10 @@ class AccessAdministrationService
             throw new DomainException("Transição de campanha inválida: {$current} → {$newStatus}.");
         }
 
+        if (in_array($newStatus, ['published', 'active'], true)) {
+            (new CampaignReadinessService($db))->assertReady($campaignId);
+        }
+
         $db->transStart();
         $db->table('ve_campaigns')->where('id', $campaignId)->update([
             'status' => $newStatus,

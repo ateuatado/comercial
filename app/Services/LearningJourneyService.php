@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\EmployeeModel;
 use DateTimeImmutable;
+use DateTimeInterface;
 use DomainException;
 
 class LearningJourneyService
@@ -61,9 +62,9 @@ class LearningJourneyService
         $db->transComplete();
     }
 
-    public function publishedFor(int $shieldUserId, int $campaignId): array
+    public function publishedFor(int $shieldUserId, int $campaignId, ?DateTimeInterface $at = null): array
     {
-        if (! (new ApplicationAccessService())->hasAccess($shieldUserId, 'vendedor_eventual', 'access', $campaignId)) {
+        if (! (new ApplicationAccessService())->hasAccess($shieldUserId, 'vendedor_eventual', 'access', $campaignId, $at)) {
             throw new DomainException('Campanha indisponível para este empregado.');
         }
 
@@ -83,9 +84,16 @@ class LearningJourneyService
         return $version;
     }
 
-    public function complete(int $shieldUserId, int $campaignId, int $selectedOption, bool $acceptedTerms): void
+    public function complete(
+        int $shieldUserId,
+        int $campaignId,
+        int $selectedOption,
+        bool $acceptedTerms,
+        ?DateTimeInterface $at = null
+    ): void
     {
-        $version = $this->publishedFor($shieldUserId, $campaignId);
+        $instant = $at ?? new DateTimeImmutable();
+        $version = $this->publishedFor($shieldUserId, $campaignId, $instant);
         if (! $acceptedTerms) {
             throw new DomainException('O aceite explícito dos termos é obrigatório.');
         }
@@ -100,6 +108,6 @@ class LearningJourneyService
             'assessment_score' => 100,
             'assessment_passed' => true,
             'qualified_until' => null,
-        ], new DateTimeImmutable());
+        ], $instant);
     }
 }

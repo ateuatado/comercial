@@ -156,6 +156,18 @@ ativação e primeiro uso, conforme integração disponível.
   permanecem estados independentes. Qualquer atribuição efetiva exige decisão
   operacional posterior e a trilha de auditoria própria do domínio de carteira.
 
+### 5.6 Decisão de prontidão para publicação da campanha
+
+- Uma campanha só pode ser publicada ou ativada quando possuir exatamente uma
+  capacitação com termos publicada, exatamente um questionário publicado e de
+  um a três produtos publicados.
+- As regras do questionário devem apontar exclusivamente para produtos
+  publicados na mesma campanha. Nomes duplicados ou referências ausentes
+  impedem a mudança de estado.
+- O servidor aplica essa validação independentemente da interface. Suspensão e
+  encerramento permanecem disponíveis mesmo quando o conteúdo deixa de estar
+  pronto, para preservar o controle administrativo e a segurança.
+
 ## 6. Jornadas
 
 ### J1 — Adesão

@@ -56,7 +56,7 @@ final class LearningJourneyServiceTest extends CIUnitTestCase
         $service = new LearningJourneyService();
         $id = $service->createVersion(['campaign_id' => $this->campaignId, 'version' => 'v1', 'title' => 'Capacitação', 'training_content' => 'Conteúdo', 'terms_content' => 'Termos', 'assessment_question' => 'Correta?', 'assessment_options' => ['Sim', 'Não'], 'correct_option' => 0], 900);
         $service->publish($id);
-        $service->complete(700, $this->campaignId, 0, true);
+        $service->complete(700, $this->campaignId, 0, true, new DateTimeImmutable('2026-08-25 10:00:00'));
 
         $row = $this->testDb->table('ve_enrollments')->where('campaign_id', $this->campaignId)->get()->getRowArray();
         $this->assertSame('qualified', $row['status']);
