@@ -91,6 +91,9 @@ ativação e primeiro uso, conforme integração disponível.
 - O piloto fora da rede corporativa usa somente identidades fictícias, marcadas
   com origem `demo`. O modo demonstrativo e sua senha compartilhada precisam ser
   habilitados explicitamente por configuração e ficam desabilitados por padrão.
+- Para preservar as personas da demonstração da carteira, esse cadastro fechado
+  inclui `A0001`, `C0101` a `C0103` e `V0101` a `V0156`. Registrá-las como
+  empregados não altera grupos, carteiras ou permissões existentes no Shield.
 - Na rede corporativa, o LDAP será o provedor de identidade funcional. Ambos os
   modos alimentam o mesmo cadastro de empregados e as mesmas regras de
   autorização; nenhum dado real é necessário no piloto externo.
