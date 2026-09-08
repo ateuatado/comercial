@@ -2,6 +2,14 @@
 
 Leia este arquivo antes de qualquer alteração significativa no projeto.
 
+## Local canônico de desenvolvimento
+
+- A única árvore física do projeto no ambiente local fica em `C:\xampp\htdocs\spiv`.
+- O Apache publica exclusivamente `C:\xampp\htdocs\spiv\public` como `DocumentRoot` de `https://spiv.test`.
+- Comandos Git, Composer, Spark e testes devem ser executados na raiz `C:\xampp\htdocs\spiv`, nunca dentro de `public`.
+- O caminho legado `C:\Users\elian\Desktop\spiv` pode existir somente como junção para a raiz canônica; nunca crie ou mantenha nele uma segunda cópia do repositório.
+- Antes de validar uma alteração no navegador, confirme que a árvore canônica está no commit esperado e aplique as migrations pendentes.
+
 ## Contexto do projeto
 
 Este repositório contém o SPIV, uma aplicação baseada em CodeIgniter 4 com PostgreSQL, Shield e integração com LDAP para uso interno.
