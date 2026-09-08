@@ -5,8 +5,10 @@ use CodeIgniter\Router\RouteCollection;
 /** @var RouteCollection $routes */
 $routes->get('/', 'Home::index');
 
-// Área administrativa — somente admin
-$routes->group('admin', ['filter' => 'session'], static function ($routes): void {
+// Área administrativa — exige autenticação e permissão administrativa.
+$routes->group('admin', [
+    'filter' => ['session', 'permission:admin.access'],
+], static function ($routes): void {
     // Dashboard
     $routes->get('dashboard', '\App\Controllers\AdminController::dashboard');
     $routes->get('historico', '\App\Controllers\AdminController::historicalMovements', ['as' => 'admin_historical']);

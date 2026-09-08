@@ -27,6 +27,7 @@
 - [x] Implementar permissões como atributos.
 - [x] Tratar supervisor como permissão extra.
 - [x] Implementar redirecionamento por perfil.
+- [x] Proteger todas as rotas `/admin/*` com autenticação e permissão `admin.access`. — Filtros aplicados no grupo de rotas e cobertura automatizada adicionada.
 
 ### 3. Cadastro de vendedores
 
