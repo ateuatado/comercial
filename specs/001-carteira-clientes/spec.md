@@ -177,6 +177,16 @@ $$\text{Score Final} = (\text{Score CNAE} \times 20) \times 30\% + (\text{Score 
 - Notas do vendedor são chave para retroalimentação e enriquecimento de dados.
 - Estratégias são compostas por blocos de serviço por segmento.
 
+## Segurança de requisições mutáveis
+
+- Todas as requisições POST, PUT, PATCH e DELETE internas devem ser protegidas
+  pelo filtro CSRF global do CodeIgniter 4.
+- Formulários HTML devem enviar campo CSRF explícito; chamadas AJAX de mesma
+  origem devem enviar o token no cabeçalho configurado pelo framework.
+- O token não pode ser transmitido a serviços de outra origem.
+- Exceções para integrações externas exigem rota dedicada, autenticação própria,
+  justificativa documentada e teste específico.
+
 ## Requisitos de experiência
 
 - Mobile-first: interface otimizada para celular em campo.

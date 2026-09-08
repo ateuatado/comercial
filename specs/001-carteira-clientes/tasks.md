@@ -28,6 +28,7 @@
 - [x] Tratar supervisor como permissão extra.
 - [x] Implementar redirecionamento por perfil.
 - [x] Proteger todas as rotas `/admin/*` com autenticação e permissão `admin.access`. — Filtros aplicados no grupo de rotas e cobertura automatizada adicionada.
+- [x] Proteger globalmente requisições mutáveis contra CSRF. — Formulários POST cobertos, AJAX de mesma origem centralizado, contrato documentado e teste automatizado adicionado.
 
 ### 3. Cadastro de vendedores
 

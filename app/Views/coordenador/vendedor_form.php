@@ -20,6 +20,7 @@
 
     <div class="form-card">
         <form action="<?= esc($action) ?>" method="post">
+            <?= csrf_field() ?>
             <div class="mb-3">
                 <label class="form-label">Matrícula <span class="text-danger">*</span></label>
                 <input type="text" name="matricula" class="form-control" value="<?= esc($vendedor['matricula'] ?? '') ?>" required <?= !empty($vendedor['matricula']) ? 'readonly' : '' ?>>

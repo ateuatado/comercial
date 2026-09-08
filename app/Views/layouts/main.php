@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?= esc($meta_description ?? 'SPIV — Sistema de Gestão de Vendas') ?>">
+    <?= csrf_meta('spiv-csrf') ?>
     <title><?= esc($page_title ?? 'SPIV') ?> | Sistema de Vendas</title>
 
     <!-- Bootstrap 5.3.3 -->
@@ -59,6 +60,9 @@
 
     <!-- SPIV JS -->
     <script src="<?= base_url('assets/js/main.js') ?>"></script>
+
+    <!-- Proteção CSRF central para chamadas AJAX mutáveis da mesma origem -->
+    <script src="<?= base_url('assets/js/csrf.js') ?>"></script>
 
     <!-- Scripts de módulo injetados pela view via section('scripts') -->
     <?= $this->renderSection('scripts') ?>

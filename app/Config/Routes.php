@@ -89,19 +89,19 @@ $routes->group('admin', [
     // Fundação do Vendedor Eventual — autorização administrativa explícita.
     $routes->group('vendedor-eventual', ['filter' => 'permission:campaign.manage'], static function ($routes): void {
         $routes->get('/', '\App\Controllers\Admin\VendedorEventualController::index');
-        $routes->post('campanhas', '\App\Controllers\Admin\VendedorEventualController::createCampaign', ['filter' => 'csrf']);
-        $routes->post('campanhas/(:num)/estado', '\App\Controllers\Admin\VendedorEventualController::changeCampaignStatus/$1', ['filter' => 'csrf']);
-        $routes->post('aplicacoes/(:num)/estado', '\App\Controllers\Admin\VendedorEventualController::toggleApplication/$1', ['filter' => 'csrf']);
-        $routes->post('capacitacoes', '\App\Controllers\Admin\VendedorEventualController::createLearningVersion', ['filter' => 'csrf']);
-        $routes->post('capacitacoes/(:num)/publicar', '\App\Controllers\Admin\VendedorEventualController::publishLearningVersion/$1', ['filter' => 'csrf']);
-        $routes->post('catalogo/produtos', '\App\Controllers\Admin\VendedorEventualController::createProductVersion', ['filter' => 'csrf']);
-        $routes->post('catalogo/questionarios', '\App\Controllers\Admin\VendedorEventualController::createQuestionnaireVersion', ['filter' => 'csrf']);
-        $routes->post('catalogo/(:segment)/(:num)/publicar', '\App\Controllers\Admin\VendedorEventualController::publishCatalogVersion/$1/$2', ['filter' => 'csrf']);
+        $routes->post('campanhas', '\App\Controllers\Admin\VendedorEventualController::createCampaign');
+        $routes->post('campanhas/(:num)/estado', '\App\Controllers\Admin\VendedorEventualController::changeCampaignStatus/$1');
+        $routes->post('aplicacoes/(:num)/estado', '\App\Controllers\Admin\VendedorEventualController::toggleApplication/$1');
+        $routes->post('capacitacoes', '\App\Controllers\Admin\VendedorEventualController::createLearningVersion');
+        $routes->post('capacitacoes/(:num)/publicar', '\App\Controllers\Admin\VendedorEventualController::publishLearningVersion/$1');
+        $routes->post('catalogo/produtos', '\App\Controllers\Admin\VendedorEventualController::createProductVersion');
+        $routes->post('catalogo/questionarios', '\App\Controllers\Admin\VendedorEventualController::createQuestionnaireVersion');
+        $routes->post('catalogo/(:segment)/(:num)/publicar', '\App\Controllers\Admin\VendedorEventualController::publishCatalogVersion/$1/$2');
     });
     $routes->group('vendedor-eventual', ['filter' => 'permission:entitlements.manage'], static function ($routes): void {
-        $routes->post('concessoes', '\App\Controllers\Admin\VendedorEventualController::grant', ['filter' => 'csrf']);
-        $routes->post('concessoes/(:num)/revogar', '\App\Controllers\Admin\VendedorEventualController::revoke/$1', ['filter' => 'csrf']);
-        $routes->post('adesoes/(:num)/suspender', '\App\Controllers\Admin\VendedorEventualController::suspendEnrollment/$1', ['filter' => 'csrf']);
+        $routes->post('concessoes', '\App\Controllers\Admin\VendedorEventualController::grant');
+        $routes->post('concessoes/(:num)/revogar', '\App\Controllers\Admin\VendedorEventualController::revoke/$1');
+        $routes->post('adesoes/(:num)/suspender', '\App\Controllers\Admin\VendedorEventualController::suspendEnrollment/$1');
     });
 });
 
@@ -195,17 +195,17 @@ $routes->get('sem-carteira', 'SemCarteiraController::index', ['filter' => 'sessi
 $routes->get('aplicacoes', 'ApplicationsController::index', ['filter' => 'session']);
 $routes->group('vendedor-eventual', ['filter' => 'applicationAccess:vendedor_eventual,access'], static function ($routes): void {
     $routes->get('/', '\App\Controllers\VendedorEventual\HomeController::index');
-    $routes->post('campanhas/(:num)/aderir', '\App\Controllers\VendedorEventual\HomeController::startEnrollment/$1', ['filter' => 'csrf']);
+    $routes->post('campanhas/(:num)/aderir', '\App\Controllers\VendedorEventual\HomeController::startEnrollment/$1');
     $routes->get('campanhas/(:num)/capacitacao', '\App\Controllers\VendedorEventual\HomeController::training/$1');
-    $routes->post('campanhas/(:num)/capacitacao', '\App\Controllers\VendedorEventual\HomeController::completeTraining/$1', ['filter' => 'csrf']);
-    $routes->post('campanhas/(:num)/participacao/(:segment)', '\App\Controllers\VendedorEventual\HomeController::changeEnrollmentStatus/$1/$2', ['filter' => 'csrf']);
+    $routes->post('campanhas/(:num)/capacitacao', '\App\Controllers\VendedorEventual\HomeController::completeTraining/$1');
+    $routes->post('campanhas/(:num)/participacao/(:segment)', '\App\Controllers\VendedorEventual\HomeController::changeEnrollmentStatus/$1/$2');
     $routes->get('campanhas/(:num)/catalogo', '\App\Controllers\VendedorEventual\HomeController::catalog/$1');
     $routes->get('campanhas/(:num)/oportunidades/nova', '\App\Controllers\VendedorEventual\HomeController::newOpportunity/$1');
-    $routes->post('campanhas/(:num)/oportunidades', '\App\Controllers\VendedorEventual\HomeController::createOpportunity/$1', ['filter' => 'csrf']);
+    $routes->post('campanhas/(:num)/oportunidades', '\App\Controllers\VendedorEventual\HomeController::createOpportunity/$1');
     $routes->get('oportunidades/(:num)', '\App\Controllers\VendedorEventual\HomeController::opportunity/$1');
-    $routes->post('oportunidades/(:num)/solicitacao-carteira', '\App\Controllers\VendedorEventual\HomeController::requestPortfolio/$1', ['filter' => 'csrf']);
+    $routes->post('oportunidades/(:num)/solicitacao-carteira', '\App\Controllers\VendedorEventual\HomeController::requestPortfolio/$1');
     $routes->get('oportunidades/(:num)/diagnostico', '\App\Controllers\VendedorEventual\HomeController::diagnostic/$1');
-    $routes->post('oportunidades/(:num)/diagnostico', '\App\Controllers\VendedorEventual\HomeController::completeDiagnostic/$1', ['filter' => 'csrf']);
+    $routes->post('oportunidades/(:num)/diagnostico', '\App\Controllers\VendedorEventual\HomeController::completeDiagnostic/$1');
 });
 
 // Override das rotas de login — registrado ANTES do Shield (CI4 usa first-match).

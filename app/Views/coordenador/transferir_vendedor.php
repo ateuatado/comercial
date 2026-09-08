@@ -42,6 +42,7 @@
             </div>
         <?php else: ?>
             <form action="<?= site_url('coordenador/vendedor/' . ($vendedor['matricula'] ?? '') . '/transferir') ?>" method="post">
+                <?= csrf_field() ?>
                 
                 <div class="alert-warning">
                     <i class="bi bi-exclamation-triangle-fill" style="margin-top:2px;"></i>

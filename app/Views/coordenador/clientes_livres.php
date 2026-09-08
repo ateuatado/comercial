@@ -74,6 +74,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius:14px; border:none;">
             <form action="<?= site_url('coordenador/clientes-livres/atribuir') ?>" method="post" id="assignForm">
+                <?= csrf_field() ?>
                 <div class="modal-header" style="border-bottom:1px solid #e5e7eb;">
                     <h5 class="modal-title" style="font-weight:700; font-size:16px;">Atribuir Clientes Livres</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
