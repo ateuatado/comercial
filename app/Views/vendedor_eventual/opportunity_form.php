@@ -8,6 +8,7 @@
       <?php if (session('error')): ?>
         <div class="alert alert-danger"><?= esc(session('error')) ?></div>
       <?php endif ?>
+      <div id="offline-status" class="alert alert-info d-none" role="status"></div>
 
       <!-- T012: Painel de consulta CNPJ -->
       <div class="card mb-3">
@@ -26,8 +27,11 @@
 
       <div class="card">
         <div class="card-body">
-          <form method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaignId . '/oportunidades') ?>" class="row g-3">
+          <form id="opportunity-form" method="post" action="<?= site_url('vendedor-eventual/campanhas/' . $campaignId . '/oportunidades') ?>" class="row g-3" data-campaign-id="<?= esc((string) $campaignId) ?>" data-user-id="<?= esc((string) auth()->user()->id) ?>">
             <?= csrf_field() ?>
+            <input type="hidden" name="correlation_id" id="correlation-id">
+            <input type="hidden" name="occurred_at" id="occurred-at">
+            <input type="hidden" name="submission_mode" id="submission-mode" value="online">
             <div class="col-md-6">
               <label class="form-label">CNPJ</label>
               <input id="cnpj-field" class="form-control" name="cnpj" inputmode="numeric" maxlength="18" required value="<?= esc(old('cnpj')) ?>" placeholder="00.000.000/0000-00">
@@ -52,8 +56,11 @@
               <div class="form-text">A confirmação ficará registrada na linha do tempo da oportunidade.</div>
             </div>
             <div class="col-12 d-flex gap-2">
-              <button class="btn btn-primary">Registrar oportunidade</button>
+              <button class="btn btn-primary" id="opportunity-submit">Registrar oportunidade</button>
               <a class="btn btn-outline-secondary" href="<?= site_url('vendedor-eventual') ?>">Cancelar</a>
+            </div>
+            <div class="col-12">
+              <small class="text-muted">Sem conexão, o registro fica no armazenamento local deste navegador por até 24 horas e é apagado após a sincronização.</small>
             </div>
           </form>
         </div>
@@ -112,4 +119,7 @@
   });
 })();
 </script>
+<?= $this->endSection() ?>
+<?= $this->section('scripts') ?>
+<script src="<?= base_url('assets/js/vendedor-eventual-offline.js') ?>"></script>
 <?= $this->endSection() ?>

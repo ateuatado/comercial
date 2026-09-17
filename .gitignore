@@ -42,6 +42,7 @@ $RECYCLE.BIN/
 # These should never be under version control,
 # as it poses a security risk.
 .env
+.env.*
 .vagrant
 Vagrantfile
 
@@ -80,6 +81,9 @@ php_errors.log
 # Test Files
 #-------------------------
 /tests/coverage*
+/test_db.php
+/test_ci_db.php
+/scratch/test_*.php
 
 # Don't save phpunit under version control.
 /phpunit

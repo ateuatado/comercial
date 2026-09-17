@@ -124,13 +124,29 @@ class HomeController extends BaseController
             ->setJSON($result);
     }
 
-    public function createOpportunity(int $campaignId): RedirectResponse
+    public function createOpportunity(int $campaignId): ResponseInterface
     {
         try {
             $data = $this->request->getPost(); $data['campaign_id'] = $campaignId;
             $id = (new OpportunityService())->create((int) auth()->user()->id, $data);
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setStatusCode(201)->setJSON([
+                    'ok' => true,
+                    'id' => $id,
+                    'url' => site_url('vendedor-eventual/oportunidades/' . $id),
+                ]);
+            }
+
             return redirect()->to('/vendedor-eventual/oportunidades/' . $id)->with('success', 'Oportunidade registrada com identificação imutável.');
         } catch (DomainException $exception) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setStatusCode(422)->setJSON([
+                    'ok' => false,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
     }

@@ -175,6 +175,24 @@ ativação e primeiro uso, conforme integração disponível.
   encerramento permanecem disponíveis mesmo quando o conteúdo deixa de estar
   pronto, para preservar o controle administrativo e a segurança.
 
+### 5.7 Decisão provisória do registro rápido offline
+
+- O navegador gera o UUID de correlação antes da primeira tentativa de envio. O
+  servidor usa esse UUID como chave idempotente e não cria outro evento quando o
+  mesmo registro é reenviado com os mesmos dados.
+- Se a conexão falhar com o formulário já aberto, os dados mínimos ficam em uma
+  fila local do navegador por no máximo 24 horas. A fila é sincronizada
+  automaticamente quando a conexão retorna e o item é apagado após confirmação
+  do servidor.
+- O instante informado pelo dispositivo é preservado como horário do contato e
+  o servidor registra separadamente o horário de recebimento. Horários futuros
+  além de cinco minutos são rejeitados.
+- A fila não permite concluir contratação nem substitui autenticação válida. Se
+  a sessão expirar, o registro permanece pendente até novo acesso autorizado.
+- O limite de 24 horas é uma proteção conservadora do piloto e deverá ser
+  revisto quando a política corporativa de offline e dispositivos pessoais da
+  T005 for validada.
+
 ## 6. Jornadas
 
 ### J1 — Adesão

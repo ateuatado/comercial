@@ -33,12 +33,35 @@ class OpportunityService
             throw new DomainException('Confirme com o cliente os dados do CNPJ antes de registrar a oportunidade.');
         }
         $enrollment = db_connect()->table('ve_enrollments')->where(['employee_id' => $employee['id'], 'campaign_id' => $campaignId, 'status' => 'qualified'])->get()->getRowArray();
-        $instant = $at ?? new DateTimeImmutable();
-        if ($enrollment === null || ! (new ApplicationAccessService())->hasAccess($shieldUserId, 'vendedor_eventual', 'access', $campaignId, $instant)) {
+        $receivedAt = $at ?? new DateTimeImmutable();
+        if ($enrollment === null || ! (new ApplicationAccessService())->hasAccess($shieldUserId, 'vendedor_eventual', 'access', $campaignId, $receivedAt)) {
             throw new DomainException('Somente participação habilitada pode registrar oportunidade.');
         }
+
+        $correlationId = strtolower(trim((string) ($data['correlation_id'] ?? '')));
+        if ($correlationId === '') {
+            $correlationId = $this->uuid();
+        }
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $correlationId) !== 1) {
+            throw new DomainException('Identificador de correlação inválido. Atualize a página e tente novamente.');
+        }
+
+        $occurredAt = $this->occurredAt($data['occurred_at'] ?? null, $receivedAt);
+        $submissionMode = ($data['submission_mode'] ?? 'online') === 'offline' ? 'offline' : 'online';
+        $existing = db_connect()->table('ve_opportunities')->where('correlation_id', $correlationId)->get()->getRowArray();
+        if ($existing !== null) {
+            if ((int) $existing['campaign_id'] !== $campaignId
+                || (int) $existing['originator_employee_id'] !== (int) $employee['id']
+                || (string) $existing['cnpj'] !== $cnpj
+                || (string) $existing['contact_context'] !== $context
+                || (string) $existing['channel'] !== $channel) {
+                throw new DomainException('O identificador de correlação já foi usado por outro registro.');
+            }
+
+            return (int) $existing['id'];
+        }
+
         $questionnaire = db_connect()->table('ve_questionnaire_versions')->where(['campaign_id' => $campaignId, 'status' => 'published'])->orderBy('published_at', 'DESC')->get()->getRowArray();
-        $correlationId = $this->uuid();
         // T015: verificação de duplicidade fora da transação — usa conexão própria
         // para não contaminar o estado transacional em caso de tabela ausente.
         $cnpjLookup = (new CnpjLookupService())->lookup($cnpj);
@@ -50,20 +73,25 @@ class OpportunityService
             'originator_employee_id' => $employee['id'], 'current_conductor_employee_id' => $employee['id'],
             'questionnaire_version_id' => $questionnaire['id'] ?? null, 'cnpj' => $cnpj,
             'contact_context' => $context, 'channel' => $channel, 'status' => 'registered',
-            'contacted_at' => $instant->format('Y-m-d H:i:s'), 'created_at' => $instant->format('Y-m-d H:i:s'), 'updated_at' => $instant->format('Y-m-d H:i:s'),
+            'contacted_at' => $occurredAt->format('Y-m-d H:i:s'), 'created_at' => $receivedAt->format('Y-m-d H:i:s'), 'updated_at' => $receivedAt->format('Y-m-d H:i:s'),
         ]);
         $id = (int) $db->insertID();
-        $this->appendEvent($db, $id, 'opportunity_registered', (int) $employee['id'], $shieldUserId, $channel, $instant, $questionnaire['version'] ?? null, [
+        $this->appendEvent($db, $id, 'opportunity_registered', (int) $employee['id'], $shieldUserId, $channel, $occurredAt, $questionnaire['version'] ?? null, [
             'correlation_id' => $correlationId,
             'cnpj'           => $cnpj,
+            'submission'     => [
+                'mode'        => $submissionMode,
+                'occurred_at' => $occurredAt->format(DATE_ATOM),
+                'received_at' => $receivedAt->format(DATE_ATOM),
+            ],
             'cnpj_lookup'    => $cnpjLookup,
             'cnpj_confirmation' => [
                 'confirmed' => true,
-                'confirmed_at' => $instant->format(DATE_ATOM),
+                'confirmed_at' => $occurredAt->format(DATE_ATOM),
                 'confirmed_by_employee_id' => (int) $employee['id'],
             ],
             'alerts'         => $alerts,
-        ]);
+        ], $receivedAt);
         $db->transComplete();
         if (! $db->transStatus()) { throw new DomainException('Não foi possível registrar a oportunidade.'); }
         return $id;
@@ -142,9 +170,33 @@ class OpportunityService
         return [];
     }
 
-    private function appendEvent($db, int $opportunityId, string $type, int $employeeId, int $userId, string $channel, DateTimeInterface $at, ?string $version, array $metadata): void
+    private function appendEvent($db, int $opportunityId, string $type, int $employeeId, int $userId, string $channel, DateTimeInterface $at, ?string $version, array $metadata, ?DateTimeInterface $receivedAt = null): void
     {
-        $db->table('ve_opportunity_events')->insert(['opportunity_id' => $opportunityId, 'event_id' => $this->uuid(), 'event_type' => $type, 'actor_employee_id' => $employeeId, 'actor_user_id' => $userId, 'channel' => $channel, 'occurred_at' => $at->format('Y-m-d H:i:s'), 'received_at' => (new DateTimeImmutable())->format('Y-m-d H:i:s'), 'content_version' => $version, 'metadata' => json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
+        $receivedAt ??= new DateTimeImmutable();
+        $db->table('ve_opportunity_events')->insert(['opportunity_id' => $opportunityId, 'event_id' => $this->uuid(), 'event_type' => $type, 'actor_employee_id' => $employeeId, 'actor_user_id' => $userId, 'channel' => $channel, 'occurred_at' => $at->format('Y-m-d H:i:s'), 'received_at' => $receivedAt->format('Y-m-d H:i:s'), 'content_version' => $version, 'metadata' => json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
+    }
+
+    private function occurredAt(mixed $value, DateTimeInterface $receivedAt): DateTimeImmutable
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return DateTimeImmutable::createFromInterface($receivedAt);
+        }
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/', $value) !== 1) {
+            throw new DomainException('Data do contato inválida.');
+        }
+
+        try {
+            $occurredAt = new DateTimeImmutable($value);
+        } catch (\Exception) {
+            throw new DomainException('Data do contato inválida.');
+        }
+
+        if ($occurredAt > DateTimeImmutable::createFromInterface($receivedAt)->modify('+5 minutes')) {
+            throw new DomainException('A data do contato não pode estar no futuro.');
+        }
+
+        return $occurredAt;
     }
 
     private function uuid(): string

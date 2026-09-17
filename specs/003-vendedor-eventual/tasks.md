@@ -36,7 +36,7 @@
 
 ## Fase 2 — Prospecção sem atrito
 
-- [ ] T011 Implementar registro rápido online e offline.
+- [x] T011 Implementar registro rápido online e offline. — UUID gerado antes do envio, fila temporária no navegador com expiração de 24 horas, sincronização automática idempotente e separação entre instante do contato e recebimento no servidor.
 - [x] T012 Consultar CNPJ e permitir confirmação de dados. — Consulta nas fontes locais reais (`carteira_raw` e Receita Federal), confirmação obrigatória após conferência com o cliente e evidência imutável com fonte, instante e snapshot no evento inicial.
 - [x] T013 Implementar diagnóstico, regras explicáveis e recomendações.
 - [x] T014 Criar solicitação e reserva provisória de carteira. — Solicitação por oportunidade, reserva técnica por CNPJ e evento auditável, sem escrita no domínio de carteira.
