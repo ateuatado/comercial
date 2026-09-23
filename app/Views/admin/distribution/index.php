@@ -59,6 +59,7 @@
                     </p>
                     <form method="POST" action="/admin/distribuicao/executar"
                           onsubmit="return confirm('Confirma a distribuição automática? Esta ação atribuirá todos os clientes sem responsável.')">
+                        <?= csrf_field() ?>
                         <button type="submit" class="btn btn-primary w-100"
                                 <?= $unassigned === 0 ? 'disabled' : '' ?>>
                             <i class="bi bi-lightning-charge me-1"></i>
@@ -76,6 +77,7 @@
                 <div class="card-header fw-semibold">Reatribuição manual</div>
                 <div class="card-body">
                     <form method="POST" action="/admin/distribuicao/reatribuir">
+                        <?= csrf_field() ?>
                         <div class="mb-3">
                             <label for="cnpj" class="form-label small fw-semibold">CNPJ</label>
                             <input type="text" id="cnpj" name="cnpj"

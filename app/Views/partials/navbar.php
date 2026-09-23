@@ -33,6 +33,12 @@
 
                 <?php if (auth()->loggedIn()): ?>
 
+                    <li class="nav-item">
+                        <a class="nav-link <?= str_starts_with(uri_string(), 'aplicacoes') ? 'active' : '' ?>" href="<?= base_url('aplicacoes') ?>">
+                            <i class="bi bi-grid-fill me-1"></i>Minhas aplicações
+                        </a>
+                    </li>
+
                     <?php if (auth()->user()->inGroup('admin')): ?>
                         <!-- Área administrativa -->
                         <li class="nav-item">
@@ -63,6 +69,11 @@
                         <li class="nav-item">
                             <a class="nav-link <?= str_contains(uri_string(), 'admin/eventos') ? 'active' : '' ?>" href="<?= base_url('admin/eventos') ?>">
                                 <i class="bi bi-calendar-event me-1"></i>Eventos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= str_contains(uri_string(), 'admin/vendedor-eventual') ? 'active' : '' ?>" href="<?= base_url('admin/vendedor-eventual') ?>">
+                                <i class="bi bi-person-badge me-1"></i>Vendedor Eventual
                             </a>
                         </li>
                         <li class="nav-item">

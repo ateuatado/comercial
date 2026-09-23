@@ -17,6 +17,23 @@
 # CI_ENVIRONMENT = production
 
 #--------------------------------------------------------------------
+# VENDEDOR EVENTUAL / IDENTIDADE
+#--------------------------------------------------------------------
+
+# O modo seguro padrão usa LDAP e mantém a feature desabilitada.
+# Para um piloto externo com dados exclusivamente fictícios, copie este arquivo
+# para .env e configure explicitamente:
+# SPIV_IDENTITY_PROVIDER = demo
+# SPIV_DEMO_LOGIN_ENABLED = true
+# SPIV_DEMO_PASSWORD = "defina-fora-do-repositorio"
+# VENDOR_EVENTUAL_ENABLED = true
+
+SPIV_IDENTITY_PROVIDER = ldap
+SPIV_DEMO_LOGIN_ENABLED = false
+SPIV_DEMO_PASSWORD = ""
+VENDOR_EVENTUAL_ENABLED = false
+
+#--------------------------------------------------------------------
 # APP
 #--------------------------------------------------------------------
 

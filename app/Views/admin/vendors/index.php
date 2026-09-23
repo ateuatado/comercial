@@ -81,6 +81,7 @@
                                               action="/admin/vendors/<?= $v['id'] ?>/desativar"
                                               class="d-inline"
                                               onsubmit="return confirm('Desativar <?= esc($v['nome'], 'js') ?>?')">
+                                            <?= csrf_field() ?>
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <i class="bi bi-slash-circle"></i>
                                             </button>

@@ -14,6 +14,22 @@ deve operar em um dos três modos abaixo:
 A indisponibilidade de integração não deve impedir o piloto, mas o modo usado
 deve ficar visível para auditoria e métricas.
 
+## Identidades da demonstração
+
+O provedor `demo` aceita somente registros ativos da tabela `employees`. Para
+preservar a demonstração histórica da carteira, o serviço
+`LegacyDemoEmployeeProvisioner` sincroniza os usuários Shield existentes:
+
+- administrador: `A0001`;
+- coordenadores: `C0101`, `C0102` e `C0103`;
+- vendedores: `V0101` a `V0156`.
+
+A sincronização é idempotente, não cria usuários Shield, não redefine a senha
+`123`, não altera grupos e não concede permissões. Usuários ausentes são
+ignorados e vínculos conflitantes não são sobrescritos. Em bases existentes, a
+migration `RegisterLegacyDemoEmployees` executa o backfill; em novas bases, o
+`SpDataSeeder` sincroniza as identidades depois de criar as personas.
+
 ## Matriz inicial
 
 | Capacidade | Sistema esperado | Dado mínimo | Retorno esperado | Contingência |

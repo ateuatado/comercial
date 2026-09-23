@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Controllers\Auth;
 
 use App\Libraries\LdapService;
+use App\Models\EmployeeModel;
 use App\Models\VendorUserModel;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\Shield\Controllers\LoginController as ShieldLoginController;
 use CodeIgniter\Shield\Entities\User;
 use CodeIgniter\Shield\Models\UserModel;
+use Config\VendedorEventual;
 
 /**
  * LoginController — Autenticação do SPIV.
@@ -24,7 +26,8 @@ use CodeIgniter\Shield\Models\UserModel;
  *   - Se a matrícula existir em vendor_users, vincula o shield_user_id.
  *   - Se não existir, o usuário será redirecionado para /sem-carteira.
  *
- * Modo teste: senha '123' aceita para qualquer matrícula.
+ * No piloto externo, o provedor demo aceita somente empregados fictícios
+ * cadastrados e apenas quando habilitado explicitamente por configuração.
  */
 class LoginController extends ShieldLoginController
 {
@@ -34,6 +37,13 @@ class LoginController extends ShieldLoginController
      */
     public function loginAction(): RedirectResponse
     {
+        // Shield não permite iniciar outra autenticação sobre uma sessão ativa.
+        // Além de evitar a exceção, esta guarda impede troca silenciosa de conta.
+        if (auth('session')->loggedIn()) {
+            return redirect()->to('/')
+                ->with('message', 'Você já está conectado. Saia da conta atual antes de entrar com outra matrícula.');
+        }
+
         $matricula = strtoupper(trim((string) $this->request->getPost('username')));
         $password  = (string) $this->request->getPost('password');
 
@@ -41,11 +51,12 @@ class LoginController extends ShieldLoginController
             return redirect()->route('login')->withInput()->with('error', 'Matrícula e senha são obrigatórias.');
         }
 
-        // ── MASTER PASSWORD PARA TESTES ──
-        if ($password === '123') {
-            return $this->autoProvisionAndLogin($matricula);
+        /** @var VendedorEventual $veConfig */
+        $veConfig = config(VendedorEventual::class);
+
+        if ($veConfig->identityProvider === 'demo') {
+            return $this->demoLoginAction($matricula, $password, $veConfig);
         }
-        // ─────────────────────────────────
 
         // Autenticação local via Shield (Matrícula + Senha personalizada)
         $result = auth('session')->attempt([
@@ -94,6 +105,7 @@ class LoginController extends ShieldLoginController
         /** @var UserModel $userModel */
         $userModel   = model(UserModel::class);
         $vendorModel = new VendorUserModel();
+        $employeeModel = new EmployeeModel();
 
         // 1. Encontra ou cria o Shield user
         $user = $userModel->findByCredentials(['username' => $matricula]);
@@ -112,6 +124,14 @@ class LoginController extends ShieldLoginController
 
         // 2. Busca vendor_users por matrícula
         $vendorUser = $vendorModel->findByMatricula($matricula);
+        $employee = $employeeModel->findByEmployeeId($matricula);
+
+        if ($employee !== null && empty($employee['shield_user_id'])) {
+            $employeeModel->update((int) $employee['id'], [
+                'shield_user_id' => (int) $user->id,
+                'last_synced_at' => date('Y-m-d H:i:s'),
+            ]);
+        }
 
         if ($vendorUser !== null) {
             // 3. Vincula shield_user_id se ainda não estiver vinculado
@@ -132,7 +152,7 @@ class LoginController extends ShieldLoginController
                ->where('matricula', $matricula)
                ->where('user_id IS NULL')
                ->update(['user_id' => $user->id]);
-        } else {
+        } elseif ($employee === null) {
             // Sem carteira — garante grupo básico
             if (!$user->inGroup('admin') && !$user->inGroup('acom') && !$user->inGroup('gerente_conta')) {
                 $user->addGroup('acom');
@@ -145,6 +165,22 @@ class LoginController extends ShieldLoginController
         auth('session')->login($user);
 
         return redirect()->to('/')->withCookies();
+    }
+
+    private function demoLoginAction(string $matricula, string $password, VendedorEventual $config): RedirectResponse
+    {
+        if (! $config->allowsDemoLogin() || ! hash_equals($config->demoPassword, $password)) {
+            return redirect()->route('login')->withInput()->with('error', 'Matrícula ou senha inválidos.');
+        }
+
+        $employee = (new EmployeeModel())->findByEmployeeId($matricula);
+        if ($employee === null
+            || $employee['identity_source'] !== 'demo'
+            || $employee['employment_status'] !== 'active') {
+            return redirect()->route('login')->withInput()->with('error', 'Matrícula ou senha inválidos.');
+        }
+
+        return $this->autoProvisionAndLogin($matricula);
     }
 
     /**

@@ -9,6 +9,7 @@ Comercial Ponta a Ponta** do SPIV.
 - `data-model.md`: entidades, relacionamentos, estados e regras de integridade.
 - `integrations.md`: fronteiras, integrações e modos de contingência.
 - `pilot-plan.md`: desenho, métricas e saída do piloto demonstrativo.
+- `deployment-demo.md`: preparação, publicação, smoke tests e retorno seguro da demonstração interna.
 - `tasks.md`: sequência sugerida de implementação.
 
 ## Estado

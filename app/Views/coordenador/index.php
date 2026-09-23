@@ -114,6 +114,7 @@
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form action="<?= site_url('coordenador/vendedor/' . $v['matricula'] . '/desativar') ?>" method="post" onsubmit="return confirm('Tem certeza que deseja desativar este vendedor?');">
+                                <?= csrf_field() ?>
                                 <button type="submit" class="dropdown-item text-danger" style="font-size:13px; padding:8px 12px; border-radius:8px;"><i class="bi bi-person-x me-2"></i>Desativar</button>
                             </form>
                         </li>

@@ -80,6 +80,8 @@ class AuthGroups extends ShieldAuthGroups
         'status.manage_restricted'  => 'Executar transições de status restritas ao admin',
         'prospecting.approve'       => 'Aprovar ou liberar suspeitas de prospecção',
         'supervisor'                => 'Permissão extra de governança de suspeitas',
+        'campaign.manage'           => 'Administrar campanhas demonstrativas',
+        'entitlements.manage'       => 'Conceder e revogar acessos a aplicações',
     ];
 
     /**
@@ -100,6 +102,8 @@ class AuthGroups extends ShieldAuthGroups
             'wallet.view_all',
             'status.manage_restricted',
             'prospecting.approve',
+            'campaign.manage',
+            'entitlements.manage',
         ],
         'acom' => [
             'wallet.view_own',

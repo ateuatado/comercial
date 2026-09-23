@@ -74,6 +74,125 @@ ativação e primeiro uso, conforme integração disponível.
   permanece desabilitada por padrão.
 - O cadastro público por CNPJ é sugestão e precisa de confirmação do cliente.
 
+### 5.1 Decisões da fundação de identidade e acesso
+
+- Autenticação e autorização são dimensões separadas: qualquer empregado ativo
+  reconhecido pelo provedor configurado pode autenticar, mas isso não concede
+  acesso automático às aplicações do SPIV.
+- Perfis Shield existentes continuam representando funções estáveis. Acesso
+  temporário ou condicionado a campanha é concedido por capacidades com escopo,
+  origem, início, término e trilha de auditoria.
+- Uma concessão pode ser administrativa ou originada por campanha. Concessões de
+  campanha deixam de ser efetivas quando a campanha termina, é suspensa ou sai
+  de sua vigência, sem apagar o histórico.
+- Suspensão administrativa e situação funcional inativa prevalecem sobre qualquer
+  concessão. Uma concessão administrativa não prolonga silenciosamente uma
+  campanha encerrada.
+- O piloto fora da rede corporativa usa somente identidades fictícias, marcadas
+  com origem `demo`. O modo demonstrativo e sua senha compartilhada precisam ser
+  habilitados explicitamente por configuração e ficam desabilitados por padrão.
+- Para preservar as personas da demonstração da carteira, esse cadastro fechado
+  inclui `A0001`, `C0101` a `C0103` e `V0101` a `V0156`. Registrá-las como
+  empregados não altera grupos, carteiras ou permissões existentes no Shield.
+- Na rede corporativa, o LDAP será o provedor de identidade funcional. Ambos os
+  modos alimentam o mesmo cadastro de empregados e as mesmas regras de
+  autorização; nenhum dado real é necessário no piloto externo.
+- A feature Vendedor Eventual permanece desabilitada por padrão até a validação
+  integral das migrations, autorização, isolamento e implantação.
+
+### 5.2 Decisão da primeira entrega da jornada de adesão
+
+- O empregado com concessão efetiva pode iniciar voluntariamente sua adesão a
+  uma campanha ativa e vigente.
+- Enquanto treinamento, avaliação e termos não tiverem conteúdo oficialmente
+  validado e versionado, a adesão permanece no estado inicial e a interface
+  informa a pendência; o sistema não simula aceite nem habilita atuação
+  comercial automaticamente.
+- O gestor publica uma única versão vigente por campanha contendo capacitação,
+  avaliação objetiva e termos. Uma nova publicação arquiva a anterior, sem
+  apagar as evidências já registradas nas adesões.
+- A habilitação exige resposta correta calculada no servidor e aceite explícito
+  dos termos; o navegador não informa qual alternativa é correta.
+
+### 5.3 Decisão da primeira entrega do catálogo e diagnóstico
+
+- Produtos e questionários são criados como rascunhos imutáveis por versão e só
+  aparecem ao empregado habilitado após publicação explícita do gestor.
+- A publicação de nova versão arquiva a versão anteriormente publicada, sem
+  excluir o histórico. Conteúdo comercial não validado não será preenchido pelo
+  sistema nem publicado automaticamente.
+- O catálogo publicado é apenas informativo nesta etapa. O cálculo explicável de
+  recomendações e seu vínculo com oportunidades pertencem às tarefas T010 e T013.
+- A interface administrativa apresenta perguntas, alternativas e regras em
+  campos orientados à tarefa; a representação JSON permanece interna e não é
+  exigida do gestor.
+
+### 5.4 Decisão da fundação de oportunidades
+
+- O primeiro registro gera UUID de correlação único e imutável, preservando
+  campanha, originador, condutor inicial, canal, CNPJ e versão do questionário.
+- A linha do tempo é acrescentável: eventos possuem UUID próprio, autor, instante
+  do fato, instante de recebimento, canal, versão de conteúdo e metadados.
+- Nesta etapa o CNPJ é somente normalizado e validado quanto ao formato. Consulta
+  à fonte pública, diagnóstico e recomendações pertencem às tarefas seguintes.
+- A consulta de T012 usa somente as bases locais `carteira_raw` e
+  `receita.estabelecimentos`, sem chamada externa. O evento inicial preserva o
+  resultado consultado, a fonte, o instante e a confirmação feita pelo empregado
+  após conferência com o cliente.
+- A detecção de T015 registra no mesmo evento alertas de carteira atribuída,
+  oportunidade ativa na campanha e reserva técnica pendente. Esses alertas são
+  internos e informativos: não impedem o registro nem a continuidade da jornada.
+- O Vendedor Eventual consulta a situação de carteira no contexto do CNPJ em
+  atendimento. A interface pode informar responsável, unidade e estado
+  operacional necessários à colaboração, mas não expõe a listagem integral nem
+  notas e estratégias comerciais de carteiras alheias.
+- O diagnóstico é respondido dentro da oportunidade, preserva a versão e as
+  respostas utilizadas e limita a recomendação a três produtos publicados, com
+  justificativas provenientes exclusivamente das regras aprovadas pelo gestor.
+
+### 5.5 Decisão da solicitação provisória de carteira
+
+- Uma oportunidade válida pode gerar uma solicitação provisória vinculada ao
+  seu UUID de correlação e ao empregado originador, sem inserir, atualizar ou
+  remover registros de `client_wallets`, `carteira_raw` ou distribuição.
+- A primeira solicitação para um CNPJ cria apenas uma reserva técnica de análise.
+  Solicitações posteriores permanecem registradas e referenciam a mesma reserva;
+  elas não bloqueiam o atendimento, não definem titularidade e não resolvem
+  conflitos automaticamente.
+- Autoria da oportunidade, condução comercial e propriedade futura de carteira
+  permanecem estados independentes. Qualquer atribuição efetiva exige decisão
+  operacional posterior e a trilha de auditoria própria do domínio de carteira.
+
+### 5.6 Decisão de prontidão para publicação da campanha
+
+- Uma campanha só pode ser publicada ou ativada quando possuir exatamente uma
+  capacitação com termos publicada, exatamente um questionário publicado e de
+  um a três produtos publicados.
+- As regras do questionário devem apontar exclusivamente para produtos
+  publicados na mesma campanha. Nomes duplicados ou referências ausentes
+  impedem a mudança de estado.
+- O servidor aplica essa validação independentemente da interface. Suspensão e
+  encerramento permanecem disponíveis mesmo quando o conteúdo deixa de estar
+  pronto, para preservar o controle administrativo e a segurança.
+
+### 5.7 Decisão provisória do registro rápido offline
+
+- O navegador gera o UUID de correlação antes da primeira tentativa de envio. O
+  servidor usa esse UUID como chave idempotente e não cria outro evento quando o
+  mesmo registro é reenviado com os mesmos dados.
+- Se a conexão falhar com o formulário já aberto, os dados mínimos ficam em uma
+  fila local do navegador por no máximo 24 horas. A fila é sincronizada
+  automaticamente quando a conexão retorna e o item é apagado após confirmação
+  do servidor.
+- O instante informado pelo dispositivo é preservado como horário do contato e
+  o servidor registra separadamente o horário de recebimento. Horários futuros
+  além de cinco minutos são rejeitados.
+- A fila não permite concluir contratação nem substitui autenticação válida. Se
+  a sessão expirar, o registro permanece pendente até novo acesso autorizado.
+- O limite de 24 horas é uma proteção conservadora do piloto e deverá ser
+  revisto quando a política corporativa de offline e dispositivos pessoais da
+  T005 for validada.
+
 ## 6. Jornadas
 
 ### J1 — Adesão

@@ -42,6 +42,11 @@ class Home extends BaseController
             return redirect()->to('/vendedor');
         }
 
+        $employee = (new \App\Models\EmployeeModel())->findByShieldUserId((int) $user->id);
+        if ($employee !== null && $employee['employment_status'] === 'active') {
+            return redirect()->to('/aplicacoes');
+        }
+
         // Sem carteira → tela informativa
         return redirect()->to('/sem-carteira');
     }

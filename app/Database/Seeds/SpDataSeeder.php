@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Database\Seeds;
 
+use App\Services\LegacyDemoEmployeeProvisioner;
 use CodeIgniter\CLI\CLI;
 use CodeIgniter\Database\Seeder;
 use CodeIgniter\Shield\Entities\User;
@@ -191,6 +192,13 @@ class SpDataSeeder extends Seeder
             ];
             $count++;
         }
+
+        // Mantém as personas A/C/V autorizadas também no provedor demo fechado.
+        $identityResult = (new LegacyDemoEmployeeProvisioner($db))->syncExistingShieldUsers();
+        CLI::write(
+            'Identidades demo sincronizadas: ' . json_encode($identityResult, JSON_UNESCAPED_UNICODE),
+            'green'
+        );
         
         // 5. Selecionar Estabelecimentos em SP
         CLI::write("Buscando estabelecimentos ativos em SP...", 'cyan');

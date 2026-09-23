@@ -19,6 +19,7 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <form method="POST" action="<?= $action_url ?>">
+                <?= csrf_field() ?>
 
                 <!-- Matrícula -->
                 <div class="mb-3">

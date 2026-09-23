@@ -249,6 +249,10 @@ POST /admin/mensagens/:slug  → salvar
 - O drag & drop de blocos deve ter fallback para toque em mobile.
 - A tabela `vendors` e `vendor_users` coexistem temporariamente — evitar inconsistências.
 - O volume de dados por vendedor (média ~47 clientes) é gerenciável para cards.
+- O CSRF é aplicado globalmente. Formulários POST usam `csrf_field()` e o layout
+  principal injeta o cabeçalho nas chamadas AJAX mutáveis de mesma origem. O
+  token permanece válido durante a sessão para suportar ações AJAX sucessivas.
+  Consulte `docs/security-csrf.md` antes de criar exceções ou novos layouts.
 
 ## Próximo passo
 

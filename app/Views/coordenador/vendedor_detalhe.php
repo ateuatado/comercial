@@ -54,6 +54,7 @@
             <i class="bi bi-shuffle"></i> Transferir
         </a>
         <form action="<?= site_url('coordenador/vendedor/' . $vendedor['matricula'] . '/desativar') ?>" method="post" onsubmit="return confirm('Tem certeza que deseja desativar este vendedor?');" style="display:flex; flex:1;">
+            <?= csrf_field() ?>
             <button type="submit" style="flex:1; padding:12px; border-radius:12px; border:1.5px solid #e5e7eb; background:#fff; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; color:#dc2626; transition:all .2s;">
                 <i class="bi bi-person-x"></i> Desativar
             </button>
