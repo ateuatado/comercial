@@ -26,8 +26,16 @@ class AccessAdministrationService
         $startsAt = $data['starts_at'] ?? null;
         $endsAt = $data['ends_at'] ?? null;
 
-        if (! preg_match('/^[A-Z0-9_-]{3,60}$/', $code) || $name === '' || $endsAt === null) {
-            throw new DomainException('Informe código, nome e término válidos para a campanha.');
+        if (! preg_match('/^[A-Z0-9_-]{3,60}$/', $code)) {
+            throw new DomainException(
+                'O código deve ter entre 3 e 60 caracteres e usar somente letras, números, hífen ou sublinhado.'
+            );
+        }
+        if ($name === '') {
+            throw new DomainException('Informe o nome da campanha.');
+        }
+        if ($endsAt === null) {
+            throw new DomainException('Informe uma data e hora de término válidas para a campanha.');
         }
         if ($startsAt !== null && new DateTimeImmutable((string) $endsAt) <= new DateTimeImmutable((string) $startsAt)) {
             throw new DomainException('O término deve ser posterior ao início.');

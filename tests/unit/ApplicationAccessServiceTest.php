@@ -169,6 +169,37 @@ final class ApplicationAccessServiceTest extends CIUnitTestCase
         $this->assertSame(2, $this->testDb->table('ve_access_events')->where('employee_id', $this->employeeId)->countAllResults());
     }
 
+    public function testCampaignCodeRejectsUnsupportedPunctuationWithSpecificMessage(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage(
+            'O código deve ter entre 3 e 60 caracteres e usar somente letras, números, hífen ou sublinhado.'
+        );
+
+        (new AccessAdministrationService())->createCampaign([
+            'code' => '123.3335.344-2026-56',
+            'name' => 'Vendendo Sonho a Granel',
+            'starts_at' => '2026-09-23 10:23:00',
+            'ends_at' => '2026-12-31 10:23:00',
+        ], 900);
+    }
+
+    public function testCampaignWithSupportedCodeIsCreated(): void
+    {
+        $campaignId = (new AccessAdministrationService())->createCampaign([
+            'code' => '123-3335_344-2026-56',
+            'name' => 'Vendendo Sonho a Granel',
+            'starts_at' => '2026-09-23 10:23:00',
+            'ends_at' => '2026-12-31 10:23:00',
+        ], 900);
+
+        $campaign = $this->testDb->table('ve_campaigns')->where('id', $campaignId)->get()->getRowArray();
+
+        $this->assertSame('123-3335_344-2026-56', $campaign['code']);
+        $this->assertSame('Vendendo Sonho a Granel', $campaign['name']);
+        $this->assertSame('draft', $campaign['status']);
+    }
+
     private function insertEntitlement(string $source, ?int $campaignId, ?string $validUntil): void
     {
         $this->testDb->table('ve_employee_entitlements')->insert([

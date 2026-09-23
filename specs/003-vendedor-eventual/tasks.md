@@ -63,8 +63,12 @@
 - [ ] T026 Implementar funil e painel gerencial.
 - [ ] T027 Implementar avaliação demonstrativa de reconhecimento com aviso.
 - [ ] T028 Instrumentar abandono, erros e desempenho das recomendações.
-- [ ] T029 Executar testes de segurança, offline, idempotência e acessibilidade.
-- [ ] T030 Preparar relatório e roteiro de demonstração aos decisores.
+- [~] T029 Executar testes de segurança, offline, idempotência e acessibilidade.
+  - [x] T029.1 Estabelecer baseline automatizada da demonstração interna e validar a criação de campanhas com códigos aceitos e rejeitados.
+  - [ ] T029.2 Concluir a matriz de segurança, offline, idempotência e acessibilidade antes do piloto corporativo.
+- [~] T030 Preparar relatório e roteiro de demonstração aos decisores.
+  - [x] T030.1 Documentar o runbook de implantação, ativação gradual, monitoramento e retorno da demonstração interna.
+  - [ ] T030.2 Preparar o relatório de resultados e o roteiro executivo da demonstração.
 
 ## Dependências críticas
 

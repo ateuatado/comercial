@@ -40,10 +40,14 @@
                 <div class="card-body">
                     <form method="post" action="<?= site_url('admin/vendedor-eventual/campanhas') ?>">
                         <?= csrf_field() ?>
-                        <div class="mb-3"><label class="form-label">Código</label><input class="form-control" name="code" required maxlength="60"></div>
-                        <div class="mb-3"><label class="form-label">Nome</label><input class="form-control" name="name" required maxlength="150"></div>
-                        <div class="mb-3"><label class="form-label">Início</label><input class="form-control" type="datetime-local" name="starts_at"></div>
-                        <div class="mb-3"><label class="form-label">Término</label><input class="form-control" type="datetime-local" name="ends_at" required></div>
+                        <div class="mb-3">
+                            <label class="form-label" for="campaign-code">Código</label>
+                            <input class="form-control" id="campaign-code" name="code" value="<?= esc(old('code') ?? '') ?>" required minlength="3" maxlength="60" pattern="[A-Za-z0-9_-]{3,60}" aria-describedby="campaign-code-help">
+                            <div class="form-text" id="campaign-code-help">Use de 3 a 60 letras, números, hífens ou sublinhados, sem espaços ou pontos.</div>
+                        </div>
+                        <div class="mb-3"><label class="form-label" for="campaign-name">Nome</label><input class="form-control" id="campaign-name" name="name" value="<?= esc(old('name') ?? '') ?>" required maxlength="150"></div>
+                        <div class="mb-3"><label class="form-label" for="campaign-starts-at">Início</label><input class="form-control" id="campaign-starts-at" type="datetime-local" name="starts_at" value="<?= esc(old('starts_at') ?? '') ?>"></div>
+                        <div class="mb-3"><label class="form-label" for="campaign-ends-at">Término</label><input class="form-control" id="campaign-ends-at" type="datetime-local" name="ends_at" value="<?= esc(old('ends_at') ?? '') ?>" required></div>
                         <button class="btn btn-primary">Criar rascunho</button>
                     </form>
                 </div>
