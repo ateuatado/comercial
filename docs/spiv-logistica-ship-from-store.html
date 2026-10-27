@@ -1,0 +1,1220 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Proposta executiva para piloto SPIV Logística com Ship from Store e coleta postal dinâmica.">
+    <title>SPIV Logística — Ship from Store e coleta postal dinâmica</title>
+    <style>
+        :root {
+            --blue-950: #052d49;
+            --blue-900: #063b61;
+            --blue-800: #075287;
+            --blue-700: #0868a8;
+            --blue-100: #dceefa;
+            --blue-050: #f2f8fc;
+            --yellow: #ffd400;
+            --yellow-soft: #fff6bf;
+            --ink: #182631;
+            --muted: #566775;
+            --line: #d5e0e7;
+            --white: #ffffff;
+            --success: #1d7a58;
+            --warning: #9a6500;
+            --danger: #a53b3b;
+            --shadow: 0 20px 55px rgba(5, 45, 73, .13);
+            --radius: 22px;
+            --content: 1160px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            background: #edf3f7;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 8% 5%, rgba(255, 212, 0, .16), transparent 26rem),
+                linear-gradient(180deg, #f8fbfd 0, #edf3f7 100%);
+            font: 400 17px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            text-rendering: optimizeLegibility;
+        }
+
+        a { color: var(--blue-700); }
+
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            z-index: 20;
+            padding: .75rem 1rem;
+            color: var(--blue-950);
+            background: var(--yellow);
+            font-weight: 800;
+        }
+
+        .skip-link:focus { left: 1rem; top: 1rem; }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            min-height: 720px;
+            color: var(--white);
+            background:
+                linear-gradient(120deg, rgba(5, 45, 73, .98), rgba(7, 82, 135, .96)),
+                var(--blue-950);
+        }
+
+        .hero::before,
+        .hero::after {
+            position: absolute;
+            content: "";
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero::before {
+            width: 520px;
+            height: 520px;
+            right: -120px;
+            top: -210px;
+            border: 80px solid rgba(255, 212, 0, .12);
+        }
+
+        .hero::after {
+            width: 300px;
+            height: 300px;
+            right: 16%;
+            bottom: -205px;
+            border: 54px solid rgba(255, 255, 255, .07);
+        }
+
+        .hero-inner {
+            position: relative;
+            z-index: 1;
+            width: min(var(--content), calc(100% - 40px));
+            margin: 0 auto;
+            padding: 42px 0 78px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 105px;
+        }
+
+        .brand-mark {
+            display: inline-flex;
+            align-items: center;
+            gap: .75rem;
+            color: var(--white);
+            font-weight: 850;
+            letter-spacing: .04em;
+        }
+
+        .brand-symbol {
+            display: grid;
+            width: 43px;
+            height: 43px;
+            place-items: center;
+            color: var(--blue-950);
+            background: var(--yellow);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 900;
+        }
+
+        .brand-meta {
+            color: #c5dfef;
+            font-size: .82rem;
+            letter-spacing: .09em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            margin: 0 0 1.35rem;
+            padding: .45rem .8rem;
+            color: var(--blue-950);
+            background: var(--yellow);
+            border-radius: 999px;
+            font-size: .77rem;
+            font-weight: 900;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            max-width: 940px;
+            margin: 0;
+            font-size: clamp(3rem, 7vw, 6.7rem);
+            line-height: .96;
+            letter-spacing: -.055em;
+        }
+
+        .hero h1 span { color: var(--yellow); }
+
+        .hero-lead {
+            max-width: 800px;
+            margin: 2rem 0 0;
+            color: #d8e8f2;
+            font-size: clamp(1.1rem, 2vw, 1.42rem);
+            line-height: 1.55;
+        }
+
+        .hero-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+            margin-top: 2.4rem;
+        }
+
+        .hero-tags span {
+            padding: .55rem .8rem;
+            border: 1px solid rgba(255, 255, 255, .24);
+            border-radius: 999px;
+            color: #e8f4fa;
+            background: rgba(255, 255, 255, .07);
+            font-size: .88rem;
+        }
+
+        .toc {
+            position: sticky;
+            z-index: 10;
+            top: 0;
+            border-bottom: 1px solid var(--line);
+            background: rgba(255, 255, 255, .94);
+            backdrop-filter: blur(14px);
+        }
+
+        .toc-inner {
+            display: flex;
+            width: min(var(--content), calc(100% - 40px));
+            margin: 0 auto;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .toc a {
+            flex: 0 0 auto;
+            padding: 1rem .9rem;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: .82rem;
+            font-weight: 750;
+        }
+
+        .toc a:hover,
+        .toc a:focus { color: var(--blue-800); }
+
+        main {
+            width: min(var(--content), calc(100% - 40px));
+            margin: 0 auto;
+            padding: 72px 0 90px;
+        }
+
+        section {
+            margin: 0 0 92px;
+            scroll-margin-top: 80px;
+        }
+
+        .section-kicker {
+            margin: 0 0 .65rem;
+            color: var(--blue-700);
+            font-size: .76rem;
+            font-weight: 900;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            max-width: 850px;
+            margin: 0 0 1.25rem;
+            color: var(--blue-950);
+            font-size: clamp(2rem, 4.3vw, 3.5rem);
+            line-height: 1.07;
+            letter-spacing: -.04em;
+        }
+
+        h3 {
+            margin: 0 0 .65rem;
+            color: var(--blue-950);
+            font-size: 1.18rem;
+            line-height: 1.3;
+        }
+
+        .section-lead {
+            max-width: 840px;
+            margin: 0 0 2.2rem;
+            color: var(--muted);
+            font-size: 1.14rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+        .card {
+            padding: 1.55rem;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, .92);
+            box-shadow: 0 10px 30px rgba(5, 45, 73, .06);
+        }
+
+        .card p:last-child,
+        .card ul:last-child { margin-bottom: 0; }
+
+        .number {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            margin-bottom: 1rem;
+            place-items: center;
+            color: var(--blue-950);
+            background: var(--yellow);
+            border-radius: 12px;
+            font-size: .9rem;
+            font-weight: 900;
+        }
+
+        .executive-box {
+            display: grid;
+            grid-template-columns: .85fr 1.15fr;
+            overflow: hidden;
+            border-radius: 28px;
+            background: var(--blue-950);
+            box-shadow: var(--shadow);
+        }
+
+        .executive-box > div { padding: clamp(1.7rem, 4vw, 3.6rem); }
+
+        .executive-label {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 330px;
+            color: var(--white);
+            background:
+                linear-gradient(150deg, rgba(255, 212, 0, .17), transparent 68%),
+                var(--blue-900);
+        }
+
+        .executive-label strong {
+            max-width: 400px;
+            font-size: clamp(2rem, 4vw, 3.3rem);
+            line-height: 1.04;
+            letter-spacing: -.04em;
+        }
+
+        .executive-label small { color: #bcd8e8; }
+
+        .executive-copy {
+            color: #dbeaf3;
+            font-size: 1.12rem;
+        }
+
+        .executive-copy strong { color: var(--yellow); }
+
+        .thesis {
+            margin: 2rem 0 0;
+            padding-left: 1.2rem;
+            border-left: 5px solid var(--yellow);
+            color: var(--white);
+            font-size: 1.25rem;
+            font-weight: 720;
+        }
+
+        .value-card {
+            position: relative;
+            min-height: 245px;
+        }
+
+        .value-card::after {
+            position: absolute;
+            right: 1.25rem;
+            bottom: 1rem;
+            content: attr(data-index);
+            color: rgba(6, 59, 97, .09);
+            font-size: 4.8rem;
+            font-weight: 950;
+            line-height: 1;
+        }
+
+        .flow {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: .7rem;
+            align-items: stretch;
+            margin-top: 2rem;
+        }
+
+        .flow-step {
+            position: relative;
+            display: flex;
+            min-height: 155px;
+            padding: 1rem;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid #bed1dc;
+            border-radius: 17px;
+            background: var(--white);
+        }
+
+        .flow-step:not(:last-child)::after {
+            position: absolute;
+            z-index: 2;
+            top: 50%;
+            right: -.75rem;
+            width: .8rem;
+            height: 2px;
+            content: "";
+            background: var(--blue-700);
+        }
+
+        .flow-step.highlight {
+            border-color: #d2aa00;
+            background: var(--yellow-soft);
+        }
+
+        .flow-step small {
+            color: var(--blue-700);
+            font-weight: 850;
+            text-transform: uppercase;
+        }
+
+        .flow-step strong {
+            color: var(--blue-950);
+            line-height: 1.25;
+        }
+
+        .fallback {
+            margin-top: 1rem;
+            padding: 1rem 1.2rem;
+            border: 1px dashed #d4a600;
+            border-radius: 16px;
+            color: #5c4900;
+            background: #fff9da;
+        }
+
+        .clock {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            overflow: hidden;
+            margin-top: 2.1rem;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--white);
+            box-shadow: 0 12px 30px rgba(5, 45, 73, .07);
+        }
+
+        .clock-item {
+            position: relative;
+            min-height: 155px;
+            padding: 1.35rem 1rem;
+            border-right: 1px solid var(--line);
+        }
+
+        .clock-item:last-child { border-right: 0; }
+
+        .clock-item strong {
+            display: block;
+            margin-bottom: .45rem;
+            color: var(--blue-800);
+            font-size: 1.9rem;
+            line-height: 1;
+        }
+
+        .clock-item span { color: var(--muted); font-size: .9rem; }
+
+        .clock-item.total {
+            color: var(--blue-950);
+            background: var(--yellow);
+        }
+
+        .clock-item.total strong,
+        .clock-item.total span { color: var(--blue-950); }
+
+        .formula {
+            margin-top: 1.2rem;
+            padding: 1.25rem;
+            border-radius: 16px;
+            color: #d9edf7;
+            background: var(--blue-950);
+            font: 700 1rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            text-align: center;
+        }
+
+        .criteria {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .7rem;
+        }
+
+        .criteria span {
+            padding: .65rem .85rem;
+            border: 1px solid #bed5e3;
+            border-radius: 12px;
+            color: var(--blue-900);
+            background: var(--blue-050);
+            font-size: .9rem;
+            font-weight: 720;
+        }
+
+        .principle {
+            padding: 1.4rem;
+            border-left: 5px solid var(--yellow);
+            border-radius: 0 16px 16px 0;
+            color: var(--blue-950);
+            background: var(--yellow-soft);
+            font-size: 1.12rem;
+            font-weight: 740;
+        }
+
+        .architecture {
+            display: grid;
+            grid-template-columns: 1fr 1.35fr 1fr;
+            gap: 1rem;
+            align-items: stretch;
+            margin-top: 2rem;
+        }
+
+        .arch-column {
+            display: grid;
+            gap: .85rem;
+        }
+
+        .arch-box {
+            padding: 1.2rem;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--white);
+        }
+
+        .arch-column.core {
+            padding: 1.2rem;
+            border-radius: 22px;
+            color: var(--white);
+            background: var(--blue-950);
+        }
+
+        .core .arch-box {
+            border-color: rgba(255, 255, 255, .14);
+            background: rgba(255, 255, 255, .08);
+        }
+
+        .core .arch-box h3 { color: var(--yellow); }
+        .core .arch-box p { color: #d9eaf3; }
+
+        .status-line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+            margin-top: 1rem;
+        }
+
+        .status-line span {
+            padding: .4rem .65rem;
+            color: var(--blue-900);
+            background: var(--blue-100);
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 760;
+        }
+
+        .status-line span + span::before {
+            margin-right: .45rem;
+            content: "→";
+            color: var(--blue-700);
+        }
+
+        .guardrails {
+            background: var(--blue-950);
+            color: var(--white);
+            border-radius: 28px;
+            padding: clamp(1.7rem, 4vw, 3.4rem);
+        }
+
+        .guardrails h2,
+        .guardrails h3 { color: var(--white); }
+        .guardrails .section-kicker { color: var(--yellow); }
+        .guardrails .section-lead { color: #c5dce8; }
+
+        .guardrail-item {
+            padding: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, .15);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .guardrail-item h3 { color: var(--yellow); }
+        .guardrail-item p { color: #d7e7ef; }
+
+        .pilot {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .pilot-scope {
+            padding: 2rem;
+            border-radius: 22px;
+            background: var(--white);
+            border: 1px solid var(--line);
+        }
+
+        .pilot-scope ul,
+        .risk-list,
+        .decision-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .pilot-scope li,
+        .decision-list li {
+            position: relative;
+            margin: .8rem 0;
+            padding-left: 1.7rem;
+        }
+
+        .pilot-scope li::before,
+        .decision-list li::before {
+            position: absolute;
+            left: 0;
+            top: .42rem;
+            width: .75rem;
+            height: .75rem;
+            content: "";
+            border: 2px solid var(--blue-700);
+            border-radius: 3px;
+        }
+
+        .metric {
+            display: flex;
+            min-height: 150px;
+            padding: 1.25rem;
+            flex-direction: column;
+            justify-content: space-between;
+            border-top: 5px solid var(--yellow);
+            border-radius: 8px 8px 18px 18px;
+            background: var(--white);
+            box-shadow: 0 10px 28px rgba(5, 45, 73, .06);
+        }
+
+        .metric strong {
+            color: var(--blue-950);
+            font-size: 1.05rem;
+        }
+
+        .metric span { color: var(--muted); font-size: .88rem; }
+
+        .risk-table {
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--white);
+        }
+
+        .risk-row {
+            display: grid;
+            grid-template-columns: .9fr 1.1fr;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .risk-row:last-child { border-bottom: 0; }
+        .risk-row > div { padding: 1.15rem 1.25rem; }
+        .risk-row > div:first-child { background: #f4f8fa; font-weight: 780; }
+
+        .phases {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: .85rem;
+            counter-reset: phase;
+        }
+
+        .phase {
+            position: relative;
+            min-height: 270px;
+            padding: 1.4rem;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--white);
+            counter-increment: phase;
+        }
+
+        .phase::before {
+            display: block;
+            margin-bottom: 1rem;
+            content: "0" counter(phase);
+            color: var(--blue-700);
+            font-size: .85rem;
+            font-weight: 900;
+            letter-spacing: .08em;
+        }
+
+        .phase.gate { border: 2px solid #d7b100; background: var(--yellow-soft); }
+
+        .decision-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: clamp(1.8rem, 4vw, 3.5rem);
+            border-radius: 28px;
+            color: var(--white);
+            background:
+                linear-gradient(125deg, rgba(7, 104, 168, .45), transparent 70%),
+                var(--blue-950);
+            box-shadow: var(--shadow);
+        }
+
+        .decision-box h2 { color: var(--white); }
+        .decision-box .section-kicker { color: var(--yellow); }
+        .decision-list li::before { border-color: var(--yellow); }
+
+        .honesty {
+            margin-top: 1.5rem;
+            padding: 1.25rem 1.4rem;
+            border-radius: 16px;
+            color: #fff2b0;
+            background: rgba(255, 212, 0, .1);
+        }
+
+        .references {
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: .88rem;
+        }
+
+        .references li { margin-bottom: .5rem; }
+
+        footer {
+            color: #c9ddea;
+            background: var(--blue-950);
+        }
+
+        .footer-inner {
+            display: flex;
+            width: min(var(--content), calc(100% - 40px));
+            min-height: 150px;
+            margin: 0 auto;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .footer-inner strong { color: var(--white); }
+
+        .print-button {
+            border: 0;
+            padding: .8rem 1.1rem;
+            color: var(--blue-950);
+            background: var(--yellow);
+            border-radius: 12px;
+            cursor: pointer;
+            font: inherit;
+            font-size: .88rem;
+            font-weight: 850;
+        }
+
+        @media (max-width: 980px) {
+            .grid-4, .phases { grid-template-columns: repeat(2, 1fr); }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .flow { grid-template-columns: repeat(2, 1fr); }
+            .flow-step:not(:last-child)::after { display: none; }
+            .clock { grid-template-columns: repeat(3, 1fr); }
+            .clock-item:nth-child(3) { border-right: 0; }
+            .clock-item:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
+            .architecture { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 720px) {
+            body { font-size: 16px; }
+            .hero { min-height: auto; }
+            .brand { margin-bottom: 70px; align-items: flex-start; }
+            .brand-meta { max-width: 130px; text-align: right; }
+            .hero h1 { font-size: clamp(2.8rem, 15vw, 4.6rem); }
+            .grid-2, .grid-3, .grid-4,
+            .executive-box, .pilot, .decision-box,
+            .phases { grid-template-columns: 1fr; }
+            .flow { grid-template-columns: 1fr; }
+            .flow-step { min-height: 120px; }
+            .clock { grid-template-columns: repeat(2, 1fr); }
+            .clock-item:nth-child(2n) { border-right: 0; }
+            .clock-item:nth-child(-n+4) { border-bottom: 1px solid var(--line); }
+            .risk-row { grid-template-columns: 1fr; }
+            .risk-row > div:first-child { padding-bottom: .5rem; }
+            .risk-row > div:last-child { padding-top: .5rem; }
+            .footer-inner { align-items: flex-start; flex-direction: column; justify-content: center; }
+        }
+
+        @media print {
+            @page { size: A4; margin: 14mm; }
+            html, body { background: #fff; }
+            body { font-size: 10pt; }
+            .toc, .print-button, .skip-link { display: none !important; }
+            .hero { min-height: 245mm; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .hero-inner { width: 100%; padding-top: 18mm; }
+            .hero h1 { font-size: 48pt; }
+            main { width: 100%; padding: 16mm 0 0; }
+            section { margin-bottom: 20mm; }
+            .card, .metric, .phase, .flow-step, .arch-box,
+            .executive-box, .guardrails, .decision-box, .risk-table {
+                break-inside: avoid;
+                box-shadow: none;
+            }
+            h2, h3 { break-after: avoid; }
+            .grid-4, .phases { grid-template-columns: repeat(2, 1fr); }
+            .flow { grid-template-columns: repeat(4, 1fr); }
+            .flow-step:not(:last-child)::after { display: none; }
+            .clock { grid-template-columns: repeat(3, 1fr); }
+            footer { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+
+    <header class="hero">
+        <div class="hero-inner">
+            <div class="brand">
+                <div class="brand-mark">
+                    <span class="brand-symbol">SPIV</span>
+                    <span>Inteligência comercial e logística</span>
+                </div>
+                <div class="brand-meta">Proposta conceitual<br>Outubro de 2026</div>
+            </div>
+
+            <p class="eyebrow">Proposta para decisão executiva</p>
+            <h1>SPIV <span>Logística</span></h1>
+            <p class="hero-lead">
+                Ship from Store, coleta postal dinâmica e entrega urbana expressa em até duas horas —
+                conectando oportunidade comercial, capacidade operacional e experiência do cliente em uma única jornada auditável.
+            </p>
+            <div class="hero-tags" aria-label="Características da proposta">
+                <span>Piloto controlado</span>
+                <span>Correios em primeiro lugar</span>
+                <span>Celular como ferramenta operacional</span>
+                <span>Arquitetura evolutiva</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="toc" aria-label="Índice da proposta">
+        <div class="toc-inner">
+            <a href="#resumo">Resumo</a>
+            <a href="#oportunidade">Oportunidade</a>
+            <a href="#jornada">Jornada</a>
+            <a href="#sla">SLA de 2 horas</a>
+            <a href="#operacao">Operação</a>
+            <a href="#arquitetura">Arquitetura</a>
+            <a href="#governanca">Governança</a>
+            <a href="#piloto">Piloto</a>
+            <a href="#metricas">Métricas</a>
+            <a href="#decisoes">Decisões</a>
+        </div>
+    </nav>
+
+    <main id="conteudo">
+        <section id="resumo">
+            <div class="executive-box">
+                <div class="executive-label">
+                    <span class="eyebrow">Resumo executivo</span>
+                    <strong>Da oportunidade comercial à entrega, sem perder o cliente no caminho.</strong>
+                    <small>Uma expansão controlada do SPIV, não uma substituição dos sistemas corporativos.</small>
+                </div>
+                <div class="executive-copy">
+                    <p>
+                        Propomos evoluir o SPIV para funcionar como uma camada de integração entre vendas e logística.
+                        Uma demanda identificada ou recebida pelo sistema poderá gerar uma missão de coleta e entrega,
+                        oferecida a agentes operacionais elegíveis dos Correios conforme proximidade, rota, capacidade e prazo.
+                    </p>
+                    <p>
+                        O objetivo do piloto é testar <strong>entregas urbanas com meta operacional de até duas horas</strong>,
+                        iniciadas no estoque de uma loja física e concluídas diretamente no destinatário. Quando a capacidade
+                        postal não estiver disponível no tempo definido, uma contingência autorizada poderá preservar a jornada.
+                    </p>
+                    <p class="thesis">
+                        O SPIV identifica a demanda, qualifica a oportunidade, aciona a capacidade logística e acompanha o primeiro uso.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="oportunidade">
+            <p class="section-kicker">Por que agora</p>
+            <h2>Uma nova superfície de demanda para os Correios</h2>
+            <p class="section-lead">
+                Lojas físicas já funcionam como estoques distribuídos. O desafio não é apenas vender o item disponível:
+                é conectar essa venda a uma capacidade logística próxima, rápida e mensurável.
+            </p>
+
+            <div class="grid grid-4">
+                <article class="card value-card" data-index="01">
+                    <h3>Demanda visível</h3>
+                    <p>O SPIV passa a registrar solicitações urbanas que hoje podem não chegar à rede postal ou não ser percebidas comercialmente.</p>
+                </article>
+                <article class="card value-card" data-index="02">
+                    <h3>Capacidade em movimento</h3>
+                    <p>Equipes já presentes nas ruas podem receber sugestões de coleta compatíveis com sua rota, capacidade e jornada.</p>
+                </article>
+                <article class="card value-card" data-index="03">
+                    <h3>Receita incremental</h3>
+                    <p>O piloto mede quando os Correios conseguem reter entregas expressas que poderiam migrar para outros operadores.</p>
+                </article>
+                <article class="card value-card" data-index="04">
+                    <h3>Decisão por evidências</h3>
+                    <p>Tempo de aceite, coleta, entrega, recusa e contingência formam uma base objetiva para decidir sobre expansão.</p>
+                </article>
+            </div>
+
+            <div class="principle" style="margin-top: 1.5rem;">
+                A proposta não é criar um “Uber dos carteiros”. É testar coleta postal dinâmica orientada por capacidade,
+                sob controle da operação e sem converter proximidade geográfica em obrigação automática de trabalho.
+            </div>
+        </section>
+
+        <section id="jornada">
+            <p class="section-kicker">Jornada integrada</p>
+            <h2>Um fluxo contínuo entre venda e logística</h2>
+            <p class="section-lead">
+                O SPIV atua como orquestrador. Sistemas especializados de estoque, pagamento, emissão fiscal,
+                postagem e rastreamento continuam como fontes oficiais e são integrados conforme disponibilidade.
+            </p>
+
+            <div class="flow" aria-label="Fluxo da jornada proposta">
+                <div class="flow-step">
+                    <small>01</small>
+                    <strong>Demanda ou oportunidade registrada</strong>
+                </div>
+                <div class="flow-step">
+                    <small>02</small>
+                    <strong>Loja e estoque confirmados</strong>
+                </div>
+                <div class="flow-step">
+                    <small>03</small>
+                    <strong>Pedido pronto para retirada</strong>
+                </div>
+                <div class="flow-step highlight">
+                    <small>04</small>
+                    <strong>Agentes elegíveis recebem a oferta</strong>
+                </div>
+                <div class="flow-step">
+                    <small>05</small>
+                    <strong>Um único aceite é confirmado</strong>
+                </div>
+                <div class="flow-step">
+                    <small>06</small>
+                    <strong>Coleta e entrega direta</strong>
+                </div>
+                <div class="flow-step">
+                    <small>07</small>
+                    <strong>Entrega, primeiro uso e pós-venda</strong>
+                </div>
+            </div>
+
+            <div class="fallback">
+                <strong>Contingência configurável:</strong> se nenhuma capacidade postal elegível aceitar dentro da janela interna,
+                o sistema encaminha a ocorrência à central ou, quando houver autorização e contrato, consulta um parceiro logístico.
+                A contingência preserva o cliente; não reduz a prioridade dos Correios.
+            </div>
+        </section>
+
+        <section id="sla">
+            <p class="section-kicker">Compromisso operacional</p>
+            <h2>Duas horas exigem entrega direta e controle do relógio</h2>
+            <p class="section-lead">
+                O prazo deve ser tratado inicialmente como meta operacional do piloto, disponível apenas para áreas,
+                horários e objetos elegíveis. Uma garantia comercial só deve existir depois de evidências suficientes.
+            </p>
+
+            <div class="clock" aria-label="Orçamento proposto para o prazo de duas horas">
+                <div class="clock-item"><strong>5 min</strong><span>Validação do pedido e dos endereços</span></div>
+                <div class="clock-item"><strong>5 min</strong><span>Seleção, oferta e aceite operacional</span></div>
+                <div class="clock-item"><strong>25 min</strong><span>Deslocamento estimado até a loja</span></div>
+                <div class="clock-item"><strong>10 min</strong><span>Conferência, custódia e retirada</span></div>
+                <div class="clock-item"><strong>55 min</strong><span>Deslocamento e entrega ao destinatário</span></div>
+                <div class="clock-item total"><strong>20 min</strong><span>Margem operacional — total de 120 minutos</span></div>
+            </div>
+
+            <div class="formula">
+                tempo até a loja + retirada + tempo até o cliente + margem ≤ tempo restante do SLA
+            </div>
+            <p style="margin-top: 1rem; color: var(--muted);">
+                Quando a previsão ultrapassar o tempo restante, a missão não deve ser oferecida como entrega postal de duas horas.
+                A decisão é preventiva: evita aceite inviável, frustração do cliente e desorganização da operação.
+            </p>
+        </section>
+
+        <section id="operacao">
+            <p class="section-kicker">Operação em campo</p>
+            <h2>O agente mais adequado, não apenas o mais próximo</h2>
+            <p class="section-lead">
+                A localização é um insumo. A elegibilidade precisa combinar regras operacionais, segurança e viabilidade do SLA.
+            </p>
+
+            <div class="grid grid-2">
+                <article class="card">
+                    <h3>Critérios para oferta</h3>
+                    <div class="criteria" aria-label="Critérios de elegibilidade">
+                        <span>Proximidade</span><span>Rota atual</span><span>Capacidade</span><span>Tipo de veículo</span>
+                        <span>Peso e dimensões</span><span>Horário limite</span><span>Previsão de retorno</span>
+                        <span>Habilitação</span><span>Jornada</span><span>Segurança</span><span>SLA restante</span>
+                    </div>
+                </article>
+                <article class="card">
+                    <h3>Informações no celular</h3>
+                    <div class="criteria" aria-label="Informações da missão no celular">
+                        <span>Distância adicional</span><span>Endereço da loja</span><span>Janela de retirada</span>
+                        <span>Quantidade</span><span>Peso e volume</span><span>Destino</span>
+                        <span>Impacto estimado</span><span>Unidade de retorno</span><span>Prazo para aceitar</span>
+                    </div>
+                </article>
+            </div>
+
+            <div class="grid grid-3" style="margin-top: 1.25rem;">
+                <article class="card">
+                    <span class="number">1</span>
+                    <h3>Coleta programada</h3>
+                    <p>A unidade recebe a demanda com antecedência e encaixa a coleta no planejamento regular.</p>
+                </article>
+                <article class="card">
+                    <span class="number">2</span>
+                    <h3>Dinâmica supervisionada</h3>
+                    <p>O sistema sugere agentes elegíveis e a central ou supervisão confirma a atribuição.</p>
+                </article>
+                <article class="card">
+                    <span class="number">3</span>
+                    <h3>Dinâmica direta</h3>
+                    <p>Agentes habilitados recebem a oferta no celular e um único aceite é confirmado atomicamente.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="arquitetura">
+            <p class="section-kicker">Base tecnológica</p>
+            <h2>Evolução modular, sem reescrita prematura</h2>
+            <p class="section-lead">
+                O piloto pode nascer como um módulo bem isolado dentro do CodeIgniter 4 atual. A separação em serviços independentes
+                só ocorre quando volume, disponibilidade ou governança justificarem esse custo.
+            </p>
+
+            <div class="architecture">
+                <div class="arch-column">
+                    <div class="arch-box"><h3>Canais</h3><p>Portal comercial, PWA da loja, celular operacional e central de acompanhamento.</p></div>
+                    <div class="arch-box"><h3>Identidade</h3><p>Shield, LDAP, perfis, permissões e autenticação corporativa.</p></div>
+                    <div class="arch-box"><h3>Notificação</h3><p>Web Push e alertas de tela, com canais corporativos alternativos.</p></div>
+                </div>
+
+                <div class="arch-column core">
+                    <div class="arch-box"><h3>SPIV Comercial</h3><p>Prospects, carteira, oportunidades, campanhas e autoria.</p></div>
+                    <div class="arch-box"><h3>SPIV Logística</h3><p>Solicitações, elegibilidade, ofertas, SLA, custódia, entrega e auditoria.</p></div>
+                    <div class="arch-box"><h3>Execução assíncrona</h3><p>CodeIgniter Queue e Tasks; Redis/Valkey opcional para locks, cache e eventos temporários.</p></div>
+                    <div class="arch-box"><h3>Fonte oficial</h3><p>PostgreSQL e PostGIS para estado durável, localização, trilha e métricas.</p></div>
+                </div>
+
+                <div class="arch-column">
+                    <div class="arch-box"><h3>Sistemas oficiais</h3><p>Estoque/ERP, fiscal, pagamento, postagem, rastreamento e ativação.</p></div>
+                    <div class="arch-box"><h3>Parceiros</h3><p>Adaptadores isolados, contratados e acionados somente quando autorizados.</p></div>
+                    <div class="arch-box"><h3>Confiabilidade</h3><p>Outbox, idempotência, retries, webhooks e aceite transacional único.</p></div>
+                </div>
+            </div>
+
+            <div class="status-line" aria-label="Estados básicos de uma missão logística">
+                <span>Criada</span><span>Elegibilidade calculada</span><span>Oferecida</span><span>Aceita</span>
+                <span>Coleta iniciada</span><span>Objeto recebido</span><span>Entregue</span><span>Encerrada</span>
+            </div>
+            <p style="color: var(--muted);">
+                PostgreSQL permanece como fonte de verdade. Redis acelera coordenação e concorrência, mas uma reinicialização
+                de cache nunca pode apagar oferta, aceite, custódia ou entrega.
+            </p>
+        </section>
+
+        <section id="governanca" class="guardrails">
+            <p class="section-kicker">Guardrails do piloto</p>
+            <h2>A tecnologia oferece possibilidades; a operação define os limites</h2>
+            <p class="section-lead">
+                O maior risco não é escrever o software. É implantar uma dinâmica que respeite segurança,
+                atribuições funcionais, jornada, privacidade e qualidade do serviço postal.
+            </p>
+
+            <div class="grid grid-3">
+                <article class="guardrail-item"><h3>Controle operacional</h3><p>A oferta não altera automaticamente a rota nem substitui a autoridade da unidade e da supervisão.</p></article>
+                <article class="guardrail-item"><h3>Participação protegida</h3><p>O modelo do piloto deve definir voluntariedade, habilitação e ausência de punição por recusa.</p></article>
+                <article class="guardrail-item"><h3>Privacidade por desenho</h3><p>Localização somente durante janela operacional e pelo tempo mínimo necessário, sem vigilância histórica indevida.</p></article>
+                <article class="guardrail-item"><h3>Segurança</h3><p>Peso, volume, área, horário, veículo, risco do percurso e condições de custódia limitam a elegibilidade.</p></article>
+                <article class="guardrail-item"><h3>Responsabilidade</h3><p>Coleta, recebimento e entrega precisam de evidências, códigos de confirmação e cadeia de custódia.</p></article>
+                <article class="guardrail-item"><h3>Continuidade</h3><p>Fallback é contingência contratada e configurável, não transferência silenciosa de demanda à concorrência.</p></article>
+            </div>
+        </section>
+
+        <section id="piloto">
+            <p class="section-kicker">Experimento controlado</p>
+            <h2>Começar pequeno para aprender rápido</h2>
+            <p class="section-lead">
+                O primeiro piloto deve provar a operação antes de provar escala. Seu desenho reduz variáveis,
+                limita exposição e cria portões claros para interromper, ajustar ou expandir.
+            </p>
+
+            <div class="pilot">
+                <article class="pilot-scope">
+                    <h3>Escopo recomendado</h3>
+                    <ul>
+                        <li>Uma cidade e uma microárea urbana.</li>
+                        <li>Uma ou duas unidades operacionais.</li>
+                        <li>Poucas lojas com estoque confiável.</li>
+                        <li>Objetos pequenos, padronizados e previamente embalados.</li>
+                        <li>Agentes previamente habilitados e dispositivo corporativo.</li>
+                        <li>Horários controlados de oferta e coleta.</li>
+                        <li>Operação inicialmente supervisionada.</li>
+                        <li>Fallback assistido antes da automação contratual.</li>
+                    </ul>
+                </article>
+                <article class="pilot-scope">
+                    <h3>O que fica fora da primeira rodada</h3>
+                    <ul>
+                        <li>Promessa nacional de entrega em duas horas.</li>
+                        <li>Aceite irrestrito por qualquer empregado.</li>
+                        <li>Roteamento autônomo sem supervisão.</li>
+                        <li>Objetos de alto valor, frágeis ou fora do padrão.</li>
+                        <li>Contratação automática de múltiplos parceiros.</li>
+                        <li>Formação de preço e remuneração automática.</li>
+                        <li>Substituição dos sistemas oficiais dos Correios.</li>
+                        <li>Expansão antes da avaliação dos resultados.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section id="metricas">
+            <p class="section-kicker">Aprendizado mensurável</p>
+            <h2>Indicadores que sustentam a próxima decisão</h2>
+            <p class="section-lead">
+                O piloto deve responder se a capacidade postal consegue atender a demanda, com que custo operacional
+                e em quais condições o serviço gera valor para cliente, loja e Correios.
+            </p>
+
+            <div class="grid grid-4">
+                <div class="metric"><strong>Taxa de aceite postal</strong><span>Percentual aceito no prazo por região e unidade.</span></div>
+                <div class="metric"><strong>Tempo até o aceite</strong><span>Latência entre oferta e confirmação da missão.</span></div>
+                <div class="metric"><strong>Coleta no prazo</strong><span>Tempo entre pedido pronto e retirada confirmada.</span></div>
+                <div class="metric"><strong>Entrega em até 2 horas</strong><span>Desempenho real por área, horário e tipo de objeto.</span></div>
+                <div class="metric"><strong>Desvio de rota</strong><span>Distância e tempo adicionais gerados pela missão.</span></div>
+                <div class="metric"><strong>Fallback</strong><span>Volume não atendido pelos Correios e motivo.</span></div>
+                <div class="metric"><strong>Falhas e reentregas</strong><span>Problemas de endereço, destinatário, custódia e sistema.</span></div>
+                <div class="metric"><strong>Demanda incremental</strong><span>Entregas e receita potencial que não seriam capturadas.</span></div>
+                <div class="metric"><strong>Confiabilidade do estoque</strong><span>Pedidos preparados versus itens não encontrados.</span></div>
+                <div class="metric"><strong>Custo por missão</strong><span>Custo postal, contingência e impacto operacional.</span></div>
+                <div class="metric"><strong>Experiência</strong><span>Satisfação da loja, destinatário e equipe operacional.</span></div>
+                <div class="metric"><strong>Primeiro uso</strong><span>Conversão da oportunidade comercial em operação concluída.</span></div>
+            </div>
+        </section>
+
+        <section id="riscos">
+            <p class="section-kicker">Riscos e respostas</p>
+            <h2>Transparência aumenta a credibilidade do piloto</h2>
+            <div class="risk-table">
+                <div class="risk-row"><div>Estoque divergente</div><div>Reserva e confirmação antes da oferta; estoque de segurança e contingência entre lojas.</div></div>
+                <div class="risk-row"><div>Aceite inviável para o SLA</div><div>Previsão de tempo antes da oferta, margem operacional e bloqueio preventivo de missões inviáveis.</div></div>
+                <div class="risk-row"><div>Sobrecarga da operação</div><div>Limites por unidade, faixa horária, agente e rota; expansão somente após resultados.</div></div>
+                <div class="risk-row"><div>Conflito trabalhista ou funcional</div><div>Validação institucional prévia, participação definida, supervisão e regras transparentes.</div></div>
+                <div class="risk-row"><div>Privacidade de localização</div><div>Finalidade restrita, retenção mínima, acesso auditado e ausência de rastreamento fora da operação.</div></div>
+                <div class="risk-row"><div>Dois aceites simultâneos</div><div>Transição atômica, lock curto e idempotência no servidor.</div></div>
+                <div class="risk-row"><div>Dependência de parceiro</div><div>Adaptador isolado, contrato validado, fallback configurável e central como última decisão.</div></div>
+                <div class="risk-row"><div>Promessa comercial precoce</div><div>Meta operacional durante o piloto; garantia somente após evidência estatística e aprovação.</div></div>
+                <div class="risk-row"><div>Dependência de poucas pessoas</div><div>Documentação, testes, revisão, observabilidade e composição mínima de equipe.</div></div>
+            </div>
+        </section>
+
+        <section id="fases">
+            <p class="section-kicker">Implantação por portões</p>
+            <h2>O investimento cresce somente com evidência</h2>
+            <div class="phases">
+                <article class="phase">
+                    <h3>Descoberta e governança</h3>
+                    <p>Área piloto, operação, regras funcionais, privacidade, fiscal, estoque, integrações e responsabilidades.</p>
+                </article>
+                <article class="phase gate">
+                    <h3>Piloto supervisionado</h3>
+                    <p>Poucas lojas e unidades, aceite assistido, entrega direta, mensuração integral e fallback manual.</p>
+                </article>
+                <article class="phase">
+                    <h3>Dinâmica controlada</h3>
+                    <p>Oferta no celular, elegibilidade automatizada, timers, fila, Web Push e contingência autorizada.</p>
+                </article>
+                <article class="phase">
+                    <h3>Expansão por ondas</h3>
+                    <p>Novas áreas e lojas, calibração por capacidade, integrações e SLA comercial quando comprovado.</p>
+                </article>
+            </div>
+        </section>
+
+        <section id="decisoes">
+            <div class="decision-box">
+                <div>
+                    <p class="section-kicker">O que precisamos da gestão</p>
+                    <h2>Autorizar o aprendizado, não prometer a escala</h2>
+                    <p>
+                        A decisão solicitada é iniciar o desenho institucional e técnico de um piloto controlado,
+                        aproveitando o SPIV como base comum de vendas, autorização, auditoria e integração.
+                    </p>
+                    <div class="honesty">
+                        Esta proposta não afirma que a entrega em duas horas já está garantida. Ela propõe medir,
+                        com segurança, onde e em quais condições os Correios podem oferecê-la.
+                    </div>
+                </div>
+                <div>
+                    <ul class="decision-list">
+                        <li>Patrocínio conjunto das áreas comercial, operacional e de tecnologia.</li>
+                        <li>Definição da cidade, microárea, lojas e unidades participantes.</li>
+                        <li>Autorização para levantamento de rota, capacidade e regras funcionais.</li>
+                        <li>Validação de privacidade, segurança, custódia e responsabilidades.</li>
+                        <li>Acesso controlado à infraestrutura corporativa para os dois pilotos do SPIV.</li>
+                        <li>Contato com ERP/estoque, sistemas postais e potenciais parceiros.</li>
+                        <li>Composição mínima de equipe, evitando dependência de uma única pessoa.</li>
+                        <li>Critérios objetivos para continuar, ajustar ou encerrar o piloto.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="references" aria-labelledby="referencias-titulo">
+            <h2 id="referencias-titulo" style="font-size: 1.5rem;">Notas técnicas e fontes públicas consultadas</h2>
+            <ol>
+                <li>CodeIgniter 4: Queue e Tasks são pacotes oficiais, instalados separadamente conforme a necessidade.</li>
+                <li>99Entrega: a integração empresarial depende de cadastro, credenciais, testes em sandbox, webhooks e liberação de produção.</li>
+                <li>Limites, disponibilidade, preços e condições de parceiros devem ser confirmados contratualmente antes do piloto.</li>
+                <li>A base proposta preserva o PostgreSQL já utilizado pelo SPIV; PostGIS atende consultas geoespaciais e Redis/Valkey permanece opcional.</li>
+            </ol>
+            <p>
+                Referências: <a href="https://codeigniter.com/user_guide/libraries/official_packages.html">Pacotes oficiais CodeIgniter</a>,
+                <a href="https://github.com/codeigniter4/queue">CodeIgniter Queue</a>,
+                <a href="https://99entrega.99app.com/b2c-sme/">integração empresarial 99Entrega</a> e
+                <a href="https://99app.com/passageiro/99-entrega/">regras públicas 99Entrega</a>.
+                Consulta realizada em outubro de 2026.
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-inner">
+            <div><strong>SPIV Logística</strong><br>Ship from Store e coleta postal dinâmica</div>
+            <button class="print-button" type="button" onclick="window.print()">Imprimir ou salvar em PDF</button>
+        </div>
+    </footer>
+</body>
+</html>
