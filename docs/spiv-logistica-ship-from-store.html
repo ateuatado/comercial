@@ -162,6 +162,12 @@
 
         .hero h1 span { color: var(--yellow); }
 
+        .hero-copy {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
         .hero-lead {
             max-width: 800px;
             margin: 2rem 0 0;
@@ -772,13 +778,92 @@
             }
             .toc, .print-button, .skip-link { display: none !important; }
             .hero {
-                min-height: 245mm;
+                width: 100%;
+                min-height: 269mm;
+                height: 269mm;
                 break-after: page;
                 print-color-adjust: exact;
                 -webkit-print-color-adjust: exact;
             }
-            .hero-inner { width: 100%; padding-top: 18mm; }
-            .hero h1 { font-size: 48pt; }
+            .hero::before {
+                width: 122mm;
+                height: 122mm;
+                right: -42mm;
+                top: -52mm;
+                border-width: 19mm;
+                opacity: .7;
+            }
+            .hero::after {
+                display: none;
+            }
+            .hero-inner {
+                display: grid;
+                grid-template-rows: auto 1fr auto;
+                width: 100%;
+                height: 100%;
+                padding: 13mm 13mm 12mm;
+            }
+            .brand {
+                align-items: center;
+                margin: 0;
+            }
+            .brand-mark {
+                gap: 3mm;
+                font-size: 9.5pt;
+                letter-spacing: .025em;
+            }
+            .brand-symbol {
+                width: 13mm;
+                height: 13mm;
+                border-radius: 3.2mm;
+                font-size: 8.5pt;
+            }
+            .brand-meta {
+                max-width: 45mm;
+                font-size: 7.5pt;
+                line-height: 1.5;
+                text-align: right;
+            }
+            .hero-copy {
+                align-self: center;
+                max-width: 148mm;
+                margin-top: -8mm;
+            }
+            .eyebrow {
+                margin-bottom: 5mm;
+                padding: 2.2mm 4mm;
+                font-size: 7.5pt;
+                letter-spacing: .08em;
+            }
+            .hero h1 {
+                font-size: 40pt;
+                line-height: 1;
+                letter-spacing: -.045em;
+            }
+            .hero-lead {
+                max-width: 145mm;
+                margin-top: 7mm;
+                font-size: 12pt;
+                line-height: 1.5;
+            }
+            .hero-tags {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 3mm;
+                width: 100%;
+                margin: 0;
+            }
+            .hero-tags span {
+                display: flex;
+                min-height: 12mm;
+                align-items: center;
+                justify-content: center;
+                padding: 2.5mm 3mm;
+                border-radius: 4mm;
+                font-size: 8.5pt;
+                line-height: 1.25;
+                text-align: center;
+            }
             main { width: 100%; padding: 0; }
             section {
                 margin: 0;
@@ -845,12 +930,14 @@
                 <div class="brand-meta">Proposta conceitual<br>Outubro de 2026</div>
             </div>
 
-            <p class="eyebrow">Proposta para decisão executiva</p>
-            <h1>SPIV <span>Logística</span></h1>
-            <p class="hero-lead">
-                Ship from Store, coleta postal dinâmica e entrega urbana expressa em até duas horas —
-                conectando oportunidade comercial, capacidade operacional e experiência do cliente em uma única jornada auditável.
-            </p>
+            <div class="hero-copy">
+                <p class="eyebrow">Proposta para decisão executiva</p>
+                <h1>SPIV <span>Logística</span></h1>
+                <p class="hero-lead">
+                    Ship from Store, coleta postal dinâmica e entrega urbana expressa em até duas horas —
+                    conectando oportunidade comercial, capacidade operacional e experiência do cliente em uma única jornada auditável.
+                </p>
+            </div>
             <div class="hero-tags" aria-label="Características da proposta">
                 <span>Piloto controlado</span>
                 <span>Correios em primeiro lugar</span>
