@@ -765,23 +765,69 @@
         @media print {
             @page { size: A4; margin: 14mm; }
             html, body { background: #fff; }
-            body { font-size: 10pt; }
+            body {
+                font-size: 10pt;
+                widows: 3;
+                orphans: 3;
+            }
             .toc, .print-button, .skip-link { display: none !important; }
-            .hero { min-height: 245mm; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .hero {
+                min-height: 245mm;
+                break-after: page;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
             .hero-inner { width: 100%; padding-top: 18mm; }
             .hero h1 { font-size: 48pt; }
-            main { width: 100%; padding: 16mm 0 0; }
-            section { margin-bottom: 20mm; }
+            main { width: 100%; padding: 0; }
+            section {
+                margin: 0;
+                padding-top: 5mm;
+                break-before: page;
+            }
+            section > .section-kicker,
+            section > h2,
+            section > .section-lead {
+                break-after: avoid;
+            }
             .card, .metric, .phase, .flow-step, .arch-box,
-            .executive-box, .guardrails, .decision-box, .risk-table {
+            .executive-box, .guardrails, .decision-box, .risk-table,
+            .risk-row, .clock, .formula, .flow, .architecture,
+            .pilot, .phases, .principle, .fallback {
                 break-inside: avoid;
                 box-shadow: none;
             }
             h2, h3 { break-after: avoid; }
-            .grid-4, .phases { grid-template-columns: repeat(2, 1fr); }
+            .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .grid-4 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .phases { grid-template-columns: repeat(2, 1fr); }
             .flow { grid-template-columns: repeat(4, 1fr); }
             .flow-step:not(:last-child)::after { display: none; }
             .clock { grid-template-columns: repeat(3, 1fr); }
+            .clock-item:nth-child(3) { border-right: 0; }
+            .clock-item:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
+            #sla .formula + p { break-before: avoid; }
+            #operacao .card { min-height: auto; padding: 3.5mm; }
+            #operacao .criteria { gap: 1.8mm; }
+            #operacao .criteria span { padding: 1.4mm 2mm; font-size: 7.5pt; }
+            #arquitetura .architecture {
+                grid-template-columns: 1fr 1.25fr 1fr;
+                gap: 2.5mm;
+                break-inside: avoid-page;
+                font-size: 8pt;
+            }
+            #arquitetura .arch-column { gap: 2mm; }
+            #arquitetura .arch-column.core { padding: 2.5mm; }
+            #arquitetura .arch-box { padding: 2.5mm; }
+            #arquitetura .arch-box h3 { margin-bottom: 1mm; font-size: 9.5pt; }
+            #arquitetura .arch-box p { margin: 0; }
+            #metricas .grid { gap: 2.5mm; }
+            #metricas .metric { min-height: 29mm; padding: 3mm; }
+            #metricas .metric strong { font-size: 9pt; }
+            #metricas .metric span { font-size: 7.5pt; }
+            #governanca { padding: 8mm; }
+            #decisoes { padding-top: 5mm; }
+            .references { break-before: page; }
             footer { display: none; }
         }
     </style>
